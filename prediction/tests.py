@@ -1,38 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
-from models import Element, Prediction
+from models import Element, Prediction, PredictionLinear
 
 class Base(TestCase):
     def setUp(self):
         self.maxDiff = None
 
-    def test_linear_forecasting_for_the_whole_period(self):
-        """
-        Попробуем линейное прогнозированите на всем периоде
-
-        Идет потребление некоторых ресурсов постоянно но не очень системно.
-        К примеру молоко.
-        Покупается несколько раз внеделю.
-        Изменять потребление не планируется.
-        Попробуем линейно апроксимировать данную функцию.
-	добавил нужгыеразмеры в нашем случае молоко употребляется в литрахт 'volume': 1
-
-	сначала получим среднее потребление молока в день.
-	    просумируем все потребление и поделимгачисло дней закоторое было произведено потребление
-		получили в итоге производную
-
-	далее попробуем полчить производную исключив один элемет потребления и сокративчисло дней до момента его приобретения
-
-	затем рассчитам на сколько днейхватит послежней покупк если потребление будет таким же
-	    сейчас рассматриваем простую можель когда потребление рассчитываеися от даты первой покупки до даты последней покупки.
-
-	прибавим к дельте котороая между первой и последней покупкой, количество дней накоторых хватит последей покупки и получим дату когда нужно установить хакупку в календаре.
-        """
-
-	delta_days = 40
-	delta_days_2 = 35
-
-	list_buy_milk = [
+    def __list_buy_milk(self):
+	return [
 	    {
 		"dateTime":"2020-06-03T14:50:00",
 		'items': [
@@ -84,6 +59,35 @@ class Base(TestCase):
 	    },
 	]
 
+
+    def test_linear_forecasting_for_the_whole_period(self):
+        """
+        Попробуем линейное прогнозированите на всем периоде
+
+        Идет потребление некоторых ресурсов постоянно но не очень системно.
+        К примеру молоко.
+        Покупается несколько раз внеделю.
+        Изменять потребление не планируется.
+        Попробуем линейно апроксимировать данную функцию.
+	добавил нужгыеразмеры в нашем случае молоко употребляется в литрахт 'volume': 1
+
+	сначала получим среднее потребление молока в день.
+	    просумируем все потребление и поделимгачисло дней закоторое было произведено потребление
+		получили в итоге производную
+
+	далее попробуем полчить производную исключив один элемет потребления и сокративчисло дней до момента его приобретения
+
+	затем рассчитам на сколько днейхватит послежней покупк если потребление будет таким же
+	    сейчас рассматриваем простую можель когда потребление рассчитываеися от даты первой покупки до даты последней покупки.
+
+	прибавим к дельте котороая между первой и последней покупкой, количество дней накоторых хватит последей покупки и получим дату когда нужно установить хакупку в календаре.
+        """
+
+	delta_days = 40
+	delta_days_2 = 35
+
+	list_buy_milk = self.__list_buy_milk()
+
 	elements = []
 	for i in list_buy_milk:
 	    for j in i['items']:
@@ -93,16 +97,54 @@ class Base(TestCase):
 
 	self.assertEqual(0.34, Prediction.average_weight_per_day_in_during_period(elements, delta_days))
 
+	pl = PredictionLinear(elements)
+	self.assertEqual(0.34, pl.average_weight_per_day_in_during_period(delta_days))
+
 	#self.assertEqual(0.3, Prediction.average_weight_per_day_in_during_period(elements[1:], delta_days_2))
 	delta = Prediction.average_weight_per_day_in_during_period(elements[1:], delta_days_2)
+	self.assertEqual(0.3, delta)
+
+	pl_2 = PredictionLinear(elements[1:])
+	delta = pl_2.average_weight_per_day_in_during_period(delta_days_2)
 	self.assertEqual(0.3, delta)
 
 	#self.assertEqual(10.0, elements[0].get_weight() / delta) 
 	days_continue_for_last_buy = elements[0].get_weight() / delta
 	self.assertEqual(10.0, days_continue_for_last_buy)
 
+	delta_days_future = pl.days_future(delta_days_2)
+	self.assertEqual(10.0, delta_days_future)
+
 	today_is = 45.0 #какойто день месяца в который долженсработать напоминание что сегоднявсе кончится.
 	self.assertEqual(today_is, delta_days_2 + days_continue_for_last_buy)
 
 
+    def test_2(self):
+	"""
+	Найти какрточки продуктов которые подойдут для данной функии потребления.
+
+	Функция потребления состоит из:
+	    1) ресурсы которые в нее включены
+		а также продукты на которые ссылаются включенные ресурсы
+	    2) учитывает все ресурсов которые обработаны в рамках данной фирм и не включенных в эту функцию.
+		после обработки(добавления в другую ф. слеует подождать несколько дней так возможно еще не успели оработать)
+		    простой случайесли ресурс добавлен в другую ф. в эту его автоматом не предлагать
+	    3) ресурсов предложенных но отвергнутых пользователем
+	    4) продуктов предложенных но отвергнутых пользоватеоем
+	    5) есть авто функции которые есть у всех пользоватеей МОЛОКО 3.2% в них автоматом для рекомедаций добавлять все продукты и ресурсы с таким покащатеоем.
+	"""
+
+	# получаю список ресурсов функции 
+	list_buy_milk = self.__list_buy_milk()
+	elements = []
+	for i in list_buy_milk:
+	    for j in i['items']:
+		elements.append(Element(i['dateTime'], j['volume']*j['quantity']))
+
+	prediction = PredictionLinear(elements)
 	
+	product_cards = prediction.product_cards()
+	self.assertEqual(0, 1)
+
+
+

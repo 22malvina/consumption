@@ -24,6 +24,7 @@ class Prediction(object):
     """
     Каласс для рассчета потребелния
     """
+    print 'Depricated'
 
     @classmethod
     #def average_weight_per_day_in_cluster_products_during_period_v1(cls, elements, delta_days):
@@ -31,4 +32,28 @@ class Prediction(object):
 	all_weight = sum(map(lambda x: float(x.get_weight()), resources))
 	return float("{0:.2f}".format(float(all_weight) / delta_days))
 
+class PredictionLinear(object):
+    """
+    Класс рассчета линейного потребления
+
+	ресурсы идут в порядке от от послежнего к самому раннему
+    """
+    def average_weight_per_day_in_during_period(self, delta_days):
+	all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources))
+	return float("{0:.2f}".format(float(all_weight) / delta_days))
+
+    def __average_weight_per_day_in_during_period_without_last(self, delta_days):
+	all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources[1:]))
+	return float("{0:.2f}".format(float(all_weight) / delta_days))
+
+    def days_future(self, delta_days):
+	delta = self.__average_weight_per_day_in_during_period_without_last(delta_days)
+	days_continue_for_last_buy = self.__resources[0].get_weight() / delta
+	return days_continue_for_last_buy
+
+    def __init__(self, resources):
+	"""
+	проверить что все потребление идет впорядке убывания
+	""" 
+	self.__resources = resources
 
