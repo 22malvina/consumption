@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from models import Element, Prediction, PredictionLinear
+from product_card.models import ProductCard
 
 class Base(TestCase):
     def setUp(self):
         self.maxDiff = None
+
+	p = ProductCard(title="Молоко ДВД 3.2%")
+	p.save()
+	p = ProductCard(title="Молоко SPAR 3.2% 1.7 л.")
+	p.save()
+	p = ProductCard(title="Молоко Простоквашино 3.2%")
+	p.save()
+	p = ProductCard(title="Творог SPAR 9%")
+	p.save()
+
 
     def __list_buy_milk(self):
 	return [
@@ -132,7 +143,22 @@ class Base(TestCase):
 	    3) ресурсов предложенных но отвергнутых пользователем
 	    4) продуктов предложенных но отвергнутых пользоватеоем
 	    5) есть авто функции которые есть у всех пользоватеей МОЛОКО 3.2% в них автоматом для рекомедаций добавлять все продукты и ресурсы с таким покащатеоем.
+
+	Как лучше сделать?
+	    1) привязть определенный ресурс
+		тогда придется по ресурсу определять
+		    1.1) продкуты с которыми он связан или к которые подходит.
+	    2) привязать карточку продукта
+		тогда все ресурсы привязнные к карточе добавятся атоматом - НЕТ	 
+		но легко будет искать то чем функцию расширить, т.е. аналоги - ДА
+
+	Нужна ли функции явная связь с карточками продуктов?
+	+
+	1) упрощает поиск продуктов для замещения
+	-
+	1) пользователю придется привязывать все альтернативные продукты
 	"""
+	
 
 	# получаю список ресурсов функции 
 	list_buy_milk = self.__list_buy_milk()
@@ -140,11 +166,12 @@ class Base(TestCase):
 	for i in list_buy_milk:
 	    for j in i['items']:
 		elements.append(Element(i['dateTime'], j['volume']*j['quantity']))
-
 	prediction = PredictionLinear(elements)
 	
 	product_cards = prediction.product_cards()
-	self.assertEqual(0, 1)
+
+	#self.assertEqual([ProductCard(), ProductCard(), ProductCard()], product_cards)
+	self.assertEqual([ProductCard.objects.get(id=1), ProductCard.objects.get(id=2), ProductCard.objects.get(id=3)], product_cards)
 
 
 

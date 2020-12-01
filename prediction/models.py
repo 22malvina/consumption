@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from product_card.models import ProductCard
 
 
 class Element(object):
@@ -56,4 +57,10 @@ class PredictionLinear(object):
 	проверить что все потребление идет впорядке убывания
 	""" 
 	self.__resources = resources
+
+    def product_cards(self):
+	"""
+	формируем карточки продуктов на омнове связей или из ресурсов или ...
+	"""
+	return [ProductCard.objects.get(id=1), ProductCard.objects.get(id=2), ProductCard.objects.get(id=3)]
 
