@@ -13,7 +13,11 @@ class Element(object):
     def get_date(self):
         return self.__date
 
-    def __init__(self, date, weight):
+    def get_title(self):
+	return self.__title
+
+    def __init__(self, title, date, weight):
+	self.__title = title
         self.__date = date
         self.__weight = weight
 
@@ -48,6 +52,7 @@ class PredictionLinear(object):
 	return float("{0:.2f}".format(float(all_weight) / delta_days))
 
     def days_future(self, delta_days):
+	#TODO уйти от delta_days считать наоснове интервалов
 	delta = self.__average_weight_per_day_in_during_period_without_last(delta_days)
 	days_continue_for_last_buy = self.__resources[0].get_weight() / delta
 	return days_continue_for_last_buy
@@ -62,5 +67,17 @@ class PredictionLinear(object):
 	"""
 	формируем карточки продуктов на омнове связей или из ресурсов или ...
 	"""
-	return [ProductCard.objects.get(id=1), ProductCard.objects.get(id=2), ProductCard.objects.get(id=3)]
+	title_parts = []
+	for r in self.__resources:
+	    title_parts.extend(r.get_title().split(' '))
+
+	product_cards = []
+	for part in title_parts:
+	    if part in ['SPAR']:
+		continue
+	    for product_card in ProductCard.objects.filter(title__contains=part):
+		product_cards.append(product_card)
+
+	return set(product_cards)
+	#return set([ProductCard.objects.get(id=2), ProductCard.objects.get(id=1), ProductCard.objects.get(id=3)])
 

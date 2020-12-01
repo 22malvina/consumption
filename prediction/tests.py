@@ -7,11 +7,11 @@ class Base(TestCase):
     def setUp(self):
         self.maxDiff = None
 
-	p = ProductCard(title="Молоко ДВД 3.2%")
+	p = ProductCard(title="МОЛОКО ДВД 3.2%")
 	p.save()
-	p = ProductCard(title="Молоко SPAR 3.2% 1.7 л.")
+	p = ProductCard(title="МОЛОКО SPAR 3.2% 1.7 л.")
 	p.save()
-	p = ProductCard(title="Молоко Простоквашино 3.2%")
+	p = ProductCard(title="МОЛОКО Простоквашино 3.2%")
 	p.save()
 	p = ProductCard(title="Творог SPAR 9%")
 	p.save()
@@ -102,7 +102,7 @@ class Base(TestCase):
 	elements = []
 	for i in list_buy_milk:
 	    for j in i['items']:
-		elements.append(Element(i['dateTime'], j['volume']*j['quantity']))
+		elements.append(Element(j['name'], i['dateTime'], j['volume']*j['quantity']))
 	
 	#self.assertEqual('', elements)
 
@@ -165,13 +165,13 @@ class Base(TestCase):
 	elements = []
 	for i in list_buy_milk:
 	    for j in i['items']:
-		elements.append(Element(i['dateTime'], j['volume']*j['quantity']))
+		elements.append(Element(j['name'], i['dateTime'], j['volume']*j['quantity']))
 	prediction = PredictionLinear(elements)
 	
 	product_cards = prediction.product_cards()
 
 	#self.assertEqual([ProductCard(), ProductCard(), ProductCard()], product_cards)
-	self.assertEqual([ProductCard.objects.get(id=1), ProductCard.objects.get(id=2), ProductCard.objects.get(id=3)], product_cards)
+	self.assertEqual(set([ProductCard.objects.get(id=1), ProductCard.objects.get(id=2), ProductCard.objects.get(id=3)]), product_cards)
 
 
 
