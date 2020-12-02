@@ -207,6 +207,7 @@ class Base(TestCase):
 	"""
 
 	product_cards = ProductCard.objects.all()
+	self.assertEqual(4, len(product_cards))
 	
 	offers = Offer.objects.filter(product_card__in=product_cards)
 	self.assertEqual([], list(offers))
@@ -251,6 +252,7 @@ class Base(TestCase):
 	#    print o
 
 	product_cards = ProductCard.objects.all()
+	self.assertEqual(4, len(product_cards))
 	
 	offers = Offer.objects.filter(product_card__in=product_cards)
 	#TODO результат наверно не верный так как продуктов похожих может быть больше
@@ -262,6 +264,7 @@ class Base(TestCase):
 	показать пользователю все имеющиеся предложения на основе полученных карточек продуктов 
 	"""
 	product_cards = ProductCard.objects.all()
+	self.assertEqual(4, len(product_cards))
 	
 	offers = Offer.objects.filter(product_card__in=product_cards)
 	self.assertEqual([], list(offers))
