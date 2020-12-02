@@ -92,6 +92,19 @@ class ProductCard(models.Model):
     catigory_sub_tree = models.ForeignKey(CatigoryTree, blank=True, null=True, related_name="product_info_2_catigory_sub_tree")
 
     @classmethod
+    def find_by_text(cls, text):
+	title_parts = text.split(' ')
+
+	product_cards = set()
+	for part in title_parts:
+	    if part in ['SPAR']:
+		continue
+	    for product_card in ProductCard.objects.filter(title__contains=part):
+		product_cards.add(product_card)
+
+	return product_cards
+
+    @classmethod
     def update_catigory_and_sub_catigory_for_all_products(cls):
 	# привязываем прдгрыы к продуктам
 	for p in ProductCard.objects.all():

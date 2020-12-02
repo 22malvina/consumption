@@ -66,10 +66,14 @@ class PredictionLinear(object):
     def product_cards(self):
 	"""
 	формируем карточки продуктов на омнове связей или из ресурсов или ...
+
+	Пока ищем карточки продуктов с словами которые содержутся в названии ресурсов
 	"""
 	title_parts = []
 	for r in self.__resources:
 	    title_parts.extend(r.get_title().split(' '))
+
+	return ProductCard.find_by_text(' '.join(title_parts))
 
 	product_cards = []
 	for part in title_parts:

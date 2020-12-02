@@ -2,6 +2,7 @@
 from django.test import TestCase
 from models import Element, Prediction, PredictionLinear
 from product_card.models import ProductCard
+from offer.models import Offer
 
 class Base(TestCase):
     def setUp(self):
@@ -20,6 +21,25 @@ class Base(TestCase):
     def __list_buy_milk(self):
 	return [
 	    {
+		"fiscalDocumentNumber":148436,
+		"taxationType":1,
+		"nds10":13873,
+		"shiftNumber":386,
+		"kktRegId":"0001734115017264",
+		"operationType":1,
+		"ecashTotalSum":207870,
+		"requestNumber":182,
+		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"receiptCode":3,
+		"fiscalSign":2166849586,
+		"operator":"Усикова Дарья Игорев",
+		"userInn":"5258056945",
+		"user":"ООО \"Спар Миддл Волга\"",
+		"fiscalDriveNumber":"9285000100127782",
+		"cashTotalSum":0,
+		"nds18":9212,
+		"totalSum":207870,
+
 		"dateTime":"2020-06-03T14:50:00",
 		'items': [
 		    {"price":5990,"name":u"4607045982771 МОЛОКО SPAR УЛЬТРАПА","quantity":3,"sum":17970, 'volume': 1},
@@ -30,30 +50,35 @@ class Base(TestCase):
 		'items': [
 		    {"weight": 1000, "quantity":2,"sum":11980,"price":5990,"name":u"4607045982771 МОЛОКО SPAR УЛЬТРАПА", 'volume': 1},
 		],
+		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-24T12:56:00",
 		'items': [
 		    {"weight": 1000, "quantity":1,"name":u"4607045982788 МОЛОКО SPAR УЛЬТРАПА","price":4990,"sum":4990, 'volume': 1},
 		],
+		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-23T21:58:00",
 		'items': [
 		    {"weight": 1400, "calculationTypeSign":4,"ndsRate":2,"name":u"МОЛОКО ПАСТ.3,7%1400","quantity":1,"ndsSum":726,"calculationSubjectSign":1,"sum":7990,"price":7990, 'volume': 1.4},
 		],
+		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-15T20:45:00",
 		'items': [
 		    {"weight": 925, "quantity":1,"name":u"4607167840416 МОЛОКО SPAR 3,2% 925","price":5490,"sum":5490, 'volume': 0.925},
 		],
+		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-10T21:08:00",
 		'items': [
 		    {"weight": 1700, "sum":8990,"price":8990,"quantity":1,"name":u"4607167841154 МОЛОКО SPAR 2,5% 1,7", 'volume': 1.7},
 		],
+		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-06T21:53:00",
@@ -61,12 +86,14 @@ class Base(TestCase):
 		    {"quantity":1,"name":u"4607167841154 МОЛОКО SPAR 2,5% 1,7","price":8990,"sum":8990, 'volume': 1.7},
 		    {"weight": 950,"quantity":1,"name":u"4690228007842 МОЛОКО ДОМИК В ДЕРЕВ","price":5990,"sum":5990, 'volume': 1},
 		],
+		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-03-28T19:58:00",
 		'items': [
 		    {"sum":4990,"price":4990,"name":u"4607167840416 МОЛОКО SPAR 3,2% 925","quantity":1, 'volume': 0.925},
 		],
+		"retailPlaceAddress":"Ашан",
 	    },
 	]
 
@@ -172,6 +199,72 @@ class Base(TestCase):
 
 	#self.assertEqual([ProductCard(), ProductCard(), ProductCard()], product_cards)
 	self.assertEqual(set([ProductCard.objects.get(id=1), ProductCard.objects.get(id=2), ProductCard.objects.get(id=3)]), product_cards)
+
+
+    def test_3(self):
+	"""
+	показать пользователю все имеющиеся предложения на основе полученных карточек продуктов 
+	"""
+
+	product_cards = ProductCard.objects.all()
+	
+	offers = Offer.objects.filter(product_card__in=product_cards)
+	self.assertEqual([], list(offers))
+
+    def test_4(self):
+	"""
+	Создать офферы на основе 
+	    1 чеков - человек
+		найти по строке из чека, стоимости, магазину - подходящие продукты
+		выбрать продукты для клоторых обновится оффер, так как это разовое событие то оно не может меняться а только меняться с временем
+		    карточек продуктов может быть найдно много(так как пользователи могут создавать разные карточки)
+			Обойти это можно создав супер карточку которую пользователи немогут менять но ккоторой могут привязывать свою
+			    и эти супер карточки будут в отдельном дереве
+			обновлять оыыер у 3 из 1000 карточек которые выбрал польователь.
+	    2 ресурсов - человек
+		найти на основе ресурса - подходящие продукты
+		    что бы сделать оффер нужна цена, а у ресурса ее нет, так что не походит
+		    но возможно стоит ввести отдельную сущность приоретения где фиксируются ресурсы и стоимости их приобретения.
+	    3 ресурса основанного на чеке
+		найти на основе ресурса и связанного с ним чека - продукты
+	    4 импорта с сайтов - робот
+		кадый робот знает как карточка продукта связана с элементом витрины к которой он подключен, для получения оффера
+		    елемент витрины для сайта это может быть страница товара
+			а иакже есть другме роботы которые обновляют информацию по карточек если на витрине она меняется - полу ручной режим
+	"""
+
+	#1
+	#ChequeElement.objects.filter(
+	list_buy_milk = self.__list_buy_milk()
+	elements = []
+	for i in list_buy_milk:
+	    for j in i['items']:
+		elements.append({'title': j['name'], 'price': j['price'], 'datetime_buy': i['dateTime']})
+
+	#TODO тут идет ручной выбор карточек к которым надо создать оффер
+	for e in elements:
+	    for product_card in ProductCard.find_by_text(e['title']):
+		offer = Offer(product_card=product_card, price=e['price'], datetime=e['datetime_buy'])
+		offer.save()
+
+	#for o in Offer.objects.all():
+	#    print o
+
+	product_cards = ProductCard.objects.all()
+	
+	offers = Offer.objects.filter(product_card__in=product_cards)
+	#TODO результат наверно не верный так как продуктов похожих может быть больше
+	self.assertEqual(27, len(offers))
+
+
+    def test_5(self):
+	"""
+	показать пользователю все имеющиеся предложения на основе полученных карточек продуктов 
+	"""
+	product_cards = ProductCard.objects.all()
+	
+	offers = Offer.objects.filter(product_card__in=product_cards)
+	self.assertEqual([], list(offers))
 
 
 
