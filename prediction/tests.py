@@ -3,6 +3,7 @@ from django.test import TestCase
 from models import Element, Prediction, PredictionLinear
 from product_card.models import ProductCard
 from offer.models import Offer
+from datetime import datetime
 
 class Base(TestCase):
     def setUp(self):
@@ -201,29 +202,29 @@ class Base(TestCase):
 	
 	#self.assertEqual('', elements)
 
-	self.assertEqual(0.32, Prediction.average_weight_per_day_in_during_period(elements, delta_days))
+	self.assertEqual(0.318, Prediction.average_weight_per_day_in_during_period(elements, delta_days))
 
 	pl = PredictionLinear(elements)
 	self.assertEqual(30, pl.delta_days())
 	self.assertEqual(27, pl.without_last_delta_days())
-	self.assertEqual(0.42, pl.average_weight_per_day_in_during_period())
+	self.assertEqual(0.424, pl.average_weight_per_day_in_during_period())
 
 	#self.assertEqual(0.3, Prediction.average_weight_per_day_in_during_period(elements[1:], delta_days_2))
 	delta = Prediction.average_weight_per_day_in_during_period(elements[1:], delta_days_2)
-	self.assertEqual(0.28, delta)
+	self.assertEqual(0.278, delta)
 
 	pl_2 = PredictionLinear(elements[1:])
 	delta = pl_2.average_weight_per_day_in_during_period()
-	self.assertEqual(0.32, delta)
+	self.assertEqual(0.324, delta)
 
 	#self.assertEqual(10.0, elements[0].get_weight() / delta) 
-	days_continue_for_last_buy = elements[0].get_weight() / delta
-	self.assertEqual(9.375, days_continue_for_last_buy)
+	days_continue_for_last_buy = float("{0:.3f}".format(elements[0].get_weight() / delta))
+	self.assertEqual(9.259, days_continue_for_last_buy)
 
 	delta_days_future = pl.days_future()
-	self.assertEqual(8.33, delta_days_future)
+	self.assertEqual(8.333, delta_days_future)
 
-	today_is = 44.375 #какойто день месяца в который долженсработать напоминание что сегоднявсе кончится.
+	today_is = 44.259 #какойто день месяца в который долженсработать напоминание что сегоднявсе кончится.
 	self.assertEqual(today_is, delta_days_2 + days_continue_for_last_buy)
 
     def test_2(self):
@@ -388,18 +389,29 @@ class Base(TestCase):
 	for element in consumption_elements(fns_json_cheque_info_1):
 	    milk_function.append(element)
 	
-	self.assertEqual(0.42, milk_function.average_weight_per_day_in_during_period())
+	self.assertEqual(0.424, milk_function.average_weight_per_day_in_during_period())
 	delta_days_future = milk_function.days_future()
-	self.assertEqual(8.33, delta_days_future)
+	self.assertEqual(8.333, delta_days_future)
 
 	cheese_function_title = 'cheese'
 	cheese_function = get_function(cheese_function_title)
 	for element in consumption_elements(fns_json_cheque_info_2):
 	    cheese_function.append(element)
 
-	self.assertEqual(0.1, cheese_function.average_weight_per_day_in_during_period())
+	self.assertEqual(0.097, cheese_function.average_weight_per_day_in_during_period())
+
+	self.assertEqual(0.09, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-01T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.088, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-02T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.104, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-03T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.102, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-04T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.099, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-05T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.097, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-06T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.095, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-07T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.093, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-08T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.091, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-09T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+
 	delta_days_future = cheese_function.days_future()
-	self.assertEqual(5.0, delta_days_future)
+	self.assertEqual(9.0, delta_days_future)
 
 def has_account(i, j):
     return False

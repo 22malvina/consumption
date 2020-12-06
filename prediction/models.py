@@ -5,7 +5,6 @@ from django.db import models
 from product_card.models import ProductCard
 from datetime import datetime
 
-
 class Element(object):
     def get_weight(self):
         return self.__weight
@@ -37,7 +36,7 @@ class Prediction(object):
     #def average_weight_per_day_in_cluster_products_during_period_v1(cls, elements, delta_days):
     def average_weight_per_day_in_during_period(cls, resources, delta_days):
 	all_weight = sum(map(lambda x: float(x.get_weight()), resources))
-	return float("{0:.2f}".format(float(all_weight) / delta_days))
+	return float("{0:.3f}".format(float(all_weight) / delta_days))
 
 class PredictionLinear(object):
     """
@@ -49,12 +48,25 @@ class PredictionLinear(object):
 	self.__resources.append(e)
 	self.__resources = sorted(self.__resources, key = lambda x : x.get_date())
 
+    def average_weight_per_day_from_first_buy_to_this_date(self, date_calc):
+	delta_days = date_calc - self.__first_date()
+	#all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources))
+	all_weight = 0
+	for i in self.__resources:
+	    if i.get_date().date() <= date_calc.date():
+		all_weight += i.get_weight()
+
+	if delta_days.days == 0:
+	    print 'Error !!!'
+
+	return float("{0:.3f}".format(float(all_weight) / delta_days.days))
+
     def average_weight_per_day_in_during_period(self):
 	#delta_days = self.__last_date() - self.__first_date()
 	#delta_days = delta_days.days
 	delta_days = self.delta_days()
 	all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources))
-	return float("{0:.2f}".format(float(all_weight) / delta_days))
+	return float("{0:.3f}".format(float(all_weight) / delta_days))
 
     def __average_weight_per_day_in_during_period_without_last(self):
 	delta_days = self.without_last_delta_days()
@@ -64,7 +76,7 @@ class PredictionLinear(object):
 	for i in self.__resources:
 	    if i.get_date().date() != self.__resources[-1].get_date().date():
 		all_weight += i.get_weight()
-	return float("{0:.2f}".format(float(all_weight) / delta_days))
+	return float("{0:.3f}".format(float(all_weight) / delta_days))
 
     def days_future(self):
 	"""
@@ -74,8 +86,16 @@ class PredictionLinear(object):
 	#delta_days = self.delta_days()
 	delta = self.__average_weight_per_day_in_during_period_without_last()
 	#days_continue_for_last_buy = self.__resources[0].get_weight() / delta
-	days_continue_for_last_buy = self.__resources[-1].get_weight() / delta
-	return float("{0:.2f}".format(days_continue_for_last_buy))
+	#days_continue_for_last_buy = self.__resources[-1].get_weight() / delta
+
+	last_day_weight = 0
+	for i in self.__resources:
+	    if i.get_date().date() == self.__resources[-1].get_date().date():
+		last_day_weight += i.get_weight()
+	days_continue_for_last_buy = last_day_weight / delta
+
+	print '==', delta, last_day_weight
+	return float("{0:.3f}".format(days_continue_for_last_buy))
 
     def delta_days(self):
 	delta_days = self.__last_date() - self.__first_date()
