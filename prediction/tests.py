@@ -33,20 +33,20 @@ class Base(TestCase):
 		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"dateTime":"2020-05-15T20:45:00",
 		"items":[
-		    {"weight": None, "quantity":0.278,"name":u"2364939000004 СЫР КОРОЛЕВСКИЙ 51%","price":49990,"sum":13897, "volume": 0.278},
+		    {"weight": None, "quantity":0.278,"name":u"2364939000004 СЫР КОРОЛЕВСКИЙ 51%","price":49990,"sum":13897, "volume": 1},
 		],
 	    },
 	    {
 		"dateTime":"2020-05-10T21:08:00",
 		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"items":[
-		    {"sum":16797,"price":59990,"quantity":0.28,"name":u"2316971000009 СЫР МААСДАМ 45% ИЧАЛ", "volume": 0.28},
+		    {"sum":16797,"price":59990,"quantity":0.28,"name":u"2316971000009 СЫР МААСДАМ 45% ИЧАЛ", "volume": 1},
 		],
 	    },
 	    {
 		"items":[
-		    {"quantity":0.248,"sum":12476,"name":u"2372240000002 СЫР ГРАНД SPAR 45%","price":50306, "volume": 0.248},
-		    {"quantity":0.264,"sum":9945,"name":u"2364178000001 СЫР  МААСДАМ 45% ПРЕ","price":37670, "volume": 0.264},
+		    {"quantity":0.248,"sum":12476,"name":u"2372240000002 СЫР ГРАНД SPAR 45%","price":50306, "volume": 1},
+		    {"quantity":0.264,"sum":9945,"name":u"2364178000001 СЫР  МААСДАМ 45% ПРЕ","price":37670, "volume": 1},
 		],
 		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"dateTime":"2020-04-21T14:04:00",
@@ -54,7 +54,7 @@ class Base(TestCase):
 	    {
 		"userInn":"7703270067",
 		"items":[
-		    {"calculationTypeSign":4,"ndsRate":2,"name":u"СЫР РОССИЙСКИЙ 45%","quantity":0.299,"ndsSum":1356,"calculationSubjectSign":1,"sum":14920,"price":49900, "volume": 0.299},
+		    {"calculationTypeSign":4,"ndsRate":2,"name":u"СЫР РОССИЙСКИЙ 45%","quantity":0.299,"ndsSum":1356,"calculationSubjectSign":1,"sum":14920,"price":49900, "volume": 1},
 		    {"weight": 250, "calculationTypeSign":4,"ndsRate":2,"name":u"СЫР МАСКАР.80% 250ГР","quantity":2,"ndsSum":3436,"calculationSubjectSign":1,"sum":37800,"price":18900, "volume": 0.25},
 		    {"weight": 90, "calculationTypeSign":4,"ndsRate":2,"name":u"СЫР ПЛ С ЛУКОМ 90Г","quantity":2,"ndsSum":618,"calculationSubjectSign":1,"sum":6798,"price":3399, "volume": 0.09},
 		    {"weight": 90, "calculationTypeSign":4,"ndsRate":2,"name":u"СЫР ПЛ ВОЛНА 45% 90Г","quantity":4,"ndsSum":1236,"calculationSubjectSign":1,"sum":13596,"price":3399, "volume": 0.09},
@@ -76,7 +76,7 @@ class Base(TestCase):
 		"retailPlaceAddress":"107076, г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"userInn":"5258056945",
 		"items":[
-		    {"price":59899,"name":u"2364178000001 СЫР  МААСДАМ 45% ПРЕ","quantity":0.356,"sum":21324, "volume": 0.356},
+		    {"price":59899,"name":u"2364178000001 СЫР  МААСДАМ 45% ПРЕ","quantity":0.356,"sum":21324, "volume": 1},
 		    {"weight": 400, "price":20000,"name":u"4607004892677 СЫР HOCHLAND МЯГКИЙ","quantity":1,"sum":20000, "volume": 0.4}, # возсожно 480 разные днные
 		],
 		"dateTime":"2020-06-03T14:50:00",
@@ -397,9 +397,9 @@ class Base(TestCase):
 	for element in consumption_elements(fns_json_cheque_info_2):
 	    cheese_function.append(element)
 
-	self.assertEqual(0.07, cheese_function.average_weight_per_day_in_during_period())
+	self.assertEqual(0.1, cheese_function.average_weight_per_day_in_during_period())
 	delta_days_future = cheese_function.days_future()
-	self.assertEqual(6.67, delta_days_future)
+	self.assertEqual(5.0, delta_days_future)
 
 def has_account(i, j):
     return False

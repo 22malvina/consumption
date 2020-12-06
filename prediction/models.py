@@ -59,7 +59,11 @@ class PredictionLinear(object):
     def __average_weight_per_day_in_during_period_without_last(self):
 	delta_days = self.without_last_delta_days()
 	#all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources[1:]))
-	all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources[:-1]))
+	#all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources[:-1])) # возможно в одином чеке два разных пакета полока или 3 вижа сыра
+	all_weight = 0
+	for i in self.__resources:
+	    if i.get_date().date() != self.__resources[-1].get_date().date():
+		all_weight += i.get_weight()
 	return float("{0:.2f}".format(float(all_weight) / delta_days))
 
     def days_future(self):
