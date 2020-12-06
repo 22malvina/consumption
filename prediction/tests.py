@@ -17,8 +17,11 @@ class Base(TestCase):
 	p = ProductCard(title="Творог SPAR 9%")
 	p.save()
 
-
     def __list_buy_milk(self):
+	return Base.list_buy_milk()
+
+    @staticmethod
+    def list_buy_milk():
 	return [
 	    {
 		"fiscalDocumentNumber":148436,
@@ -97,7 +100,6 @@ class Base(TestCase):
 	    },
 	]
 
-
     def test_linear_forecasting_for_the_whole_period(self):
         """
         Попробуем линейное прогнозированите на всем периоде
@@ -156,7 +158,6 @@ class Base(TestCase):
 	today_is = 45.0 #какойто день месяца в который долженсработать напоминание что сегоднявсе кончится.
 	self.assertEqual(today_is, delta_days_2 + days_continue_for_last_buy)
 
-
     def test_2(self):
 	"""
 	Найти какрточки продуктов которые подойдут для данной функии потребления.
@@ -185,7 +186,6 @@ class Base(TestCase):
 	-
 	1) пользователю придется привязывать все альтернативные продукты
 	"""
-	
 
 	# получаю список ресурсов функции 
 	list_buy_milk = self.__list_buy_milk()
@@ -200,11 +200,11 @@ class Base(TestCase):
 	#self.assertEqual([ProductCard(), ProductCard(), ProductCard()], product_cards)
 	self.assertEqual(set([ProductCard.objects.get(id=1), ProductCard.objects.get(id=2), ProductCard.objects.get(id=3)]), product_cards)
 
-
     def test_3(self):
 	"""
 	показать пользователю все имеющиеся предложения на основе полученных карточек продуктов 
 	"""
+	print 'test 3'
 
 	product_cards = ProductCard.objects.all()
 	self.assertEqual(4, len(product_cards))
@@ -233,6 +233,7 @@ class Base(TestCase):
 		    елемент витрины для сайта это может быть страница товара
 			а иакже есть другме роботы которые обновляют информацию по карточек если на витрине она меняется - полу ручной режим
 	"""
+	print 'test 4'
 
 	#1
 	#ChequeElement.objects.filter(
@@ -240,12 +241,12 @@ class Base(TestCase):
 	elements = []
 	for i in list_buy_milk:
 	    for j in i['items']:
-		elements.append({'title': j['name'], 'price': j['price'], 'datetime_buy': i['dateTime']})
+		elements.append({'title': j['name'], 'price': j['price'], 'datetime_buy': i['dateTime'], 'showcase': i['retailPlaceAddress']})
 
 	#TODO тут идет ручной выбор карточек к которым надо создать оффер
 	for e in elements:
 	    for product_card in ProductCard.find_by_text(e['title']):
-		offer = Offer(product_card=product_card, price=e['price'], datetime=e['datetime_buy'])
+		offer = Offer(product_card=product_card, price=e['price'], datetime=e['datetime_buy'], showcase=e['showcase'])
 		offer.save()
 
 	#for o in Offer.objects.all():
@@ -258,16 +259,90 @@ class Base(TestCase):
 	#TODO результат наверно не верный так как продуктов похожих может быть больше
 	self.assertEqual(27, len(offers))
 
-
     def test_5(self):
 	"""
 	показать пользователю все имеющиеся предложения на основе полученных карточек продуктов 
 	"""
+	print 'test 5'
 	product_cards = ProductCard.objects.all()
 	self.assertEqual(4, len(product_cards))
 	
 	offers = Offer.objects.filter(product_card__in=product_cards)
 	self.assertEqual([], list(offers))
 
+    def test_6(self):
+	"""
+	Семья Пети хочет начаить вести учеи трат на продукты и при этом экономить.
 
+	1. Для этого ему надо занести все траты семьи в систему.
+	2. Разрешить использовать информацию о его закупках дргим пользователям.
+	    пусть меряются кто больше сикономил на своей продуктовой корзине на этой недел, в этом месяце, за год.
+	3. делать покупки там и в таком колличестве которые основаны на рекомендциях системы.
+	    сфрмировать оптимальную корзину продуктов с запасом на месяц вперед.
+	    показать сколько тратится продуктов в анной фйнкции в среднем в день и 
+		показать посление 2 цены закупки вжанной категории, среднюю цену за неделю, месяц год.
+		а также самуюю дешовую цену и место из тех магазинов где он покупал посодедний месяц, потом самую дешовую цену в его городе, в стране, в мире.
+		    показать с колько сэкономит если купит сейчас там на месяц вперед.
+	"""
+	pety_name = 'Pety'
+	pety_key = 'key_123'
 
+#	self.assertFalse(has_account(pety_name, pety_key))
+#	create_account(pety_name, pety_key)
+#	self.assertTrue(has_account(pety_name, pety_key))
+
+	#key = get_account_key(pety_name, pety_key)
+#	pety_account = get_account(pety_name, pety_key)
+
+#	self.assertEqual([], list_company_for_member(pety_account))
+
+#	create_company(board_title, pety_account)
+
+#	board_title = 'Pety Family'
+#	company = Company.objects.filter(title=board_title)
+	#self.assertTrue(company.allow_access_by(pety_account))
+
+#	self.assertEqual(1, len(list_company_for_member(pety_account)))
+
+	cheque_qr_1 = 'qwerty'
+	cheque_qr_2 = '123456'
+
+	fns_json_cheque_info_1 = get_info_by_qr_from_fns(cheque_qr_1)
+	fns_json_cheque_info_2 = get_info_by_qr_from_fns(cheque_qr_2)
+
+#	save_in_company_fns_json_cheque_repository(company, pety_account, fns_json_cheque_info_1)
+
+	function_title = 'milk and ...'
+#	create_function_consumption(company, pety_account, function_title)
+
+	milk_function = get_function(function_title) # следует обезопасить код получением только функций внутри компании
+
+	for element in consumption_elements(fns_json_cheque_info_1):
+	    milk_function.append(element)
+	
+	delta_days_2 = 35
+	self.assertEqual(0.39, milk_function.average_weight_per_day_in_during_period(delta_days_2))
+	delta_days_future = milk_function.days_future(delta_days_2)
+
+	self.assertEqual(10.0, delta_days_future)
+
+def has_account(i, j):
+    return False
+
+def create_account(i, j):
+    pass
+
+def get_info_by_qr_from_fns(cheque_qr_1):
+    return []
+
+def get_function(function_title):
+    return PredictionLinear([])
+  
+def consumption_elements(fns_json_cheque_info_1):
+    list_buy_milk = Base.list_buy_milk()
+    elements = []
+    for i in list_buy_milk:
+	for j in i['items']:
+	    elements.append(Element(j['name'], i['dateTime'], j['volume']*j['quantity']))
+    return elements
+     

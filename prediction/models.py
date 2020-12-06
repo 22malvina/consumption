@@ -43,6 +43,9 @@ class PredictionLinear(object):
 
 	ресурсы идут в порядке от от послежнего к самому раннему
     """
+    def append(self, e):
+	self.__resources.append(e)
+
     def average_weight_per_day_in_during_period(self, delta_days):
 	all_weight = sum(map(lambda x: float(x.get_weight()), self.__resources))
 	return float("{0:.2f}".format(float(all_weight) / delta_days))
