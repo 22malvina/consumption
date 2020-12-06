@@ -47,6 +47,7 @@ class PredictionLinear(object):
     """
     def append(self, e):
 	self.__resources.append(e)
+	self.__resources = sorted(self.__resources, key = lambda x : x.get_date())
 
     def average_weight_per_day_in_during_period(self):
 	#delta_days = self.__last_date() - self.__first_date()

@@ -390,7 +390,7 @@ class Base(TestCase):
 	
 	self.assertEqual(0.42, milk_function.average_weight_per_day_in_during_period())
 	delta_days_future = milk_function.days_future()
-	self.assertEqual(2.33, delta_days_future)
+	self.assertEqual(8.33, delta_days_future)
 
 	cheese_function_title = 'cheese'
 	cheese_function = get_function(cheese_function_title)
