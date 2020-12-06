@@ -426,8 +426,8 @@ class Base(TestCase):
 	function_title = 'Мilk'
 	plf_milk = PredictionLinearFunction(title=function_title)
 	plf_milk.save()
-	#for i in Base.list_buy_milk()[:5]:
-	for i in Base.list_buy_milk():
+	for i in Base.list_buy_milk()[:5]:
+	#for i in Base.list_buy_milk():
 	    cheque_fns = ChequeFNS(fns_dateTime=i['dateTime'])
 	    cheque_fns.save() 
 	    for j in i['items']:
@@ -457,9 +457,9 @@ class Base(TestCase):
 	    for i in element.elements():
 		cheese_function.append(i)
 
-	self.assertEqual(0.424, milk_function.average_weight_per_day_in_during_period())
+	self.assertEqual(0.396, milk_function.average_weight_per_day_in_during_period())
 	delta_days_future = milk_function.days_future()
-	self.assertEqual(8.333, delta_days_future)
+	self.assertEqual(10.135, delta_days_future)
 
 	self.assertEqual(0.097, cheese_function.average_weight_per_day_in_during_period())
 
@@ -469,6 +469,24 @@ class Base(TestCase):
 
 	delta_days_future = cheese_function.days_future()
 	self.assertEqual(9.0, delta_days_future)
+
+	##
+	for i in Base.list_buy_milk()[5:]:
+	    cheque_fns = ChequeFNS(fns_dateTime=i['dateTime'])
+	    cheque_fns.save() 
+	    for j in i['items']:
+		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e.save()
+		plf_milk.cheque_elements.add(e)
+	#fetch
+	milk_function = PredictionLinear([])
+	for element in PredictionLinearFunction.objects.filter(title=function_title):
+	    for i in element.elements():
+		milk_function.append(i)
+
+	self.assertEqual(0.424, milk_function.average_weight_per_day_in_during_period())
+	delta_days_future = milk_function.days_future()
+	self.assertEqual(8.333, delta_days_future)
 
 def has_account(i, j):
     return False
