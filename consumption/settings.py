@@ -40,6 +40,8 @@ INSTALLED_APPS = [
 
     'product_card',
     'offer',
+    'cheque',
+    'prediction',
 ]
 
 MIDDLEWARE_CLASSES = [

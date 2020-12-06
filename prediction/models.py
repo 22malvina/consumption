@@ -3,7 +3,25 @@ from __future__ import unicode_literals
 
 from django.db import models
 from product_card.models import ProductCard
+from cheque.models import ChequeFNSElement
 from datetime import datetime
+
+
+class PredictionLinearFunction(models.Model):
+    title = models.CharField(blank=True, max_length=254)
+    cheque_elements = models.ManyToManyField(ChequeFNSElement)
+    #product_card = models.ForeignKey(ProductCard)
+    datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
+
+    def elements(self):
+	elements = []
+	for i in self.cheque_elements.all():
+	    e = i.consumption_element_params()
+	    elements.append(Element(e['title'], e['datetime'], e['weight']))
+	return elements
+
+    def __str__(self):
+        return u"%s (%s)" % (str(self.title), str(len(self.cheque_elements.all()))) 
 
 class Element(object):
     def get_weight(self):

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
-from models import Element, Prediction, PredictionLinear
+from models import Element, Prediction, PredictionLinear, PredictionLinearFunction
 from product_card.models import ProductCard
 from offer.models import Offer
+from cheque.models import ChequeFNS, ChequeFNSElement 
 from datetime import datetime
 
 class Base(TestCase):
@@ -409,6 +410,62 @@ class Base(TestCase):
 	self.assertEqual(0.095, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-07T10:00:00", '%Y-%m-%dT%H:%M:%S')))
 	self.assertEqual(0.093, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-08T10:00:00", '%Y-%m-%dT%H:%M:%S')))
 	self.assertEqual(0.091, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-09T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+
+	delta_days_future = cheese_function.days_future()
+	self.assertEqual(9.0, delta_days_future)
+
+    def test_7(self):
+	"""
+	Добавить часть чеко в хранилище 
+	досьать их из хранилища
+	создать фунуцию предсказания
+	укзать у нужных позиций в чеках созданную функцию
+	спрогнозировать на 4 дня
+	"""
+
+	function_title = 'Мilk'
+	plf_milk = PredictionLinearFunction(title=function_title)
+	plf_milk.save()
+	#for i in Base.list_buy_milk()[:5]:
+	for i in Base.list_buy_milk():
+	    cheque_fns = ChequeFNS(fns_dateTime=i['dateTime'])
+	    cheque_fns.save() 
+	    for j in i['items']:
+		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e.save()
+		plf_milk.cheque_elements.add(e)
+
+	plf_cheese = PredictionLinearFunction(title='Cheese')
+	plf_cheese.save()
+	for i in Base.list_buy_cheese():
+	    cheque_fns = ChequeFNS(fns_dateTime=i['dateTime'])
+	    cheque_fns.save() 
+	    for j in i['items']:
+		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e.save()
+		plf_cheese.cheque_elements.add(e)
+
+	#fetch
+
+	milk_function = PredictionLinear([])
+	for element in PredictionLinearFunction.objects.filter(title=function_title):
+	    for i in element.elements():
+		milk_function.append(i)
+
+	cheese_function = PredictionLinear([])
+	for element in PredictionLinearFunction.objects.filter(title='Cheese'):
+	    for i in element.elements():
+		cheese_function.append(i)
+
+	self.assertEqual(0.424, milk_function.average_weight_per_day_in_during_period())
+	delta_days_future = milk_function.days_future()
+	self.assertEqual(8.333, delta_days_future)
+
+	self.assertEqual(0.097, cheese_function.average_weight_per_day_in_during_period())
+
+	self.assertEqual(0.088, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-02T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.104, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-03T10:00:00", '%Y-%m-%dT%H:%M:%S')))
+	self.assertEqual(0.102, cheese_function.average_weight_per_day_from_first_buy_to_this_date(datetime.strptime("2020-06-04T10:00:00", '%Y-%m-%dT%H:%M:%S')))
 
 	delta_days_future = cheese_function.days_future()
 	self.assertEqual(9.0, delta_days_future)
