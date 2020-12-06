@@ -205,7 +205,7 @@ class Base(TestCase):
 
 	pl = PredictionLinear(elements)
 	self.assertEqual(30, pl.delta_days())
-	self.assertEqual(22, pl.without_last_delta_days())
+	self.assertEqual(27, pl.without_last_delta_days())
 	self.assertEqual(0.42, pl.average_weight_per_day_in_during_period())
 
 	#self.assertEqual(0.3, Prediction.average_weight_per_day_in_during_period(elements[1:], delta_days_2))
@@ -221,7 +221,7 @@ class Base(TestCase):
 	self.assertEqual(9.375, days_continue_for_last_buy)
 
 	delta_days_future = pl.days_future()
-	self.assertEqual(6.82, delta_days_future)
+	self.assertEqual(8.33, delta_days_future)
 
 	today_is = 44.375 #какойто день месяца в который долженсработать напоминание что сегоднявсе кончится.
 	self.assertEqual(today_is, delta_days_2 + days_continue_for_last_buy)
@@ -390,7 +390,7 @@ class Base(TestCase):
 	
 	self.assertEqual(0.42, milk_function.average_weight_per_day_in_during_period())
 	delta_days_future = milk_function.days_future()
-	self.assertEqual(6.82, delta_days_future)
+	self.assertEqual(2.33, delta_days_future)
 
 	cheese_function_title = 'cheese'
 	cheese_function = get_function(cheese_function_title)
@@ -399,7 +399,7 @@ class Base(TestCase):
 
 	self.assertEqual(0.07, cheese_function.average_weight_per_day_in_during_period())
 	delta_days_future = cheese_function.days_future()
-	self.assertEqual(3.14, delta_days_future)
+	self.assertEqual(6.67, delta_days_future)
 
 def has_account(i, j):
     return False
