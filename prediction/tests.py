@@ -91,13 +91,13 @@ class Base(TestCase):
 		],
 		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
-	    {
-		"dateTime":"2020-03-28T19:58:00",
-		'items': [
-		    {"sum":4990,"price":4990,"name":u"4607167840416 МОЛОКО SPAR 3,2% 925","quantity":1, 'volume': 0.925},
-		],
-		"retailPlaceAddress":"Ашан",
-	    },
+	    #{
+	    #    "dateTime":"2020-03-28T19:58:00",
+	    #    'items': [
+	    #        {"sum":4990,"price":4990,"name":u"4607167840416 МОЛОКО SPAR 3,2% 925","quantity":1, 'volume': 0.925},
+	    #    ],
+	    #    "retailPlaceAddress":"Ашан",
+	    #},
 	]
 
     def test_linear_forecasting_for_the_whole_period(self):
@@ -135,27 +135,29 @@ class Base(TestCase):
 	
 	#self.assertEqual('', elements)
 
-	self.assertEqual(0.34, Prediction.average_weight_per_day_in_during_period(elements, delta_days))
+	self.assertEqual(0.32, Prediction.average_weight_per_day_in_during_period(elements, delta_days))
 
 	pl = PredictionLinear(elements)
-	self.assertEqual(0.34, pl.average_weight_per_day_in_during_period(delta_days))
+	self.assertEqual(30, pl.delta_days())
+	self.assertEqual(22, pl.without_last_delta_days())
+	self.assertEqual(0.42, pl.average_weight_per_day_in_during_period())
 
 	#self.assertEqual(0.3, Prediction.average_weight_per_day_in_during_period(elements[1:], delta_days_2))
 	delta = Prediction.average_weight_per_day_in_during_period(elements[1:], delta_days_2)
-	self.assertEqual(0.3, delta)
+	self.assertEqual(0.28, delta)
 
 	pl_2 = PredictionLinear(elements[1:])
-	delta = pl_2.average_weight_per_day_in_during_period(delta_days_2)
-	self.assertEqual(0.3, delta)
+	delta = pl_2.average_weight_per_day_in_during_period()
+	self.assertEqual(0.32, delta)
 
 	#self.assertEqual(10.0, elements[0].get_weight() / delta) 
 	days_continue_for_last_buy = elements[0].get_weight() / delta
-	self.assertEqual(10.0, days_continue_for_last_buy)
+	self.assertEqual(9.375, days_continue_for_last_buy)
 
-	delta_days_future = pl.days_future(delta_days_2)
-	self.assertEqual(10.0, delta_days_future)
+	delta_days_future = pl.days_future()
+	self.assertEqual(6.82, delta_days_future)
 
-	today_is = 45.0 #какойто день месяца в который долженсработать напоминание что сегоднявсе кончится.
+	today_is = 44.375 #какойто день месяца в который долженсработать напоминание что сегоднявсе кончится.
 	self.assertEqual(today_is, delta_days_2 + days_continue_for_last_buy)
 
     def test_2(self):
@@ -257,7 +259,7 @@ class Base(TestCase):
 	
 	offers = Offer.objects.filter(product_card__in=product_cards)
 	#TODO результат наверно не верный так как продуктов похожих может быть больше
-	self.assertEqual(27, len(offers))
+	self.assertEqual(24, len(offers))
 
     def test_5(self):
 	"""
@@ -321,10 +323,9 @@ class Base(TestCase):
 	    milk_function.append(element)
 	
 	delta_days_2 = 35
-	self.assertEqual(0.39, milk_function.average_weight_per_day_in_during_period(delta_days_2))
-	delta_days_future = milk_function.days_future(delta_days_2)
-
-	self.assertEqual(10.0, delta_days_future)
+	self.assertEqual(0.42, milk_function.average_weight_per_day_in_during_period())
+	delta_days_future = milk_function.days_future()
+	self.assertEqual(6.82, delta_days_future)
 
 def has_account(i, j):
     return False
