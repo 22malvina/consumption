@@ -2,8 +2,10 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from company.models import Company
 
 class ChequeFNS(models.Model):
+    company = models.ForeignKey(Company)
 #    account = models.ForeignKey(Account, blank=True, null=True)
     #datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
 #    company = models.CharField(blank=True, max_length=254)

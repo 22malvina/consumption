@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'offer',
     'cheque',
     'prediction',
+    'company',
 ]
 
 MIDDLEWARE_CLASSES = [

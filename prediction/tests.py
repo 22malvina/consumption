@@ -3,6 +3,7 @@ from django.test import TestCase
 from models import Element, Prediction, PredictionLinear, PredictionLinearFunction
 from product_card.models import ProductCard
 from offer.models import Offer
+from company.models import Company
 from cheque.models import ChequeFNS, ChequeFNSElement 
 from datetime import datetime
 
@@ -416,6 +417,7 @@ class Base(TestCase):
 
     def test_7(self):
 	"""
+	Создать или выбрать компанию из имеющихся
 	Добавить часть чеко в хранилище 
 	досьать их из хранилища
 	создать фунуцию предсказания
@@ -423,12 +425,15 @@ class Base(TestCase):
 	спрогнозировать на 4 дня
 	"""
 
+	company_family = Company(title='family')
+	company_family.save()
+
 	function_title = 'Мilk'
 	plf_milk = PredictionLinearFunction(title=function_title)
 	plf_milk.save()
 	for i in Base.list_buy_milk()[:5]:
 	#for i in Base.list_buy_milk():
-	    cheque_fns = ChequeFNS(fns_dateTime=i['dateTime'])
+	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
 	    cheque_fns.save() 
 	    for j in i['items']:
 		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
@@ -438,7 +443,7 @@ class Base(TestCase):
 	plf_cheese = PredictionLinearFunction(title='Cheese')
 	plf_cheese.save()
 	for i in Base.list_buy_cheese():
-	    cheque_fns = ChequeFNS(fns_dateTime=i['dateTime'])
+	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
 	    cheque_fns.save() 
 	    for j in i['items']:
 		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
@@ -472,7 +477,7 @@ class Base(TestCase):
 
 	##
 	for i in Base.list_buy_milk()[5:]:
-	    cheque_fns = ChequeFNS(fns_dateTime=i['dateTime'])
+	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
 	    cheque_fns.save() 
 	    for j in i['items']:
 		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
