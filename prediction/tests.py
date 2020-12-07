@@ -3,7 +3,7 @@ from django.test import TestCase
 from models import Element, Prediction, PredictionLinear, PredictionLinearFunction
 from product_card.models import ProductCard
 from offer.models import Offer
-from company.models import Company
+from company.models import Company, Employee
 from cheque.models import ChequeFNS, ChequeFNSElement 
 from datetime import datetime
 
@@ -417,7 +417,9 @@ class Base(TestCase):
 
     def test_7(self):
 	"""
-	Создать или выбрать компанию из имеющихся
+	создадим работника 
+	Создать или выбрать компанию из имеющихся.
+	    создать может рботник
 	Добавить часть чеко в хранилище 
 	досьать их из хранилища
 	создать фунуцию предсказания
@@ -425,8 +427,16 @@ class Base(TestCase):
 	спрогнозировать на 4 дня
 	"""
 
+	pety_employee = Employee(title='Pety', key='123zxc')
+	pety_employee.save()
+
+	#company_family = Company(owner=pety_employee, title='family')
 	company_family = Company(title='family')
 	company_family.save()
+	company_family.employees.add(pety_employee)
+
+	company_family = None
+	company_family = Company.objects.filter(employees__in=[pety_employee])[0]
 
 	function_title = 'Мilk'
 	plf_milk = PredictionLinearFunction(title=function_title)

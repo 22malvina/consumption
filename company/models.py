@@ -6,11 +6,17 @@ from django.db import models
 # Create your models here.
 
 
+class Employee(models.Model):
+    title = models.CharField(blank=True, max_length=254)
+    datetime_create = models.DateTimeField(auto_now_add = True)
+    key = models.CharField(blank=True, max_length=254)
+
 class Company(models.Model):
     title = models.CharField(blank=True, max_length=254)
-
+#    owner = models.ForeignKey(Employee, blank=True, null=True)
+    employees = models.ManyToManyField(Employee)
 #    account = models.ForeignKey(Account, blank=True, null=True)
-    datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
+    datetime_create = models.DateTimeField(auto_now_add = True)
 #    company = models.CharField(blank=True, max_length=254)
     #showcase = models.ForeignKey(Showcase, blank=True, null=True) # дополнительная информация о витрине на которй осуествили заказ и оплату
 #    sum = models.SmallIntegerField(blank=True, null=True)
@@ -25,4 +31,5 @@ class Company(models.Model):
 
 
     #quantity = models.DecimalField(blank=True, null=True, max_digits=10, decimal_places=3) # штуки или граммы
+
 
