@@ -4,22 +4,59 @@ from __future__ import unicode_literals
 from django.db import models
 from company.models import Company
 
+import json
+import urllib
+import urllib2, base64
+
+"""
+json чека ипортированного из ФНС России
+место хранения
+
+t=20200603T145000&s=3390.59&fn=9282440300628259&i=2031&fp=2548611914&n=1
+
+{
+    "document": {
+        "receipt": {
+            "ecashTotalSum":339059,
+            "fiscalDriveNumber":"9282440300628259",
+            "retailPlaceAddress":"107076, г.Москва, ул.Богородский Вал, д.6, корп.2",
+            "fiscalDocumentNumber":2031,
+            "taxationType":1,
+            "shiftNumber":8,
+            "userInn":"5258056945",
+            "operationType":1,
+            "receiptCode":3,
+            "items":[
+                {
+                    "price":2990,
+                    "name":"240 КАРТОФЕЛЬ",
+                    "quantity":1.93,
+                    "sum":5771
+                },
+                {"price":5990,"name":"4607045982771 МОЛОКО SPAR УЛЬТРАПА","quantity":3,"sum":17970},
+                {"price":5990,"name":"7622210736970 ШОКОЛАД MILKA МОЛОЧН","quantity":1,"sum":5990},
+            ],
+            "user":"ООО \"Спар Миддл Волга\"",
+            "fiscalSign":2548611914,
+            "dateTime":"2020-06-03T14:50:00",
+            "requestNumber":8,
+            "totalSum":339059,
+            "nds10":22252,
+            "rawData": "",
+            "nds18":15718,
+            "cashTotalSum":0,
+            "kktRegId":"0001732259050091    ",
+            "operator":"Усикова Дарья Игорев"
+        }
+    }
+}
+"""
+
 class ChequeFNS(models.Model):
-    company = models.ForeignKey(Company)
-#    account = models.ForeignKey(Account, blank=True, null=True)
-    #datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
-#    company = models.CharField(blank=True, max_length=254)
-    #showcase = models.ForeignKey(Showcase, blank=True, null=True) # дополнительная информация о витрине на которй осуествили заказ и оплату
-#    sum = models.SmallIntegerField(blank=True, null=True)
-#    datetime = models.DateTimeField(blank=True, null = True) # дата покупки
-    # у ручных чеков этого может не быть
-    #   а те что из приехали из ФНС нужно отдельно связь завести что чек уже на онсве JSON создавался и об этом должен помнить создатель чеков.
-    #fn = models.CharField(blank=True, max_length=254)
-    #fdp = models.CharField(blank=True, max_length=254)
-    #fd = models.CharField(blank=True, max_length=254)
-
-#    user_inn = models.CharField(blank=True, max_length=254) # ИНН организации
-
+    json = models.TextField(blank=True, )
+    company = models.ForeignKey(Company, blank=True, null=True)
+#    datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
+    fns_userInn = models.CharField(blank=True, max_length=254) # ИНН организации
     fns_fiscalDocumentNumber = models.CharField(blank=True, max_length=254)
     fns_fiscalDriveNumber = models.CharField(blank=True, max_length=254)
     fns_fiscalSign = models.CharField(blank=True, max_length=254)
@@ -27,13 +64,91 @@ class ChequeFNS(models.Model):
     fns_dateTime = models.CharField(blank=True, max_length=254)
     fns_totalSum = models.CharField(blank=True, max_length=254)
 
-    def is_shop_SPAR(self):
-        if self.user_inn == "5258056945":
+    def get_datetime(self):
+        return self.fns_dateTime
+
+    @staticmethod
+    def import_from_proverkacheka_com_format_like_fns(qr_text):
+        cheque = QRCodeReader.qr_text_to_params(qr_text)
+        #cheque_fns_info_json = ImportProverkachekaComFormatLikeFNS.get_cheque_fns_by_qr_params(cheque)
+        cheque_fns_info_json = ImportProverkachekaComFormatLikeFNS.get_cheque_fns_by_qr_params(cheque, qr_text)
+
+        cheque_fns_info_json["document"] = {}
+        cheque_fns_info_json["document"]["receipt"] = cheque_fns_info_json['data']['json']
+
+        account = None
+        if ChequeFNS.has_cheque_with_fiscal_params(account,
+            cheque_fns_info_json["document"]["receipt"]["fiscalDocumentNumber"],
+            cheque_fns_info_json["document"]["receipt"]["fiscalDriveNumber"],
+            cheque_fns_info_json["document"]["receipt"]["fiscalSign"],
+            cheque_fns_info_json["document"]["receipt"]["dateTime"],
+            cheque_fns_info_json["document"]["receipt"]["totalSum"]):
+            #u'text': u'Такой чек уже существует',
+            return
+        ChequeFNS.save_cheque_from_cheque_fns_json(cheque_fns_info_json)
+
+    @classmethod
+    def has_cheque_with_fiscal_params(cls, accaunt, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
+        for cheque in ChequeFNS.objects.filter(
+            fns_fiscalDocumentNumber=fiscalDocumentNumber,
+            fns_fiscalDriveNumber=fiscalDriveNumber,
+            fns_fiscalSign=fiscalSign,
+            fns_dateTime=dateTime,
+            fns_totalSum=totalSum):
+            print '-------------'
+            print cheque
             return True
         return False
 
-    def get_datetime(self):
-        return self.fns_dateTime
+    @classmethod
+    def save_cheque_from_cheque_fns_json(cls, cheque_fns_json):
+        """
+        fix надо разделить на три метода:
+            1 сохраннеие в базу
+            2 создать(если такого еще нет) товары на основе имеющихся продуктов
+            2 привязка к позиции в чеке товарв
+        """
+        if not cheque_fns_json:
+            return 
+
+        account = None
+        if cls.has_cheque_with_fiscal_params(account,
+            cheque_fns_json["document"]["receipt"]["fiscalDocumentNumber"],
+            cheque_fns_json["document"]["receipt"]["fiscalDriveNumber"],
+            cheque_fns_json["document"]["receipt"]["fiscalSign"],
+            cheque_fns_json["document"]["receipt"]["dateTime"],
+            cheque_fns_json["document"]["receipt"]["totalSum"]):
+            print u'Alert: Find same cheque!'
+            assert False
+
+        # везде добавил временуж зону Москва timezone
+        datetime_buy = cheque_fns_json["document"]["receipt"]["dateTime"] + '+03:00'
+
+        cheque_fns = ChequeFNS(
+            fns_userInn=cheque_fns_json["document"]["receipt"]["userInn"],
+            fns_dateTime=datetime_buy
+        )
+
+        cheque_fns.fns_fiscalDocumentNumber = cheque_fns_json["document"]["receipt"]["fiscalDocumentNumber"]
+        cheque_fns.fns_fiscalDriveNumber = cheque_fns_json["document"]["receipt"]["fiscalDriveNumber"]
+        cheque_fns.fns_fiscalSign = cheque_fns_json["document"]["receipt"]["fiscalSign"]
+        cheque_fns.fns_dateTime = cheque_fns_json["document"]["receipt"]["dateTime"]
+        cheque_fns.fns_totalSum = cheque_fns_json["document"]["receipt"]["totalSum"]
+
+        cheque_fns.save()
+        for elemnt in cheque_fns_json["document"]["receipt"]["items"]:
+            #Сначало можно попытаться найти найти товар с таким же названием и пустыми поялми чтобы лишний раз не делать одно и тоже
+            cheque_fns_element = ChequeFNSElement(
+                cheque_fns=cheque_fns,
+                quantity=elemnt["quantity"],
+                name=elemnt["name"],
+                price=elemnt["price"],
+                sum=elemnt["sum"],
+            )
+            cheque_fns_element.save()
+
+    def __unicode__(self):
+        return u"ChequeFNS = FDN: %s, FD: %s, FS: %s, DT: %s, TS: %s" % (self.fns_fiscalDocumentNumber, self.fns_fiscalDriveNumber, self.fns_fiscalSign, self.fns_dateTime, self.fns_totalSum)
 
 class ChequeFNSElement(models.Model):
     """
@@ -46,47 +161,15 @@ class ChequeFNSElement(models.Model):
     """
     cheque_fns = models.ForeignKey(ChequeFNS)
     name = models.CharField(blank=True, null=True, max_length=254)
-#    price = models.SmallIntegerField(blank=True, null=True) # цена за штуку или за 1000 грамм
-    #quantity = models.SmallIntegerField(blank=True, null=True) # штуки или граммы
+    price = models.SmallIntegerField(blank=True, null=True) # цена за штуку или за 1000 грамм
     quantity = models.DecimalField(blank=True, null=True, max_digits=10, decimal_places=3) # штуки или граммы
-
-#    sum = models.SmallIntegerField(blank=True, null=True) # финальная цена
-#    product_info = models.ForeignKey(ProductInfo, blank=True, null=True) # дополнительная информация о продукте полученная из иногог источника и обогазенная с целью облегчить жизнь пользователю не вбивать данные по прдуктам
-    #extended_product_info_manual = models.ForeignKey(ExtendedProductInfoManual, blank=True, null=True)
-    # можно было бы добавить фото куленного продукта
-    # среию продукта
-    # срок годности(гаарантийный срок)
-    # дата производства
+    sum = models.SmallIntegerField(blank=True, null=True) # финальная цена
 
     # пользователь сам указывает по данной позиции этот параметр
     volume = models.DecimalField(blank=True, null=True, max_digits=10, decimal_places=3) # указываем 1 если весовой товар или вес одной штуки в килошраммах
-    
 
-#    def get_barcode(self):
-#        if self.has_barcode():
-#            if self.cheque_fns.is_shop_SPAR():
-#                return self.name.split()[0]
-#                #return self.product_info.title.split()[0]
-#        assert False
-#
-#    def get_price(self):
-#        return self.price
-#
-#    def get_quantity(self):
-#        return self.quantity
-#
-#    def get_sum(self):
-#        return self.sum
-#
     def get_title(self):
         return self.name
-#
-#    def has_barcode(self):
-#        if self.cheque_fns.is_shop_SPAR():
-#            if len(self.name.split()[0]) == 13:
-#            #if len(self.product_info.title.split()[0]) == 13:
-#                return True
-#        return False
 
     def consumption_element_params(self):
         return {
@@ -95,9 +178,54 @@ class ChequeFNSElement(models.Model):
             'weight': float(self.volume * self.quantity),
         }
 
-
     def __str__(self):
-        #return "%s %s %s %s" % (str(self.price), self.product_card, str(self.datetime), self.showcase.encode('utf8'))
-        #return "%s %s %s" % (str(self.price), str(self.datetime), self.showcase)
-        return u"%s %s %s" % (str(self.name), str(self.quantity), self.volume) 
+        return self.name.encode('utf8') + str(' ') + str(self.quantity) + str(' ') + str(self.volume)# + self.name.encode('utf8') 
  
+class QRCodeReader(object):
+    @classmethod
+    def qr_text_to_params(cls, text):
+        #qr_text = 't=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1'
+        cheque = {}
+        for e in text.split('&'):
+            k, v = e.split('=')
+            if k == 't':
+                cheque['date'] = v
+	        #cheque['date'] = str(datetime.strptime(v, '%Y%m%dT%H%M'))
+            elif k == 's':
+                cheque['sum'] = str(int(float(v)*100))
+            elif k == 'fn':
+                cheque['FN'] = v
+            elif k == 'fp':
+                cheque['FDP'] = v
+            elif k == 'i':
+                cheque['FD'] = v
+        return cheque
+
+class ImportProverkachekaComFormatLikeFNS(object):
+    """
+    Класс отвечающий за импорт данных из ФНС России
+    """
+
+    @classmethod
+    def get_cheque_fns_by_qr_params(cls, cheque, qr_text):
+        #https://proverkacheka.com/check/get?fn=9288000100159749&fd=14492&fp=2104555358&n=1&s=293.90&t=05.12.2020+22%3A06&qr=0
+        #url = 'https://proverkacheka.com/check/get?fn=' + cheque['FN'] + '&fd=' + cheque['FD'] + '&fp=' + cheque['FDP'] + '&n=1&s=' + cheque['sum'] + '&t=' + cheque['date'] + '&qr=0'
+        #print url
+	#webUrl = urllib.urlopen(url)
+	#data = webUrl.read()
+	#print "result code: " + str(webUrl.getcode()) 
+	#print data
+
+	req = urllib2.Request('https://proverkacheka.com/check/get')
+        data = urllib.urlencode({
+            #'qrraw': 't=20201107T2058&s=63.00&fn=9288000100192401&i=439&fp=2880362760&n=1',
+            'qrraw': qr_text,
+            'qr': 3,
+        })
+        data = urllib2.urlopen(url=req, data=data).read()
+        print data
+
+        # удалил блок html
+        #data = '{"code":1,"data":{"json":{"code":3,"items":[{"nds":2,"sum":6300,"name":"Чизбургер с луком СБ","price":6300,"ndsSum":573,"quantity":1,"paymentType":4,"productType":1}],"nds10":573,"userInn":"7729532221","dateTime":"2020-11-07T20:58:00","kktRegId":"0000677159011474","operator":"Тамаева Минара","totalSum":6300,"creditSum":0,"fiscalSign":2880362760,"prepaidSum":0,"shiftNumber":6,"cashTotalSum":0,"provisionSum":0,"ecashTotalSum":6300,"operationType":1,"requestNumber":203,"fiscalDriveNumber":"9288000100192401","fiscalDocumentNumber":439,"fiscalDocumentFormatVer":2},"html":""}}'
+
+        return json.loads(data)
