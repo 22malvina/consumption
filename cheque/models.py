@@ -83,7 +83,8 @@ class ChequeFNS(models.Model):
             cheque_fns_info_json["document"]["receipt"]["fiscalSign"],
             cheque_fns_info_json["document"]["receipt"]["dateTime"],
             cheque_fns_info_json["document"]["receipt"]["totalSum"]):
-            #u'text': u'Такой чек уже существует',
+            print u'Alert: We has this cheque!'
+            #Такой чек уже существует'
             return
         ChequeFNS.save_cheque_from_cheque_fns_json(cheque_fns_info_json)
 
