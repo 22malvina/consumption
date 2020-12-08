@@ -503,6 +503,104 @@ class Base(TestCase):
 	delta_days_future = milk_function.days_future()
 	self.assertEqual(8.333, delta_days_future)
 
+    def test_8(self):
+	#TODO не указал что при подученни и функций можем брать только функции в компании котрую мы просчитываем
+	#	слежует релатзовать интерфейс у класа репоитория функций когда:
+	#		1. всегда укзаывается компания для коророй подучается функция
+	#		2. или фуннкции можно получать только через когмпанию где компания является агрегатом функции чеков
+	#			агрегат предпочтительнее так как явно видно его границы, 
+	#			а при работе с репозиторием не понятно почему нельзя создать метеод получения функции без компании.
+	#				и это надо коментариями указывать в описании репозитория 
+	#для быстроты МВП делаем так
+	"""
+	Сгенерить функции на основе имеющихся чеков в указанной компании.
+	    не все клиенты пьют молоко а знаит функция молока им не нужна.
+		создадим ее только когда пользователь попросит
+	"""
+	print 'test 8'
+	#Берем все чеки на основе которых хотим понять что за функции нам нужны.
+	pety_employee = Employee(title='Pety', key='123zxc')
+	pety_employee.save()
+
+	company_family = Company(title='family')
+	company_family.save()
+	company_family.employees.add(pety_employee)
+
+	#добавляем чеки в компанию
+	for i in Base.list_buy_milk():
+	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
+	    cheque_fns.save() 
+	    for j in i['items']:
+		print j['name'].encode('utf8')
+		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e.save()
+
+	for i in Base.list_buy_cheese():
+	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
+	    cheque_fns.save() 
+	    for j in i['items']:
+		print j['name'].encode('utf8')
+		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e.save()
+
+	print 'Base:'
+	print ChequeFNS.objects.all().count()
+	print ChequeFNSElement.objects.all().count()
+	print '---'
+
+	#function = PredictionLinearFunction.objects.get(base_type=u'МОЛОКО')
+	#print function
+
+	#для каждого элемента чек пробуем определить под какие из заложенных функций он подходит.
+	#по содерибмому элемента - в назавние есть надпись МОЛОКО 3.2%
+	#по привязке карточки продуката - в назавании карточки продукат есть надпись МОЛОКО 3.2%
+	#по если в чеке есть не определнный товар Х и еще есть СМЕТАНА и ТВОРОГ,
+	#	а также есть много чеков также с теремя товарами СМЕТАНА ТВОРОГО "МОЛОКО" - принимаем рещенеи что это МОЛОКО и добавляем его в функцию
+	
+	fns_cheques = ChequeFNS.objects.filter(company=company_family)
+
+	#получем все типы базвых функий которые возможны
+	base_function_types = set()
+	for fns_cheque in fns_cheques:
+	    #for fns_cheque_element in fns_cheque.elements():
+	    for fns_cheque_element in ChequeFNSElement.objects.filter(cheque_fns=fns_cheque):
+		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
+		    base_function_types.add(base_function_type)
+	for base_function_type in base_function_types:
+	   print base_function_type.encode('utf8')
+	print 
+
+	#создаем недостающие базовые функции 
+	for base_function_type in base_function_types:
+	    if not PredictionLinearFunction.objects.filter(base_type=base_function_type).count():
+		f = PredictionLinearFunction(base_type=base_function_type)
+		f.save()
+
+	##получаем базовые функции
+	#functions = PredictionLinearFunction.objects.filter(base_type__in=base_function_types)
+	#for f in functions:
+	#    print f
+
+	#наполняем функции чеками которые им подходят
+	print len(fns_cheques)
+	for fns_cheque in fns_cheques:
+	    #for fns_cheque_element in fns_cheque.elements():
+	    for fns_cheque_element in ChequeFNSElement.objects.filter(cheque_fns=fns_cheque):
+		print '--->'
+		print fns_cheque_element.get_title().encode('utf8')
+		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
+		    function = PredictionLinearFunction.objects.get(base_type=base_function_type)
+		    function.cheque_elements.add(fns_cheque_element)
+	
+	function = PredictionLinearFunction.objects.get(base_type=u'МОЛОКО')
+	print function
+	print '----'
+
+	for f in PredictionLinearFunction.objects.all():
+	    print f
+	
+	print 'end'
+   
 def has_account(i, j):
     return False
 

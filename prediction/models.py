@@ -12,6 +12,7 @@ class PredictionLinearFunction(models.Model):
     cheque_elements = models.ManyToManyField(ChequeFNSElement)
     #product_card = models.ForeignKey(ProductCard)
     datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
+    base_type = models.CharField(blank=True, max_length=254)
 
     def elements(self):
 	elements = []
@@ -20,8 +21,13 @@ class PredictionLinearFunction(models.Model):
 	    elements.append(Element(e['title'], e['datetime'], e['weight']))
 	return elements
 
-    def __str__(self):
-        return u"%s (%s)" % (str(self.title), str(len(self.cheque_elements.all()))) 
+#    def __str__(self):
+#        return u"%s (%s)" % (str(self.title), str(len(self.cheque_elements.all()))) 
+#    #    #return u"%s %s (%s)" % (str(self.base_type), str(self.title), str(len(self.cheque_elements.all()))) 
+#    #    return self.base_type # + u"%s (%s)" % (str(self.title), str(len(self.cheque_elements.all()))) 
+
+    def __unicode__(self):
+        return u"%s -> %s (%s)" % (self.base_type, self.title,  str(len(self.cheque_elements.all())) )
 
 class Element(object):
     def get_weight(self):
@@ -95,6 +101,16 @@ class PredictionLinear(object):
 	    if i.get_date().date() != self.__resources[-1].get_date().date():
 		all_weight += i.get_weight()
 	return float("{0:.3f}".format(float(all_weight) / delta_days))
+
+    @classmethod
+    def base_function_types(cls, fns_cheque_element):
+	words = u"сыр творог молоко йогурт сметана шоколад томат"
+	words = words.upper()
+	return_words = set()
+	for word in words.split():
+	    if word in fns_cheque_element.get_title():
+		return_words.add(word)
+	return return_words
 
     def days_future(self):
 	"""
