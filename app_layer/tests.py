@@ -4,7 +4,7 @@ from prediction.models import Element, Prediction, PredictionLinear, PredictionL
 from product_card.models import ProductCard
 from offer.models import Offer
 from company.models import Company, Employee
-from cheque.models import ChequeFNS, ChequeFNSElement, QRCodeReader 
+from cheque.models import FNSCheque, FNSChequeElement, QRCodeReader 
 from datetime import datetime
 
 class Base(TestCase):
@@ -48,22 +48,22 @@ class Base(TestCase):
         #in
         key = '123zxc'
         qr_text = 't=20201107T2058&s=63.00&fn=9288000100192401&i=439&fp=2880362760&n=1'
-        self.assertEqual(0, ChequeFNS.objects.all().count())
+        self.assertEqual(0, FNSCheque.objects.all().count())
 
         #calc
         pety_employee = Employee.objects.get(key=key)
         self.assertEqual('Pety', pety_employee.title)
-        ChequeFNS.import_from_proverkacheka_com_format_like_fns(qr_text)
-        self.assertEqual(1, ChequeFNS.objects.all().count())
+        FNSCheque.import_from_proverkacheka_com_format_like_fns(qr_text)
+        self.assertEqual(1, FNSCheque.objects.all().count())
 
         cheque_p = QRCodeReader.qr_text_to_params(qr_text)
-        cheque = ChequeFNS.objects.get(fns_fiscalDocumentNumber=cheque_p['FD'], fns_fiscalDriveNumber=cheque_p['FN'], fns_fiscalSign=cheque_p['FDP'])
+        cheque = FNSCheque.objects.get(fns_fiscalDocumentNumber=cheque_p['FD'], fns_fiscalDriveNumber=cheque_p['FN'], fns_fiscalSign=cheque_p['FDP'])
         cheque.company = Company.objects.get(employees__in=[pety_employee])
         cheque.save()
 
-        ChequeFNS.import_from_proverkacheka_com_format_like_fns(qr_text)
-        ChequeFNS.import_from_proverkacheka_com_format_like_fns('t=11&s=22&fn=33&i=44&fp=55&n=1')
-        self.assertEqual(1, ChequeFNS.objects.all().count())
+        FNSCheque.import_from_proverkacheka_com_format_like_fns(qr_text)
+        FNSCheque.import_from_proverkacheka_com_format_like_fns('t=11&s=22&fn=33&i=44&fp=55&n=1')
+        self.assertEqual(1, FNSCheque.objects.all().count())
 
     def test_3(self):
         """

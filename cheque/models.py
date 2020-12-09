@@ -52,7 +52,7 @@ t=20200603T145000&s=3390.59&fn=9282440300628259&i=2031&fp=2548611914&n=1
 }
 """
 
-class ChequeFNS(models.Model):
+class FNSCheque(models.Model):
     json = models.TextField(blank=True, )
     company = models.ForeignKey(Company, blank=True, null=True)
 #    datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
@@ -70,27 +70,27 @@ class ChequeFNS(models.Model):
     @staticmethod
     def import_from_proverkacheka_com_format_like_fns(qr_text):
         cheque = QRCodeReader.qr_text_to_params(qr_text)
-        #cheque_fns_info_json = ImportProverkachekaComFormatLikeFNS.get_cheque_fns_by_qr_params(cheque)
-        cheque_fns_info_json = ImportProverkachekaComFormatLikeFNS.get_cheque_fns_by_qr_params(cheque, qr_text)
+        #fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque)
+        fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque, qr_text)
 
-        cheque_fns_info_json["document"] = {}
-        cheque_fns_info_json["document"]["receipt"] = cheque_fns_info_json['data']['json']
+        fns_cheque_info_json["document"] = {}
+        fns_cheque_info_json["document"]["receipt"] = fns_cheque_info_json['data']['json']
 
         account = None
-        if ChequeFNS.has_cheque_with_fiscal_params(account,
-            cheque_fns_info_json["document"]["receipt"]["fiscalDocumentNumber"],
-            cheque_fns_info_json["document"]["receipt"]["fiscalDriveNumber"],
-            cheque_fns_info_json["document"]["receipt"]["fiscalSign"],
-            cheque_fns_info_json["document"]["receipt"]["dateTime"],
-            cheque_fns_info_json["document"]["receipt"]["totalSum"]):
+        if FNSCheque.has_cheque_with_fiscal_params(account,
+            fns_cheque_info_json["document"]["receipt"]["fiscalDocumentNumber"],
+            fns_cheque_info_json["document"]["receipt"]["fiscalDriveNumber"],
+            fns_cheque_info_json["document"]["receipt"]["fiscalSign"],
+            fns_cheque_info_json["document"]["receipt"]["dateTime"],
+            fns_cheque_info_json["document"]["receipt"]["totalSum"]):
             print u'Alert: We has this cheque!'
             #Такой чек уже существует'
             return
-        ChequeFNS.save_cheque_from_cheque_fns_json(cheque_fns_info_json)
+        FNSCheque.save_cheque_from_fns_cheque_json(fns_cheque_info_json)
 
     @classmethod
     def has_cheque_with_fiscal_params(cls, accaunt, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
-        for cheque in ChequeFNS.objects.filter(
+        for cheque in FNSCheque.objects.filter(
             fns_fiscalDocumentNumber=fiscalDocumentNumber,
             fns_fiscalDriveNumber=fiscalDriveNumber,
             fns_fiscalSign=fiscalSign,
@@ -102,56 +102,56 @@ class ChequeFNS(models.Model):
         return False
 
     @classmethod
-    def save_cheque_from_cheque_fns_json(cls, cheque_fns_json):
+    def save_cheque_from_fns_cheque_json(cls, fns_cheque_json):
         """
         fix надо разделить на три метода:
             1 сохраннеие в базу
             2 создать(если такого еще нет) товары на основе имеющихся продуктов
             2 привязка к позиции в чеке товарв
         """
-        if not cheque_fns_json:
+        if not fns_cheque_json:
             return 
 
         account = None
         if cls.has_cheque_with_fiscal_params(account,
-            cheque_fns_json["document"]["receipt"]["fiscalDocumentNumber"],
-            cheque_fns_json["document"]["receipt"]["fiscalDriveNumber"],
-            cheque_fns_json["document"]["receipt"]["fiscalSign"],
-            cheque_fns_json["document"]["receipt"]["dateTime"],
-            cheque_fns_json["document"]["receipt"]["totalSum"]):
+            fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalSign"],
+            fns_cheque_json["document"]["receipt"]["dateTime"],
+            fns_cheque_json["document"]["receipt"]["totalSum"]):
             print u'Alert: Find same cheque!'
             assert False
 
         # везде добавил временуж зону Москва timezone
-        datetime_buy = cheque_fns_json["document"]["receipt"]["dateTime"] + '+03:00'
+        datetime_buy = fns_cheque_json["document"]["receipt"]["dateTime"] + '+03:00'
 
-        cheque_fns = ChequeFNS(
-            fns_userInn=cheque_fns_json["document"]["receipt"]["userInn"],
+        fns_cheque = FNSCheque(
+            fns_userInn=fns_cheque_json["document"]["receipt"]["userInn"],
             fns_dateTime=datetime_buy
         )
 
-        cheque_fns.fns_fiscalDocumentNumber = cheque_fns_json["document"]["receipt"]["fiscalDocumentNumber"]
-        cheque_fns.fns_fiscalDriveNumber = cheque_fns_json["document"]["receipt"]["fiscalDriveNumber"]
-        cheque_fns.fns_fiscalSign = cheque_fns_json["document"]["receipt"]["fiscalSign"]
-        cheque_fns.fns_dateTime = cheque_fns_json["document"]["receipt"]["dateTime"]
-        cheque_fns.fns_totalSum = cheque_fns_json["document"]["receipt"]["totalSum"]
+        fns_cheque.fns_fiscalDocumentNumber = fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"]
+        fns_cheque.fns_fiscalDriveNumber = fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"]
+        fns_cheque.fns_fiscalSign = fns_cheque_json["document"]["receipt"]["fiscalSign"]
+        fns_cheque.fns_dateTime = fns_cheque_json["document"]["receipt"]["dateTime"]
+        fns_cheque.fns_totalSum = fns_cheque_json["document"]["receipt"]["totalSum"]
 
-        cheque_fns.save()
-        for elemnt in cheque_fns_json["document"]["receipt"]["items"]:
+        fns_cheque.save()
+        for elemnt in fns_cheque_json["document"]["receipt"]["items"]:
             #Сначало можно попытаться найти найти товар с таким же названием и пустыми поялми чтобы лишний раз не делать одно и тоже
-            cheque_fns_element = ChequeFNSElement(
-                cheque_fns=cheque_fns,
+            fns_cheque_element = FNSChequeElement(
+                fns_cheque=fns_cheque,
                 quantity=elemnt["quantity"],
                 name=elemnt["name"],
                 price=elemnt["price"],
                 sum=elemnt["sum"],
             )
-            cheque_fns_element.save()
+            fns_cheque_element.save()
 
     def __unicode__(self):
-        return u"ChequeFNS = FDN: %s, FD: %s, FS: %s, DT: %s, TS: %s" % (self.fns_fiscalDocumentNumber, self.fns_fiscalDriveNumber, self.fns_fiscalSign, self.fns_dateTime, self.fns_totalSum)
+        return u"FNSCheque = FDN: %s, FD: %s, FS: %s, DT: %s, TS: %s" % (self.fns_fiscalDocumentNumber, self.fns_fiscalDriveNumber, self.fns_fiscalSign, self.fns_dateTime, self.fns_totalSum)
 
-class ChequeFNSElement(models.Model):
+class FNSChequeElement(models.Model):
     """
     нужно учитывать весовой товар
     цена за штуку
@@ -160,7 +160,7 @@ class ChequeFNSElement(models.Model):
 
     {"weight": 220, "quantity":1,"sum":13500,"price":13500,"name":u"4607004891694 СЫР СЛИВОЧНЫЙ HOCHLA", "volume": 0.22},
     """
-    cheque_fns = models.ForeignKey(ChequeFNS)
+    fns_cheque = models.ForeignKey(FNSCheque)
     name = models.CharField(blank=True, null=True, max_length=254)
     price = models.SmallIntegerField(blank=True, null=True) # цена за штуку или за 1000 грамм
     quantity = models.DecimalField(blank=True, null=True, max_digits=10, decimal_places=3) # штуки или граммы
@@ -175,7 +175,7 @@ class ChequeFNSElement(models.Model):
     def consumption_element_params(self):
         return {
             'title': self.get_title(),
-            'datetime': self.cheque_fns.get_datetime(),
+            'datetime': self.fns_cheque.get_datetime(),
             'weight': float(self.volume * self.quantity),
         }
 
@@ -208,7 +208,7 @@ class ImportProverkachekaComFormatLikeFNS(object):
     """
 
     @classmethod
-    def get_cheque_fns_by_qr_params(cls, cheque, qr_text):
+    def get_fns_cheque_by_qr_params(cls, cheque, qr_text):
         #https://proverkacheka.com/check/get?fn=9288000100159749&fd=14492&fp=2104555358&n=1&s=293.90&t=05.12.2020+22%3A06&qr=0
         #url = 'https://proverkacheka.com/check/get?fn=' + cheque['FN'] + '&fd=' + cheque['FD'] + '&fp=' + cheque['FDP'] + '&n=1&s=' + cheque['sum'] + '&t=' + cheque['date'] + '&qr=0'
         #print url

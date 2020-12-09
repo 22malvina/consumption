@@ -4,7 +4,7 @@ from models import Element, Prediction, PredictionLinear, PredictionLinearFuncti
 from product_card.models import ProductCard
 from offer.models import Offer
 from company.models import Company, Employee
-from cheque.models import ChequeFNS, ChequeFNSElement 
+from cheque.models import FNSCheque, FNSChequeElement 
 from datetime import datetime
 
 class Base(TestCase):
@@ -443,20 +443,20 @@ class Base(TestCase):
 	plf_milk.save()
 	for i in Base.list_buy_milk()[:5]:
 	#for i in Base.list_buy_milk():
-	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
-	    cheque_fns.save() 
+	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque.save() 
 	    for j in i['items']:
-		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
 		e.save()
 		plf_milk.cheque_elements.add(e)
 
 	plf_cheese = PredictionLinearFunction(title='Cheese')
 	plf_cheese.save()
 	for i in Base.list_buy_cheese():
-	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
-	    cheque_fns.save() 
+	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque.save() 
 	    for j in i['items']:
-		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
 		e.save()
 		plf_cheese.cheque_elements.add(e)
 
@@ -487,10 +487,10 @@ class Base(TestCase):
 
 	##
 	for i in Base.list_buy_milk()[5:]:
-	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
-	    cheque_fns.save() 
+	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque.save() 
 	    for j in i['items']:
-		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
 		e.save()
 		plf_milk.cheque_elements.add(e)
 	#fetch
@@ -528,24 +528,24 @@ class Base(TestCase):
 
 	#добавляем чеки в компанию
 	for i in Base.list_buy_milk():
-	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
-	    cheque_fns.save() 
+	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque.save() 
 	    for j in i['items']:
 		print j['name'].encode('utf8')
-		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
 		e.save()
 
 	for i in Base.list_buy_cheese():
-	    cheque_fns = ChequeFNS(company=company_family, fns_dateTime=i['dateTime'])
-	    cheque_fns.save() 
+	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque.save() 
 	    for j in i['items']:
 		print j['name'].encode('utf8')
-		e = ChequeFNSElement(cheque_fns=cheque_fns, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
 		e.save()
 
 	print 'Base:'
-	print ChequeFNS.objects.all().count()
-	print ChequeFNSElement.objects.all().count()
+	print FNSCheque.objects.all().count()
+	print FNSChequeElement.objects.all().count()
 	print '---'
 
 	#function = PredictionLinearFunction.objects.get(base_type=u'МОЛОКО')
@@ -557,13 +557,13 @@ class Base(TestCase):
 	#по если в чеке есть не определнный товар Х и еще есть СМЕТАНА и ТВОРОГ,
 	#	а также есть много чеков также с теремя товарами СМЕТАНА ТВОРОГО "МОЛОКО" - принимаем рещенеи что это МОЛОКО и добавляем его в функцию
 	
-	fns_cheques = ChequeFNS.objects.filter(company=company_family)
+	fns_cheques = FNSCheque.objects.filter(company=company_family)
 
 	#получем все типы базвых функий которые возможны
 	base_function_types = set()
 	for fns_cheque in fns_cheques:
 	    #for fns_cheque_element in fns_cheque.elements():
-	    for fns_cheque_element in ChequeFNSElement.objects.filter(cheque_fns=fns_cheque):
+	    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
 		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
 		    base_function_types.add(base_function_type)
 	for base_function_type in base_function_types:
@@ -585,7 +585,7 @@ class Base(TestCase):
 	print len(fns_cheques)
 	for fns_cheque in fns_cheques:
 	    #for fns_cheque_element in fns_cheque.elements():
-	    for fns_cheque_element in ChequeFNSElement.objects.filter(cheque_fns=fns_cheque):
+	    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
 		print '--->'
 		print fns_cheque_element.get_title().encode('utf8')
 		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):

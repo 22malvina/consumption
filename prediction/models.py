@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 from django.db import models
 from product_card.models import ProductCard
-from cheque.models import ChequeFNSElement
+from cheque.models import FNSChequeElement
 from datetime import datetime
 
 
 class PredictionLinearFunction(models.Model):
     title = models.CharField(blank=True, max_length=254)
-    cheque_elements = models.ManyToManyField(ChequeFNSElement)
+    cheque_elements = models.ManyToManyField(FNSChequeElement)
     #product_card = models.ForeignKey(ProductCard)
     datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
     base_type = models.CharField(blank=True, max_length=254)
