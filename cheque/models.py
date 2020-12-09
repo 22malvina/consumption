@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from company.models import Company
 
+import time
 import json
 import urllib
 import urllib2, base64
@@ -73,6 +74,14 @@ class FNSCheque(models.Model):
         #fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque)
         fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque, qr_text)
 
+        #if not type(fns_cheque_info_json) is dict or \
+        #    not fns_cheque_info_json.get('data') or \
+        #    not type(fns_cheque_info_json['data']) is dict or \
+        #    not fns_cheque_info_json['data'].get('json'):
+        if not type(fns_cheque_info_json) is dict or not type(fns_cheque_info_json['data']) is dict:
+            print u'Alert: This is not good JSON!'
+            return
+
         fns_cheque_info_json["document"] = {}
         fns_cheque_info_json["document"]["receipt"] = fns_cheque_info_json['data']['json']
 
@@ -96,7 +105,7 @@ class FNSCheque(models.Model):
             fns_fiscalSign=fiscalSign,
             fns_dateTime=dateTime,
             fns_totalSum=totalSum):
-            print '-------------'
+            print '---has cheque----------'
             print cheque
             return True
         return False
@@ -218,15 +227,16 @@ class ImportProverkachekaComFormatLikeFNS(object):
 	#print data
 
 	req = urllib2.Request('https://proverkacheka.com/check/get')
-        data = urllib.urlencode({
+        da = urllib.urlencode({
             #'qrraw': 't=20201107T2058&s=63.00&fn=9288000100192401&i=439&fp=2880362760&n=1',
             'qrraw': qr_text,
             'qr': 3,
         })
-        #data = urllib2.urlopen(url=req, data=data).read()
-        print data
+        data = urllib2.urlopen(url=req, data=da).read()
+        #time.sleep(1)
+        #print data
 
         # удалил блок html
-        data = '{"code":1,"data":{"json":{"code":3,"items":[{"nds":2,"sum":6300,"name":"Чизбургер с луком СБ","price":6300,"ndsSum":573,"quantity":1,"paymentType":4,"productType":1}],"nds10":573,"userInn":"7729532221","dateTime":"2020-11-07T20:58:00","kktRegId":"0000677159011474","operator":"Тамаева Минара","totalSum":6300,"creditSum":0,"fiscalSign":2880362760,"prepaidSum":0,"shiftNumber":6,"cashTotalSum":0,"provisionSum":0,"ecashTotalSum":6300,"operationType":1,"requestNumber":203,"fiscalDriveNumber":"9288000100192401","fiscalDocumentNumber":439,"fiscalDocumentFormatVer":2},"html":""}}'
+        #data = '{"code":1,"data":{"json":{"code":3,"items":[{"nds":2,"sum":6300,"name":"Чизбургер с луком СБ","price":6300,"ndsSum":573,"quantity":1,"paymentType":4,"productType":1}],"nds10":573,"userInn":"7729532221","dateTime":"2020-11-07T20:58:00","kktRegId":"0000677159011474","operator":"Тамаева Минара","totalSum":6300,"creditSum":0,"fiscalSign":2880362760,"prepaidSum":0,"shiftNumber":6,"cashTotalSum":0,"provisionSum":0,"ecashTotalSum":6300,"operationType":1,"requestNumber":203,"fiscalDriveNumber":"9288000100192401","fiscalDocumentNumber":439,"fiscalDocumentFormatVer":2},"html":""}}'
 
         return json.loads(data)
