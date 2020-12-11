@@ -55,7 +55,7 @@ t=20200603T145000&s=3390.59&fn=9282440300628259&i=2031&fp=2548611914&n=1
 
 class FNSCheque(models.Model):
     json = models.TextField(blank=True, )
-    company = models.ForeignKey(Company, blank=True, null=True)
+    company = models.ForeignKey(Company, blank=True, null=True) #TODO чек простой элемент и компанию надо вынести из чека
 #    datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
     fns_userInn = models.CharField(blank=True, max_length=254) # ИНН организации
     fns_fiscalDocumentNumber = models.CharField(blank=True, max_length=254)
@@ -65,11 +65,18 @@ class FNSCheque(models.Model):
     fns_dateTime = models.CharField(blank=True, max_length=254)
     fns_totalSum = models.CharField(blank=True, max_length=254)
 
+    def format_date_qr_srt(self):
+        #return str(self.fns_dateTime[0:4]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[8:10]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
+        return str(self.fns_dateTime[8:10]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[0:4]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
+
+    def format_sum_qr_srt(self):
+        return str(self.fns_totalSum[0:-2]) + '.' + str(self.fns_totalSum[-2:])
+
     def get_datetime(self):
         return self.fns_dateTime
 
     @staticmethod
-    def import_from_proverkacheka_com_format_like_fns(qr_text):
+    def import_from_proverkacheka_com_format_like_fns(qr_text, company):
         cheque = QRCodeReader.qr_text_to_params(qr_text)
         #fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque)
         fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque, qr_text)
@@ -86,20 +93,21 @@ class FNSCheque(models.Model):
         fns_cheque_info_json["document"]["receipt"] = fns_cheque_info_json['data']['json']
 
         account = None
-        if FNSCheque.has_cheque_with_fiscal_params(account,
+        if FNSCheque.has_cheque_with_fiscal_params(company, account, 
             fns_cheque_info_json["document"]["receipt"]["fiscalDocumentNumber"],
             fns_cheque_info_json["document"]["receipt"]["fiscalDriveNumber"],
             fns_cheque_info_json["document"]["receipt"]["fiscalSign"],
             fns_cheque_info_json["document"]["receipt"]["dateTime"],
-            fns_cheque_info_json["document"]["receipt"]["totalSum"]):
+            fns_cheque_info_json["document"]["receipt"].get("totalSum", 'Error')):
             print u'Alert: We has this cheque!'
             #Такой чек уже существует'
             return
-        FNSCheque.save_cheque_from_fns_cheque_json(fns_cheque_info_json)
+        FNSCheque.save_cheque_from_fns_cheque_json(company, fns_cheque_info_json)
 
     @classmethod
-    def has_cheque_with_fiscal_params(cls, accaunt, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
+    def has_cheque_with_fiscal_params(cls, company, accaunt, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
         for cheque in FNSCheque.objects.filter(
+            company=company,
             fns_fiscalDocumentNumber=fiscalDocumentNumber,
             fns_fiscalDriveNumber=fiscalDriveNumber,
             fns_fiscalSign=fiscalSign,
@@ -111,7 +119,7 @@ class FNSCheque(models.Model):
         return False
 
     @classmethod
-    def save_cheque_from_fns_cheque_json(cls, fns_cheque_json):
+    def save_cheque_from_fns_cheque_json(cls, company, fns_cheque_json):
         """
         fix надо разделить на три метода:
             1 сохраннеие в базу
@@ -122,12 +130,12 @@ class FNSCheque(models.Model):
             return 
 
         account = None
-        if cls.has_cheque_with_fiscal_params(account,
+        if cls.has_cheque_with_fiscal_params(company, account,
             fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalSign"],
             fns_cheque_json["document"]["receipt"]["dateTime"],
-            fns_cheque_json["document"]["receipt"]["totalSum"]):
+            fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')):
             print u'Alert: Find same cheque!'
             assert False
 
@@ -135,6 +143,8 @@ class FNSCheque(models.Model):
         datetime_buy = fns_cheque_json["document"]["receipt"]["dateTime"] + '+03:00'
 
         fns_cheque = FNSCheque(
+            company=company,
+            json=fns_cheque_json,
             fns_userInn=fns_cheque_json["document"]["receipt"]["userInn"],
             fns_dateTime=datetime_buy
         )
@@ -143,17 +153,17 @@ class FNSCheque(models.Model):
         fns_cheque.fns_fiscalDriveNumber = fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"]
         fns_cheque.fns_fiscalSign = fns_cheque_json["document"]["receipt"]["fiscalSign"]
         fns_cheque.fns_dateTime = fns_cheque_json["document"]["receipt"]["dateTime"]
-        fns_cheque.fns_totalSum = fns_cheque_json["document"]["receipt"]["totalSum"]
+        fns_cheque.fns_totalSum = fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')
 
         fns_cheque.save()
-        for elemnt in fns_cheque_json["document"]["receipt"]["items"]:
+        for elemnt in fns_cheque_json["document"]["receipt"].get("items", []):
             #Сначало можно попытаться найти найти товар с таким же названием и пустыми поялми чтобы лишний раз не делать одно и тоже
             fns_cheque_element = FNSChequeElement(
                 fns_cheque=fns_cheque,
-                quantity=elemnt["quantity"],
-                name=elemnt["name"],
-                price=elemnt["price"],
-                sum=elemnt["sum"],
+                quantity=elemnt.get("quantity", "Error"),
+                name=elemnt.get("name", "Error"),
+                price=elemnt.get("price", "Error"),
+                sum=elemnt.get("sum", "Error"),
             )
             fns_cheque_element.save()
 
@@ -186,6 +196,15 @@ class FNSChequeElement(models.Model):
             'title': self.get_title(),
             'datetime': self.fns_cheque.get_datetime(),
             'weight': float(self.volume * self.quantity),
+        }
+
+    def offer_element_params(self):
+        print self.get_title().encode('utf8'), self.fns_cheque.get_datetime(), self.sum, self.volume, self.quantity
+        return {
+            'title': self.get_title(),
+            'datetime': self.fns_cheque.get_datetime(),
+            #'weight': float(self.volume * self.quantity),
+            'price_per_weight': float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
         }
 
     def __str__(self):

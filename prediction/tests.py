@@ -532,7 +532,7 @@ class Base(TestCase):
 	    fns_cheque.save() 
 	    for j in i['items']:
 		print j['name'].encode('utf8')
-		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
 		e.save()
 
 	for i in Base.list_buy_cheese():
@@ -540,7 +540,7 @@ class Base(TestCase):
 	    fns_cheque.save() 
 	    for j in i['items']:
 		print j['name'].encode('utf8')
-		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
 		e.save()
 
 	print 'Base:'
@@ -559,38 +559,41 @@ class Base(TestCase):
 	
 	fns_cheques = FNSCheque.objects.filter(company=company_family)
 
-	#получем все типы базвых функий которые возможны
-	base_function_types = set()
-	for fns_cheque in fns_cheques:
-	    #for fns_cheque_element in fns_cheque.elements():
-	    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
-		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
-		    base_function_types.add(base_function_type)
-	for base_function_type in base_function_types:
-	   print base_function_type.encode('utf8')
-	print 
+	##получем все типы базвых функий которые возможны
+	#base_function_types = set()
+	#for fns_cheque in fns_cheques:
+	#    #for fns_cheque_element in fns_cheque.elements():
+	#    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
+	#	for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
+	#	    base_function_types.add(base_function_type)
+	#for base_function_type in base_function_types:
+	#   print base_function_type.encode('utf8')
+	#print 
+	base_function_types = PredictionLinear.auto_find_available_base_function_type(fns_cheques)
 
-	#создаем недостающие базовые функции 
-	for base_function_type in base_function_types:
-	    if not PredictionLinearFunction.objects.filter(base_type=base_function_type).count():
-		f = PredictionLinearFunction(base_type=base_function_type)
-		f.save()
+	##создаем недостающие базовые функции 
+	#for base_function_type in base_function_types:
+	#    if not PredictionLinearFunction.objects.filter(base_type=base_function_type).count():
+	#	f = PredictionLinearFunction(base_type=base_function_type)
+	#	f.save()
+	PredictionLinear.save_functions_with_base_function_types(base_function_types)
 
 	##получаем базовые функции
 	#functions = PredictionLinearFunction.objects.filter(base_type__in=base_function_types)
 	#for f in functions:
 	#    print f
 
-	#наполняем функции чеками которые им подходят
-	print len(fns_cheques)
-	for fns_cheque in fns_cheques:
-	    #for fns_cheque_element in fns_cheque.elements():
-	    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
-		print '--->'
-		print fns_cheque_element.get_title().encode('utf8')
-		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
-		    function = PredictionLinearFunction.objects.get(base_type=base_function_type)
-		    function.cheque_elements.add(fns_cheque_element)
+	##наполняем функции чеками которые им подходят
+	#print len(fns_cheques)
+	#for fns_cheque in fns_cheques:
+	#    #for fns_cheque_element in fns_cheque.elements():
+	#    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
+	#	print '--->'
+	#	print fns_cheque_element.get_title().encode('utf8')
+	#	for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
+	#	    function = PredictionLinearFunction.objects.get(base_type=base_function_type)
+	#	    function.cheque_elements.add(fns_cheque_element)
+	PredictionLinear.auto_add_cheque_elements_to_functions(fns_cheques)
 	
 	function = PredictionLinearFunction.objects.get(base_type=u'МОЛОКО')
 	print function
@@ -598,8 +601,40 @@ class Base(TestCase):
 
 	for f in PredictionLinearFunction.objects.all():
 	    print f
+
+	elements = set()
+
+	##найдем чеки с 100% совпадением названия и связанных чеков, и на основе них рассчитам предложение за килограм
+	#elements = set()
+	#for e in function.cheque_elements.all():
+	#    for en in FNSChequeElement.objects.filter(name=e.name):
+	#	elements.add(en)
+	elements.update(function.cheque_have_name_like_name_from_contains_cheques())
+
+	##взять ключевые слова у функции которые могут содержаться в чеках
+	#for word in function.allow_key_words():
+	#    qs = FNSChequeElement.objects.filter(name__icontains=word)
+	#    for e_word in function.disallow_key_words():
+	#	qs = qs.exclude(name__icontains=e_word)
+	#    for e in qs:
+	#	elements.add(e)
+	elements.update(function.cheque_contains_key_words())
+
+	for e in elements:
+	    print e.offer_element_params()
+
+	#offers = []
+	#for e in elements:
+	#    offers.append(e.offer_element_params())
+
+	#for o in offers:
+	#    print o
+
+
 	
 	print 'end'
+
+
    
 def has_account(i, j):
     return False

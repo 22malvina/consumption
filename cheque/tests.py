@@ -19,8 +19,16 @@ class Base(TestCase):
         qr_text = 't=20201121T204000&s=390.96&fn=9285000100186911&i=123274&fp=1022052943&n=1'
         qr_text = 't=20201020T151800&s=96.00&fn=9287440300038062&i=44302&fp=1049436108&n=1'
         qr_text = 't=20201107T2058&s=63.00&fn=9288000100192401&i=439&fp=2880362760&n=1'
+
+	robo1_employee = Employee(title='robo1', key='robo1_123zxc')
+	robo1_employee.save()
+
+	company_family = Company(title='family')
+	company_family.save()
+	company_family.employees.add(robo1_employee)
+
         #TODO временно отключу чтобы не дергать сервис и чтобы не забанили.
-        FNSCheque.import_from_proverkacheka_com_format_like_fns(qr_text)
+        FNSCheque.import_from_proverkacheka_com_format_like_fns(qr_text, company_family)
 
         for i in FNSCheque.objects.all():
             print i
@@ -42,4 +50,7 @@ class Base(TestCase):
         self.assertEqual(e.price, 6300)
         self.assertEqual(e.quantity, 1.000)
         self.assertEqual(e.sum, 6300)
+
+#    def test_2(self):
+#        format_date_qr_srt()
 

@@ -14,6 +14,52 @@ class PredictionLinearFunction(models.Model):
     datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
     base_type = models.CharField(blank=True, max_length=254)
 
+    def allow_key_words(self):
+	key_words = set()
+	if self.title:
+	    key_words.add(self.title)
+	    key_words.update(self.__utils_generate_key_words_from_title())
+	if self.base_type:
+	    key_words.add(self.base_type)
+	    key_words.update(self.__utils_generate_key_words_from_base_type())
+	return key_words
+	#return [self.title]
+
+    def cheque_have_name_like_name_from_contains_cheques(self):
+	#найдем чеки с 100% совпадением названия и связанных чеков, и на основе них рассчитам предложение за килограм
+	elements = set()
+	for e in self.cheque_elements.all():
+	    for en in FNSChequeElement.objects.filter(name=e.name):
+		elements.add(en)
+	return elements
+
+    def cheque_contains_key_words(self):
+	#взять ключевые слова у функции которые могут содержаться в чеках
+	elements = set()
+	for word in self.allow_key_words():
+	    print 'word =', word.encode('utf8')
+	    qs = FNSChequeElement.objects.filter(name__icontains=word)
+	    #qs = FNSChequeElement.objects.all()
+	    for e_word in self.disallow_key_words():
+		print 'e_word =', e_word.encode('utf8')
+		qs = qs.exclude(name__icontains=e_word)
+	    #print qs.query
+	    #print str(qs.query.decode('utf-8'))
+	    for e in qs:
+		elements.add(e)
+	return elements
+
+    def disallow_key_words(self):
+	words = set()
+	if self.base_type == u'СЫР':
+	    for w in [u'СЫРОК', u'сырный', u'сыром']:
+		words.update(self.__utils_generate_differnent_case(w))
+	if self.base_type == u'МОЛОКО':
+	    for w in [u'МОЛОЧНЫЙ']:
+		words.update(self.__utils_generate_differnent_case(w))
+		#words.update(self.__utils_generate_differnent_case('milk'))
+	return words
+
     def elements(self):
 	elements = []
 	for i in self.cheque_elements.all():
@@ -28,6 +74,29 @@ class PredictionLinearFunction(models.Model):
 
     def __unicode__(self):
         return u"%s -> %s (%s)" % (self.base_type, self.title,  str(len(self.cheque_elements.all())) )
+
+    def __utils_generate_key_words_from_title(self):
+	#words = set()
+	#words.add(self.title.lower())
+	#words.add(self.title.upper())
+	#words.add(self.title.capitalize())
+	#return words
+	return self.__utils_generate_differnent_case(self.title)
+
+    def __utils_generate_key_words_from_base_type(self):
+	#words = set()
+	#words.add(self.base_type.lower())
+	#words.add(self.base_type.upper())
+	#words.add(self.base_type.capitalize())
+	#return words
+	return self.__utils_generate_differnent_case(self.base_type)
+
+    def __utils_generate_differnent_case(self, word):
+	words = set()
+	words.add(word.lower())
+	words.add(word.upper())
+	words.add(word.capitalize())
+	return words
 
 class Element(object):
     def get_weight(self):
@@ -71,6 +140,33 @@ class PredictionLinear(object):
     def append(self, e):
 	self.__resources.append(e)
 	self.__resources = sorted(self.__resources, key = lambda x : x.get_date())
+
+    @classmethod
+    def auto_add_cheque_elements_to_functions(cls, fns_cheques):
+	#наполняем функции чеками которые им подходят
+	print len(fns_cheques)
+	for fns_cheque in fns_cheques:
+	    #for fns_cheque_element in fns_cheque.elements():
+	    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
+		print '--->'
+		print fns_cheque_element.get_title().encode('utf8')
+		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
+		    function = PredictionLinearFunction.objects.get(base_type=base_function_type)
+		    function.cheque_elements.add(fns_cheque_element)
+
+    @classmethod
+    def auto_find_available_base_function_type(cls, fns_cheques):
+	#получем все типы базвых функий которые возможны
+	base_function_types = set()
+	for fns_cheque in fns_cheques:
+	    #for fns_cheque_element in fns_cheque.elements():
+	    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
+		for base_function_type in PredictionLinear.base_function_types(fns_cheque_element):
+		    base_function_types.add(base_function_type)
+	for base_function_type in base_function_types:
+	   print base_function_type.encode('utf8')
+	print 
+	return base_function_types
 
     def average_weight_per_day_from_first_buy_to_this_date(self, date_calc):
 	delta_days = date_calc - self.__first_date()
@@ -166,7 +262,7 @@ class PredictionLinear(object):
 	for part in title_parts:
 	    if part in ['SPAR']:
 		continue
-	    for product_card in ProductCard.objects.filter(title__contains=part):
+	    for product_card in ProductCard.objects.filter(title__icontains=part):
 		product_cards.append(product_card)
 
 	return set(product_cards)
@@ -177,6 +273,14 @@ class PredictionLinear(object):
 	дата последней покупки	
 	"""
 	return sorted(self.__resources, key = lambda x : x.get_date())[-1].get_date()
+
+    @classmethod
+    def save_functions_with_base_function_types(cls, base_function_types):
+	#создаем недостающие базовые функции 
+	for base_function_type in base_function_types:
+	    if not PredictionLinearFunction.objects.filter(base_type=base_function_type).count():
+		f = PredictionLinearFunction(base_type=base_function_type)
+		f.save()
 
     def without_last_delta_days(self):
 	delta_days = self.__last_buy_date() - self.__first_date()
