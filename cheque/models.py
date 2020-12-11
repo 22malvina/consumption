@@ -196,9 +196,13 @@ class FNSChequeElement(models.Model):
     def consumption_element_params(self):
         if self.volume * self.quantity != self.get_weight_from_title():
             print self.volume * self.quantity, '!=', self.get_weight_from_title()
-        if float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
-            print float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
+        if float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
+            print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
 
+        print 'weight:',
+        print self.volume * self.quantity,
+        print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
+        print self.get_weight_from_title()
         return {
             'title': self.get_title(),
             'datetime': self.fns_cheque.get_datetime(),
@@ -210,20 +214,24 @@ class FNSChequeElement(models.Model):
         #Сыр ЛЕБЕДЕВСКАЯ АФ Кавказский по-домашнему мягкий бзмж 45% 300г 1.000 None
         #LAYS Из печи Чипсы карт нежн сыр с 2.000 None
         #Чипсы LAY'S Sticks Сыр чеддер 125г 1.000 None
-        return IsPackedAndWeight.weight_from_cheque_title(self.name) / 1000
+        return float("{0:.3f}".format(IsPackedAndWeight.weight_from_cheque_title(self.name) / 1000))
 
     def offer_element_params(self):
         print self.get_title().encode('utf8'), self.fns_cheque.get_datetime(), self.sum, self.volume, self.quantity
         if self.volume * self.quantity != self.get_weight_from_title():
             print self.volume * self.quantity, '!=', self.get_weight_from_title()
-        if float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
-            print float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
+        if float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
+            print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
 
+        print 'weight:',
+        print self.volume * self.quantity,
+        print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
+        print self.get_weight_from_title()
         return {
             'title': self.get_title(),
             'datetime': self.fns_cheque.get_datetime(),
             #'weight': float(self.volume * self.quantity),
-            'price_per_weight': float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
+            'price_per_weight': float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
         }
 
     def __str__(self):
@@ -372,5 +380,7 @@ class IsPackedAndWeight(object):
             #assert False
             print 'not find weight'
             return 0
-        return weight
+        return float("{0:.3f}".format(float(weight)))
+        #return float(weight)
+
 

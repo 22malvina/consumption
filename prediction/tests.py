@@ -460,6 +460,16 @@ class Base(TestCase):
 		e.save()
 		plf_cheese.cheque_elements.add(e)
 
+	#проверить авто определение веса
+	good_count = 0
+	for e in FNSChequeElement.objects.all():
+	    if float(e.get_weight_from_title()) == float(e.volume):
+		good_count += 1
+		if not e.get_title() in [u'СЫР МАСКАР.80% 250ГР', u'СЫР ПЛ С ЛУКОМ 90Г', u'СЫР ПЛ ВОЛНА 45% 90Г', u'СЫР ПЛ ФЕТАКСА 400Г', u'СЫР ПЛ ВОЛНА 45% 90Г', u'СЫР ПЛ ВОЛНА 45% 90Г']:
+		    print e.get_title().encode('utf8')
+		    assert False
+	self.assertEqual(6, good_count)
+
 	#fetch
 
 	milk_function = PredictionLinear([])
