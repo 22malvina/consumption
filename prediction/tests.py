@@ -446,7 +446,7 @@ class Base(TestCase):
 	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
-		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
 		e.save()
 		plf_milk.cheque_elements.add(e)
 
@@ -456,7 +456,7 @@ class Base(TestCase):
 	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
-		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
 		e.save()
 		plf_cheese.cheque_elements.add(e)
 
@@ -490,7 +490,7 @@ class Base(TestCase):
 	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
-		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'])
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
 		e.save()
 		plf_milk.cheque_elements.add(e)
 	#fetch

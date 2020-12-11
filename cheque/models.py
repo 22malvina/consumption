@@ -9,6 +9,8 @@ import json
 import urllib
 import urllib2, base64
 
+import re
+
 """
 json чека ипортированного из ФНС России
 место хранения
@@ -192,14 +194,31 @@ class FNSChequeElement(models.Model):
         return self.name
 
     def consumption_element_params(self):
+        if self.volume * self.quantity != self.get_weight_from_title():
+            print self.volume * self.quantity, '!=', self.get_weight_from_title()
+        if float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
+            print float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
+
         return {
             'title': self.get_title(),
             'datetime': self.fns_cheque.get_datetime(),
             'weight': float(self.volume * self.quantity),
         }
 
+    def get_weight_from_title(self):
+        #1кг 0.224 None
+        #Сыр ЛЕБЕДЕВСКАЯ АФ Кавказский по-домашнему мягкий бзмж 45% 300г 1.000 None
+        #LAYS Из печи Чипсы карт нежн сыр с 2.000 None
+        #Чипсы LAY'S Sticks Сыр чеддер 125г 1.000 None
+        return IsPackedAndWeight.weight_from_cheque_title(self.name) / 1000
+
     def offer_element_params(self):
         print self.get_title().encode('utf8'), self.fns_cheque.get_datetime(), self.sum, self.volume, self.quantity
+        if self.volume * self.quantity != self.get_weight_from_title():
+            print self.volume * self.quantity, '!=', self.get_weight_from_title()
+        if float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
+            print float("{0:.0f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
+
         return {
             'title': self.get_title(),
             'datetime': self.fns_cheque.get_datetime(),
@@ -259,3 +278,99 @@ class ImportProverkachekaComFormatLikeFNS(object):
         #data = '{"code":1,"data":{"json":{"code":3,"items":[{"nds":2,"sum":6300,"name":"Чизбургер с луком СБ","price":6300,"ndsSum":573,"quantity":1,"paymentType":4,"productType":1}],"nds10":573,"userInn":"7729532221","dateTime":"2020-11-07T20:58:00","kktRegId":"0000677159011474","operator":"Тамаева Минара","totalSum":6300,"creditSum":0,"fiscalSign":2880362760,"prepaidSum":0,"shiftNumber":6,"cashTotalSum":0,"provisionSum":0,"ecashTotalSum":6300,"operationType":1,"requestNumber":203,"fiscalDriveNumber":"9288000100192401","fiscalDocumentNumber":439,"fiscalDocumentFormatVer":2},"html":""}}'
 
         return json.loads(data)
+
+class IsPackedAndWeight(object):
+    """
+    Для чеков на терриротии России
+    по строке из  чека определяем является товар "весовым" - продаюзимся на вес или "упаковочны"
+        и если он упаковочный пробуем вытащить из это сроки размер упаковки.
+    """
+    @classmethod
+    def __create_words_from_cheque_title(cls, title):
+        #title = title.replace('.',' ').replace('(',' ').replace(')',' ')
+        title = title.replace('.',' ') # Ащан для разделения слов, которые они сократили, использует точки
+        words = []
+        for word in title.split():
+            #word = word.replace('.','').replace('(','').replace(')','')
+            word = word.replace(',','.')
+            word = word.upper()
+            if len(word) > 2:
+                words.append(word)
+        return words
+
+    @classmethod
+    def __get_weight_in_gram_for_title(cls, word):
+        result = cls.__prepare_date_for_match_weight_in_gram(word)
+        if result:
+            weight = int(result[0])
+            return weight
+        else:
+            assert False
+
+    @classmethod
+    def __get_weight_in_kilogram_for_title(cls, word):
+        result = cls.__prepare_date_for_match_weight_in_kilogram(word)
+        if result:
+            weight = float(result[0])*1000
+            return weight
+        else:
+            assert False
+
+    @classmethod
+    def __has_weight_in_gram_for_title(cls, word):
+        result = cls.__prepare_date_for_match_weight_in_gram(word)
+        if result:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def __has_weight_in_kilogram_for_title(cls, word):
+        result = cls.__prepare_date_for_match_weight_in_kilogram(word)
+        if result:
+            return True
+        else:
+            return False
+
+    #@classmethod
+    #def is_packed_from_cheque_title(cls, title):
+    #    for word in cls.__create_words_from_cheque_title(title):
+    #        if cls.__has_weight_in_gram_for_title(word):
+    #            is_packed = True
+    #            break
+    #        elif cls.__has_weight_in_kilogram_for_title(word):
+    #            is_packed = True
+    #            break
+    #        else:
+    #            is_packed = False
+    #    return is_packed
+
+    @classmethod
+    def __prepare_date_for_match_weight_in_gram(cls, word):
+        result_g = re.findall(u'^(\d+)г$', word)
+        result_gg = re.findall(u'^(\d+)Г$', word)
+        result_gr = re.findall(u'^(\d+)гр$', word)
+        result_grgr = re.findall(u'^(\d+)ГР$', word)
+        return result_g + result_gg + result_gr + result_grgr
+
+    @classmethod
+    def __prepare_date_for_match_weight_in_kilogram(cls, word):
+        result_kg = re.findall(u'^(\d*.&\d+)кг$', word)
+        result_kgkg = re.findall(u'^(\d*.?\d+)КГ$', word)
+        return result_kg + result_kgkg
+
+    @classmethod
+    def weight_from_cheque_title(cls, title):
+        for word in cls.__create_words_from_cheque_title(title):
+            if cls.__has_weight_in_gram_for_title(word):
+                weight = cls.__get_weight_in_gram_for_title(word)
+                break
+            elif cls.__has_weight_in_kilogram_for_title(word):
+                weight = cls.__get_weight_in_kilogram_for_title(word)
+                break
+        else:
+            #assert False
+            print 'not find weight'
+            return 0
+        return weight
+
