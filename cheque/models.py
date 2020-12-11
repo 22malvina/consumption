@@ -194,44 +194,81 @@ class FNSChequeElement(models.Model):
         return self.name
 
     def consumption_element_params(self):
-        if self.volume * self.quantity != self.get_weight_from_title():
-            print self.volume * self.quantity, '!=', self.get_weight_from_title()
-        if float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
-            print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
+        #if self.volume * self.quantity != self.get_weight_from_title():
+        #    print self.volume * self.quantity, '!=', self.get_weight_from_title()
+        #if float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
+        #    print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
 
-        print 'weight:',
-        print self.volume * self.quantity,
-        print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
-        print self.get_weight_from_title()
+        #print 'weight:',
+        #print self.volume * self.quantity,
+        #print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
+        #print self.get_weight_from_title()
         return {
             'title': self.get_title(),
             'datetime': self.fns_cheque.get_datetime(),
-            'weight': float(self.volume * self.quantity),
+            #'weight': float(self.volume * self.quantity),
+            'weight': self.get_weight(),
         }
 
+    def get_weight(self):
+        if self.__has_weight_from_title() and self.volume:
+            if float(self.__get_weight_from_title()) == float(self.volume):
+                return float(self.volume * self.quantity)
+            else:
+                print 'Error: Not rigth weight!'
+                assert False
+        elif self.__has_weight_from_title():
+            return float(self.__get_weight_from_title() * self.quantity)
+        elif self.volume:
+            return float(self.volume * self.quantity)
+        else:
+            print 'Error: Not have weight!'
+            assert False
+            return float(self.quantity)
+
     def get_weight_from_title(self):
+        """
+        только для тестов
+        """
+        print 'Alert: only in test!'
+        return self.__get_weight_from_title()
+
+    def __get_weight_from_title(self):
         #1кг 0.224 None
         #Сыр ЛЕБЕДЕВСКАЯ АФ Кавказский по-домашнему мягкий бзмж 45% 300г 1.000 None
         #LAYS Из печи Чипсы карт нежн сыр с 2.000 None
         #Чипсы LAY'S Sticks Сыр чеддер 125г 1.000 None
         return float("{0:.3f}".format(IsPackedAndWeight.weight_from_cheque_title(self.name) / 1000))
 
-    def offer_element_params(self):
-        print self.get_title().encode('utf8'), self.fns_cheque.get_datetime(), self.sum, self.volume, self.quantity
-        if self.volume * self.quantity != self.get_weight_from_title():
-            print self.volume * self.quantity, '!=', self.get_weight_from_title()
-        if float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
-            print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
+    def has_weight_from_title(self):
+        """
+        только для тестов
+        """
+        print 'Alert: only in test!'
+        return self.__has_weight_from_title()
 
-        print 'weight:',
-        print self.volume * self.quantity,
-        print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
-        print self.get_weight_from_title()
+    def __has_weight_from_title(self):
+        #return False if IsPackedAndWeight.weight_from_cheque_title(self.name) == 0 else True
+        return IsPackedAndWeight.has_weight_from_cheque_title(self.name)
+
+    def offer_element_params(self):
+        #print self.get_title().encode('utf8'), self.fns_cheque.get_datetime(), self.sum, self.volume, self.quantity
+        #if self.volume * self.quantity != self.get_weight_from_title():
+        #    print self.volume * self.quantity, '!=', self.get_weight_from_title()
+        #if float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))) != self.get_weight_from_title():
+        #    print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))), '!=', self.get_weight_from_title()
+
+        #print 'weight:',
+        #print self.volume * self.quantity,
+        #print float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
+        #print self.get_weight_from_title()
         return {
             'title': self.get_title(),
             'datetime': self.fns_cheque.get_datetime(),
             #'weight': float(self.volume * self.quantity),
-            'price_per_weight': float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
+            #'weight': self.get_weight(),
+            #'price_per_weight': float("{0:.3f}".format(self.sum / ((self.volume if self.volume else 1) * self.quantity))),
+            'price_per_weight': float("{0:.3f}".format(self.sum / self.get_weight())),
         }
 
     def __str__(self):
@@ -325,6 +362,14 @@ class IsPackedAndWeight(object):
             assert False
 
     @classmethod
+    def has_weight_from_cheque_title(cls, title):
+        try:
+            w = cls.weight_from_cheque_title(title)
+            return True
+        except:
+            return False
+
+    @classmethod
     def __has_weight_in_gram_for_title(cls, word):
         result = cls.__prepare_date_for_match_weight_in_gram(word)
         if result:
@@ -377,8 +422,8 @@ class IsPackedAndWeight(object):
                 weight = cls.__get_weight_in_kilogram_for_title(word)
                 break
         else:
-            #assert False
-            print 'not find weight'
+            assert False
+            print 'Alert: not find weight!'
             return 0
         return float("{0:.3f}".format(float(weight)))
         #return float(weight)

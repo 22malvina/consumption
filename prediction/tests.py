@@ -463,7 +463,8 @@ class Base(TestCase):
 	#проверить авто определение веса
 	good_count = 0
 	for e in FNSChequeElement.objects.all():
-	    if float(e.get_weight_from_title()) == float(e.volume):
+	    if e.has_weight_from_title() and float(e.get_weight_from_title()) == float(e.volume):
+	    #if float(e.get_weight()) == float(e.volume * e.quantity):
 		good_count += 1
 		if not e.get_title() in [u'СЫР МАСКАР.80% 250ГР', u'СЫР ПЛ С ЛУКОМ 90Г', u'СЫР ПЛ ВОЛНА 45% 90Г', u'СЫР ПЛ ФЕТАКСА 400Г', u'СЫР ПЛ ВОЛНА 45% 90Г', u'СЫР ПЛ ВОЛНА 45% 90Г']:
 		    print e.get_title().encode('utf8')
