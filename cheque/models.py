@@ -213,6 +213,8 @@ class FNSChequeElement(models.Model):
     def get_price_per_one_gram(self):
         if int(self.price * self.quantity) != int(self.sum):
             print 'Error: price * quantity != sum.',self.price * float(self.quantity), '!=', self.sum
+        if not self.get_weight():
+            return None
         return float("{0:.2f}".format(self.price * float(self.quantity) / self.get_weight()))
 
     def get_weight(self):
@@ -223,11 +225,12 @@ class FNSChequeElement(models.Model):
                 print 'Error: Not rigth weight!'
                 assert False
         elif self.__has_weight_from_title():
-            return float(self.__get_weight_from_title() * self.quantity)
+            return float(self.__get_weight_from_title() * float(self.quantity))
         elif self.volume:
             return float(self.volume * self.quantity)
         else:
             print 'Error: Not have weight!'
+            return None
             assert False
             return float(self.quantity)
 
