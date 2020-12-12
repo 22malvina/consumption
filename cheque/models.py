@@ -162,10 +162,10 @@ class FNSCheque(models.Model):
             #Сначало можно попытаться найти найти товар с таким же названием и пустыми поялми чтобы лишний раз не делать одно и тоже
             fns_cheque_element = FNSChequeElement(
                 fns_cheque=fns_cheque,
-                quantity=elemnt.get("quantity", "Error"),
-                name=elemnt.get("name", "Error"),
-                price=elemnt.get("price", "Error"),
-                sum=elemnt.get("sum", "Error"),
+                quantity=elemnt.get("quantity"),
+                name=elemnt.get("name"),
+                price=elemnt.get("price"),
+                sum=elemnt.get("sum"),
             )
             fns_cheque_element.save()
 
@@ -272,7 +272,7 @@ class FNSChequeElement(models.Model):
         }
 
     def __str__(self):
-        return self.name.encode('utf8') + str(' ') + str(self.quantity) + str(' ') + str(self.volume)# + self.name.encode('utf8') 
+        return self.name.encode('utf8') + str(' ') + str(self.quantity) + str(' ') + str(self.volume) + str(' ') + str(self.sum) + str(' ') + str(self.price)# + self.name.encode('utf8') 
  
 class QRCodeReader(object):
     @classmethod

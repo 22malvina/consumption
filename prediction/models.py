@@ -37,11 +37,11 @@ class PredictionLinearFunction(models.Model):
 	#взять ключевые слова у функции которые могут содержаться в чеках
 	elements = set()
 	for word in self.allow_key_words():
-	    print 'word =', word.encode('utf8')
+	    #print 'word =', word.encode('utf8')
 	    qs = FNSChequeElement.objects.filter(name__icontains=word)
 	    #qs = FNSChequeElement.objects.all()
 	    for e_word in self.disallow_key_words():
-		print 'e_word =', e_word.encode('utf8')
+		#print 'e_word =', e_word.encode('utf8')
 		qs = qs.exclude(name__icontains=e_word)
 	    #print qs.query
 	    #print str(qs.query.decode('utf-8'))
@@ -143,8 +143,8 @@ class PredictionLinear(object):
 
     @classmethod
     def auto_add_cheque_elements_to_functions(cls, fns_cheques):
+	#TODO метод скрытыс образом выбирает функцию к котоорй привязывать, очень плохо
 	#наполняем функции чеками которые им подходят
-	print len(fns_cheques)
 	for fns_cheque in fns_cheques:
 	    #for fns_cheque_element in fns_cheque.elements():
 	    for fns_cheque_element in FNSChequeElement.objects.filter(fns_cheque=fns_cheque):
