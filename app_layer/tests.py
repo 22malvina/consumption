@@ -2,15 +2,20 @@
 from django.test import TestCase
 from prediction.models import Element, Prediction, PredictionLinear, PredictionLinearFunction
 from product_card.models import ProductCard
-from offer.models import Offer
+from offer.models import Offer, ChequeOffer
 from company.models import Company, Employee
 from cheque.models import FNSCheque, FNSChequeElement, QRCodeReader 
 from datetime import datetime
+
+#from prediction.tests.Base import list_buy_milk 
+from prediction.tests import Base as BasePrediction 
+#print Base.list_buy_milk()
 
 import json
 import time
 import urllib
 import urllib2, base64
+
 
 
 from loader.cheque.proverkacheka_com import generate_cheque_qr_codes
@@ -129,4 +134,103 @@ class Base(TestCase):
         self.assertEqual(50, FNSCheque.objects.all().count())
         self.assertTrue(99 < FNSChequeElement.objects.all().count())
 
+
+    def test_5(self):
+        """
+	зайти на ресурс и посмотреть офферы каких витирин воообще присутсвуют.
+	1. товары можно искать тестовой строкой
+	2. дерево категорий товаров
+	"""
+	
+	company_family = Company(title='family')
+	company_family.save()
+
+	for i in BasePrediction.list_buy_milk():
+	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque.save() 
+	    for j in i['items']:
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'], price=j['price'])
+		e.save()
+
+	for i in BasePrediction.list_buy_cheese():
+	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque.save() 
+	    for j in i['items']:
+		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'], price=j['price'])
+		e.save()
+
+	#создавать офферы на основе имеющихся сущностей
+	text = u'СЫР'
+	offers = ChequeOffer.find(text)
+
+	self.assertEqual([
+	    {u'datetime': {u'update': u'2020-05-28T22:51:00'},
+	    u'price': {u'one': 13500, u'per_one_gram': 61363.64},
+	    u'product': {u'title': u'4607004891694 \u0421\u042b\u0420 \u0421\u041b\u0418\u0412\u041e\u0427\u041d\u042b\u0419 HOCHLA'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-28T22:51:00'},
+	    u'price': {u'one': 13990, u'per_one_gram': 55960.0},
+	    u'product': {u'title': u'8600742011658 \u0421\u042b\u0420 \u0421\u0415\u0420\u0411\u0421\u041a\u0410\u042f \u0411\u0420\u042b\u041d\u0417\u0410'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-15T20:45:00'},
+	    u'price': {u'one': 49990, u'per_one_gram': 49990.0},
+	    u'product': {u'title': u'2364939000004 \u0421\u042b\u0420 \u041a\u041e\u0420\u041e\u041b\u0415\u0412\u0421\u041a\u0418\u0419 51%'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-10T21:08:00'},
+	    u'price': {u'one': 59990, u'per_one_gram': 59990.0},
+	    u'product': {u'title': u'2316971000009 \u0421\u042b\u0420 \u041c\u0410\u0410\u0421\u0414\u0410\u041c 45% \u0418\u0427\u0410\u041b'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-04-21T14:04:00'},
+	    u'price': {u'one': 50306, u'per_one_gram': 50306.0},
+	    u'product': {u'title': u'2372240000002 \u0421\u042b\u0420 \u0413\u0420\u0410\u041d\u0414 SPAR 45%'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-04-21T14:04:00'},
+	    u'price': {u'one': 37670, u'per_one_gram': 37670.0},
+	    u'product': {u'title': u'2364178000001 \u0421\u042b\u0420  \u041c\u0410\u0410\u0421\u0414\u0410\u041c 45% \u041f\u0420\u0415'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-23T21:58:00'},
+	    u'price': {u'one': 49900, u'per_one_gram': 49900.0},
+	    u'product': {u'title': u'\u0421\u042b\u0420 \u0420\u041e\u0421\u0421\u0418\u0419\u0421\u041a\u0418\u0419 45%'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-23T21:58:00'},
+	    u'price': {u'one': 18900, u'per_one_gram': 75600.0},
+	    u'product': {u'title': u'\u0421\u042b\u0420 \u041c\u0410\u0421\u041a\u0410\u0420.80% 250\u0413\u0420'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-23T21:58:00'},
+	    u'price': {u'one': 3399, u'per_one_gram': 37766.67},
+	    u'product': {u'title': u'\u0421\u042b\u0420 \u041f\u041b \u0421 \u041b\u0423\u041a\u041e\u041c 90\u0413'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-23T21:58:00'},
+	    u'price': {u'one': 3399, u'per_one_gram': 37766.67},
+	    u'product': {u'title': u'\u0421\u042b\u0420 \u041f\u041b \u0412\u041e\u041b\u041d\u0410 45% 90\u0413'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-02T20:56:00'},
+	    u'price': {u'one': 3899, u'per_one_gram': 48737.5},
+	    u'product': {u'title': u'\u041f\u041b.\u0421\u042b\u0420 \u042f\u041d\u0422\u0410\u0420\u042c \u0424\u041e\u041b80\u0413'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-02T20:56:00'},
+	    u'price': {u'one': 15900, u'per_one_gram': 39750.0},
+	    u'product': {u'title': u'\u0421\u042b\u0420 \u041f\u041b \u0424\u0415\u0422\u0410\u041a\u0421\u0410 400\u0413'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-02T20:56:00'},
+	    u'price': {u'one': 3399, u'per_one_gram': 37766.67},
+	    u'product': {u'title': u'\u0421\u042b\u0420 \u041f\u041b \u0412\u041e\u041b\u041d\u0410 45% 90\u0413'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-02T20:56:00'},
+	    u'price': {u'one': 3399, u'per_one_gram': 37766.67},
+	    u'product': {u'title': u'\u0421\u042b\u0420 \u041f\u041b \u0412\u041e\u041b\u041d\u0410 45% 90\u0413'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-05-02T20:56:00'},
+	    u'price': {u'one': 3899, u'per_one_gram': 48737.5},
+	    u'product': {u'title': u'\u041f\u041b.\u0421\u042b\u0420 \u042f\u041d\u0422\u0410\u0420\u042c \u0424\u041e\u041b80\u0413'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-06-03T14:50:00'},
+	    u'price': {u'one': 59899, u'per_one_gram': 59899.0},
+	    u'product': {u'title': u'2364178000001 \u0421\u042b\u0420  \u041c\u0410\u0410\u0421\u0414\u0410\u041c 45% \u041f\u0420\u0415'},
+	    u'showcase': {}},
+	    {u'datetime': {u'update': u'2020-06-03T14:50:00'},
+	    u'price': {u'one': 20000, u'per_one_gram': 50000.0},
+	    u'product': {u'title': u'4607004892677 \u0421\u042b\u0420 HOCHLAND \u041c\u042f\u0413\u041a\u0418\u0419'},
+	    u'showcase': {}}
+	], offers)
 
