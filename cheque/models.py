@@ -154,12 +154,23 @@ class FNSCheque(models.Model):
         # везде добавил временуж зону Москва timezone
         datetime_buy = fns_cheque_json["document"]["receipt"]["dateTime"] + '+03:00'
 
-        fns_cheque = FNSCheque(
-            company=company,
-            json=fns_cheque_json,
-            fns_userInn=fns_cheque_json["document"]["receipt"]["userInn"],
-            fns_dateTime=datetime_buy
-        )
+        #fns_cheque = FNSCheque(
+        #    company=company,
+        #    json=fns_cheque_json,
+        #    fns_userInn=fns_cheque_json["document"]["receipt"]["userInn"],
+        #    fns_dateTime=datetime_buy
+        #)
+        fns_cheque = FNSCheque()
+        fns_cheque.company = company
+        fns_cheque.fns_dateTime = datetime_buy
+        fns_cheque.save()
+
+        cls.update_cheque_from_json(fns_cheque, fns_cheque_json)
+
+    @classmethod
+    def update_cheque_from_json(cls, fns_cheque, fns_cheque_json):
+        fns_cheque.json = fns_cheque_json
+        fns_cheque.fns_userInn = fns_cheque_json["document"]["receipt"]["userInn"]
 
         fns_cheque.fns_fiscalDocumentNumber = fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"]
         fns_cheque.fns_fiscalDriveNumber = fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"]
@@ -168,6 +179,7 @@ class FNSCheque(models.Model):
         fns_cheque.fns_totalSum = fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')
 
         fns_cheque.save()
+
         for elemnt in fns_cheque_json["document"]["receipt"].get("items", []):
             #Сначало можно попытаться найти найти товар с таким же названием и пустыми поялми чтобы лишний раз не делать одно и тоже
             #fns_cheque_element = FNSChequeElement(
