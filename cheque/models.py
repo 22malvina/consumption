@@ -455,6 +455,14 @@ class IsPackedAndWeight(object):
 
     @classmethod
     def has_weight_from_cheque_title(cls, title):
+        for word in cls.__create_words_from_cheque_title(title):
+            if cls.__has_weight_in_gram_for_title(word) or \
+                cls.__has_weight_in_kilogram_for_title(word) or \
+                cls.__has_weight_in_litr_for_title(word):
+                return True
+        else:
+            return False
+        #OLD version
         try:
             w = cls.weight_from_cheque_title(title)
             return True
