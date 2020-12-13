@@ -167,27 +167,27 @@ class Base(TestCase):
 	    {u'datetime': {u'update': u'2020-05-28T22:51:00'},
 	    u'price': {u'one': 13500, u'per_one_gram': 61363.64},
 	    u'product': {u'title': u'4607004891694 \u0421\u042b\u0420 \u0421\u041b\u0418\u0412\u041e\u0427\u041d\u042b\u0419 HOCHLA'},
-	    u'showcase': {u'address': '107076, \xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}},
+	    u'showcase': {u'address': u'107076, \u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'datetime': {u'update': u'2020-05-28T22:51:00'},
 	    u'price': {u'one': 13990, u'per_one_gram': 55960.0},
 	    u'product': {u'title': u'8600742011658 \u0421\u042b\u0420 \u0421\u0415\u0420\u0411\u0421\u041a\u0410\u042f \u0411\u0420\u042b\u041d\u0417\u0410'},
-	    u'showcase': {u'address': '107076, \xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}},
+	    u'showcase': {u'address': u'107076, \u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'datetime': {u'update': u'2020-05-15T20:45:00'},
 	    u'price': {u'one': 49990, u'per_one_gram': 49990.0},
 	    u'product': {u'title': u'2364939000004 \u0421\u042b\u0420 \u041a\u041e\u0420\u041e\u041b\u0415\u0412\u0421\u041a\u0418\u0419 51%'},
-	    u'showcase': {u'address': '\xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}},
+	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'datetime': {u'update': u'2020-05-10T21:08:00'},
 	    u'price': {u'one': 59990, u'per_one_gram': 59990.0},
 	    u'product': {u'title': u'2316971000009 \u0421\u042b\u0420 \u041c\u0410\u0410\u0421\u0414\u0410\u041c 45% \u0418\u0427\u0410\u041b'},
-	    u'showcase': {u'address': '\xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}},
+	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'datetime': {u'update': u'2020-04-21T14:04:00'},
 	    u'price': {u'one': 50306, u'per_one_gram': 50306.0},
 	    u'product': {u'title': u'2372240000002 \u0421\u042b\u0420 \u0413\u0420\u0410\u041d\u0414 SPAR 45%'},
-	    u'showcase': {u'address': '\xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}},
+	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'datetime': {u'update': u'2020-04-21T14:04:00'},
 	    u'price': {u'one': 37670, u'per_one_gram': 37670.0},
 	    u'product': {u'title': u'2364178000001 \u0421\u042b\u0420  \u041c\u0410\u0410\u0421\u0414\u0410\u041c 45% \u041f\u0420\u0415'},
-	    u'showcase': {u'address': '\xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}},
+	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'datetime': {u'update': u'2020-05-23T21:58:00'},
 	    u'price': {u'one': 49900, u'per_one_gram': 49900.0},
 	    u'product': {u'title': u'\u0421\u042b\u0420 \u0420\u041e\u0421\u0421\u0418\u0419\u0421\u041a\u0418\u0419 45%'},
@@ -227,11 +227,11 @@ class Base(TestCase):
 	    {u'datetime': {u'update': u'2020-06-03T14:50:00'},
 	    u'price': {u'one': 59899, u'per_one_gram': 59899.0},
 	    u'product': {u'title': u'2364178000001 \u0421\u042b\u0420  \u041c\u0410\u0410\u0421\u0414\u0410\u041c 45% \u041f\u0420\u0415'},
-	    u'showcase': {u'address': '107076, \xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}},
+	    u'showcase': {u'address': u'107076, \u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'datetime': {u'update': u'2020-06-03T14:50:00'},
 	    u'price': {u'one': 20000, u'per_one_gram': 50000.0},
 	    u'product': {u'title': u'4607004892677 \u0421\u042b\u0420 HOCHLAND \u041c\u042f\u0413\u041a\u0418\u0419'},
-	    u'showcase': {u'address': '107076, \xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}}
+	    u'showcase': {u'address': u'107076, \u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}}
 	], offers)
 
     def test_6(self):
@@ -257,8 +257,45 @@ class Base(TestCase):
 		e.save()
 
 	#создавать офферы на основе имеющихся сущностей
-	text = u'СЫР'
+	text = u'МОЛОКО'
 	offers = ChequeOffer.find(text)
+
+	print "==================================="
 
 	#self.assertEqual([], offers)
 	
+	#2) как то их группируем - наверно в рамках одной витрины (инн + ритеил адресс), но даже если оффер меняется(изменилось название в чеке - это происходит очень редко и не важно, даже больше скажем что важно только последнее) т.е. если название в рамках одного магазина разные то это разные продукты
+	
+
+	#{u'datetime': {u'update': u'2020-06-03t14:50:00'},
+	#u'price': {u'one': 20000, u'per_one_gram': 50000.0},
+	#u'product': {u'title': u'4607004892677 \u0421\u042b\u0420 hochland \u041c\u042f\u0413\u041a\u0418\u0419'},
+	#u'showcase': {u'address': '107076, \xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}}
+
+	split_by_offer_groups = []
+
+	groups = {}
+	for offer in offers:
+	    #print offer['product']['title'].encode('utf8') 
+	    #print offer['showcase']['address'].encode('utf8')
+	    #print offer['showcase']['address']
+	    #key = offer['product']['title'] + str(offer['showcase']['address'])
+	    key = offer['product']['title'].encode('utf8') + ' ' + (offer['showcase']['address'].encode('utf8') if offer['showcase']['address'] else '')
+	    #print type(offer['showcase']['address'])
+	    #print type(offer['product']['title'])
+	    #print type(offer['product']['title'].encode('utf8'))
+	    #key = ''.join([offer['showcase']['address'], offer['product']['title']])
+	    if not groups.get(key):
+		groups[key] = []
+	    groups[key].append(offer)
+
+	for k in groups.keys():
+	    split_by_offer_groups.append(groups[k])
+
+	self.assertEqual([], split_by_offer_groups)
+	
+
+
+	    
+
+#3) формируем для каждого 100% совпадения названия соответствующую матрицу из описания с разбивкой по диапазонам.

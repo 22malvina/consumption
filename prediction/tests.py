@@ -29,11 +29,11 @@ class Base(TestCase):
 		    {"weight": 220, "quantity":1,"sum":13500,"price":13500,"name":u"4607004891694 СЫР СЛИВОЧНЫЙ HOCHLA", "volume": 0.22},
 		    {"weight": 250, "quantity":1,"sum":13990,"price":13990,"name":u"8600742011658 СЫР СЕРБСКАЯ БРЫНЗА", "volume": 0.25},
 		],
-		"retailPlaceAddress":"107076, г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"107076, г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"dateTime":"2020-05-28T22:51:00",
 	    },
 	    {
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"dateTime":"2020-05-15T20:45:00",
 		"items":[
 		    {"weight": None, "quantity":0.278,"name":u"2364939000004 СЫР КОРОЛЕВСКИЙ 51%","price":49990,"sum":13897, "volume": 1},
@@ -41,7 +41,7 @@ class Base(TestCase):
 	    },
 	    {
 		"dateTime":"2020-05-10T21:08:00",
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"items":[
 		    {"sum":16797,"price":59990,"quantity":0.28,"name":u"2316971000009 СЫР МААСДАМ 45% ИЧАЛ", "volume": 1},
 		],
@@ -51,7 +51,7 @@ class Base(TestCase):
 		    {"quantity":0.248,"sum":12476,"name":u"2372240000002 СЫР ГРАНД SPAR 45%","price":50306, "volume": 1},
 		    {"quantity":0.264,"sum":9945,"name":u"2364178000001 СЫР  МААСДАМ 45% ПРЕ","price":37670, "volume": 1},
 		],
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"dateTime":"2020-04-21T14:04:00",
 	    },
 	    {
@@ -76,7 +76,7 @@ class Base(TestCase):
 		],
 	    },
 	    {
-		"retailPlaceAddress":"107076, г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"107076, г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"userInn":"5258056945",
 		"items":[
 		    {"price":59899,"name":u"2364178000001 СЫР  МААСДАМ 45% ПРЕ","quantity":0.356,"sum":21324, "volume": 1},
@@ -101,7 +101,7 @@ class Base(TestCase):
 		"operationType":1,
 		"ecashTotalSum":207870,
 		"requestNumber":182,
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 		"receiptCode":3,
 		"fiscalSign":2166849586,
 		"operator":"Усикова Дарья Игорев",
@@ -122,35 +122,35 @@ class Base(TestCase):
 		'items': [
 		    {"weight": 1000, "quantity":2,"sum":11980,"price":5990,"name":u"4607045982771 МОЛОКО SPAR УЛЬТРАПА", 'volume': 1},
 		],
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-24T12:56:00",
 		'items': [
 		    {"weight": 1000, "quantity":1,"name":u"4607045982788 МОЛОКО SPAR УЛЬТРАПА","price":4990,"sum":4990, 'volume': 1},
 		],
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-23T21:58:00",
 		'items': [
 		    {"weight": 1400, "calculationTypeSign":4,"ndsRate":2,"name":u"МОЛОКО ПАСТ.3,7%1400","quantity":1,"ndsSum":726,"calculationSubjectSign":1,"sum":7990,"price":7990, 'volume': 1.4},
 		],
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-15T20:45:00",
 		'items': [
 		    {"weight": 925, "quantity":1,"name":u"4607167840416 МОЛОКО SPAR 3,2% 925","price":5490,"sum":5490, 'volume': 0.925},
 		],
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-10T21:08:00",
 		'items': [
 		    {"weight": 1700, "sum":8990,"price":8990,"quantity":1,"name":u"4607167841154 МОЛОКО SPAR 2,5% 1,7", 'volume': 1.7},
 		],
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    {
 		"dateTime":"2020-05-06T21:53:00",
@@ -158,14 +158,14 @@ class Base(TestCase):
 		    {"quantity":1,"name":u"4607167841154 МОЛОКО SPAR 2,5% 1,7","price":8990,"sum":8990, 'volume': 1.7},
 		    {"weight": 950,"quantity":1,"name":u"4690228007842 МОЛОКО ДОМИК В ДЕРЕВ","price":5990,"sum":5990, 'volume': 1},
 		],
-		"retailPlaceAddress":"г.Москва, ул.Богородский Вал, д.6, корп.2",
+		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
 	    #{
 	    #    "dateTime":"2020-03-28T19:58:00",
 	    #    'items': [
 	    #        {"sum":4990,"price":4990,"name":u"4607167840416 МОЛОКО SPAR 3,2% 925","quantity":1, 'volume': 0.925},
 	    #    ],
-	    #    "retailPlaceAddress":"Ашан",
+	    #    "retailPlaceAddress":u"Ашан",
 	    #},
 	]
 
