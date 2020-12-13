@@ -90,31 +90,31 @@ class FNSCheque(models.Model):
     @staticmethod
     def import_from_proverkacheka_com_format_like_fns(qr_text, company):
         cheque = QRCodeReader.qr_text_to_params(qr_text)
-        #fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque)
-        fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque, qr_text)
+        #fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque)
+        fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque, qr_text)
 
-        #if not type(fns_cheque_info_json) is dict or \
-        #    not fns_cheque_info_json.get('data') or \
-        #    not type(fns_cheque_info_json['data']) is dict or \
-        #    not fns_cheque_info_json['data'].get('json'):
-        if not type(fns_cheque_info_json) is dict or not type(fns_cheque_info_json['data']) is dict:
+        #if not type(fns_cheque_json) is dict or \
+        #    not fns_cheque_json.get('data') or \
+        #    not type(fns_cheque_json['data']) is dict or \
+        #    not fns_cheque_json['data'].get('json'):
+        if not type(fns_cheque_json) is dict or not type(fns_cheque_json['data']) is dict:
             print u'Alert: This is not good JSON!'
             return
 
-        fns_cheque_info_json["document"] = {}
-        fns_cheque_info_json["document"]["receipt"] = fns_cheque_info_json['data']['json']
+        fns_cheque_json["document"] = {}
+        fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
 
         account = None
         if FNSCheque.has_cheque_with_fiscal_params(company, account, 
-            fns_cheque_info_json["document"]["receipt"]["fiscalDocumentNumber"],
-            fns_cheque_info_json["document"]["receipt"]["fiscalDriveNumber"],
-            fns_cheque_info_json["document"]["receipt"]["fiscalSign"],
-            fns_cheque_info_json["document"]["receipt"]["dateTime"],
-            fns_cheque_info_json["document"]["receipt"].get("totalSum", 'Error')):
+            fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalSign"],
+            fns_cheque_json["document"]["receipt"]["dateTime"],
+            fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')):
             print u'Alert: We has this cheque!'
             #Такой чек уже существует'
             return
-        FNSCheque.save_cheque_from_fns_cheque_json(company, fns_cheque_info_json)
+        FNSCheque.save_cheque_from_fns_cheque_json(company, fns_cheque_json)
 
     @classmethod
     def has_cheque_with_fiscal_params(cls, company, accaunt, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):

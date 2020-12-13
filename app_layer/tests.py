@@ -339,16 +339,22 @@ class Base(TestCase):
 	fns_cheque = FNSCheque.create_fns_cheque_from_qr_text(qr_text, company_family)
 	fns_cheque.save()
 
-        fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
-        fns_cheque_info_json["document"] = {}
-        fns_cheque_info_json["document"]["receipt"] = fns_cheque_info_json['data']['json']
+        self.assertEqual('', fns_cheque.fns_userInn)
+	self.assertEqual('', FNSCheque.objects.get(fns_fiscalDocumentNumber='115180').fns_userInn)
+
+        fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
+        fns_cheque_json["document"] = {}
+        fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
 
         account = None
         self.assertTrue(FNSCheque.has_cheque_with_fiscal_params(company_family, account, 
-            fns_cheque_info_json["document"]["receipt"]["fiscalDocumentNumber"],
-            fns_cheque_info_json["document"]["receipt"]["fiscalDriveNumber"],
-            fns_cheque_info_json["document"]["receipt"]["fiscalSign"],
-            fns_cheque_info_json["document"]["receipt"]["dateTime"],
-            fns_cheque_info_json["document"]["receipt"].get("totalSum", 'Error')))
+            fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalSign"],
+            fns_cheque_json["document"]["receipt"]["dateTime"],
+            fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')))
 
-	
+	FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+
+        self.assertEqual(u'5258056945', fns_cheque.fns_userInn)
+	self.assertEqual(u'5258056945', FNSCheque.objects.get(fns_fiscalDocumentNumber='115180').fns_userInn)
