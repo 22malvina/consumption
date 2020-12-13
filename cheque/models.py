@@ -162,14 +162,33 @@ class FNSCheque(models.Model):
         fns_cheque.save()
         for elemnt in fns_cheque_json["document"]["receipt"].get("items", []):
             #Сначало можно попытаться найти найти товар с таким же названием и пустыми поялми чтобы лишний раз не делать одно и тоже
-            fns_cheque_element = FNSChequeElement(
-                fns_cheque=fns_cheque,
-                quantity=elemnt.get("quantity"),
-                name=elemnt.get("name"),
-                price=elemnt.get("price"),
-                sum=elemnt.get("sum"),
-            )
-            fns_cheque_element.save()
+            #fns_cheque_element = FNSChequeElement(
+            #    fns_cheque=fns_cheque,
+            #    quantity=elemnt.get("quantity"),
+            #    name=elemnt.get("name"),
+            #    price=elemnt.get("price"),
+            #    sum=elemnt.get("sum"),
+            #)
+            #fns_cheque_element.save()
+
+            try:
+                fns_cheque_element = FNSChequeElement(
+                    fns_cheque=fns_cheque,
+                    quantity=elemnt.get("quantity"),
+                    name=elemnt.get("name"),
+                    price=elemnt.get("price"),
+                    sum=elemnt.get("sum"),
+                )
+                fns_cheque_element.save()
+            except:
+                import traceback
+                traceback.print_exc()
+                #traceback.print_exception()
+                import sys
+                print sys.exc_info()
+                traceback.print_exception(*sys.exc_info())
+                #traceback.print_stack()
+                print '------------'
 
     def __unicode__(self):
         return u"FNSCheque = FDN: %s, FD: %s, FS: %s, DT: %s, TS: %s" % (self.fns_fiscalDocumentNumber, self.fns_fiscalDriveNumber, self.fns_fiscalSign, self.fns_dateTime, self.fns_totalSum)
