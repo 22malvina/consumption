@@ -335,18 +335,11 @@ class Base(TestCase):
 	company_family.save()
 
 	qr_text = 't=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1'
-	qr_params = QRCodeReader.qr_text_to_params(qr_text)
-	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
 
-	fns_cheque = FNSCheque(company=company_family, fns_fiscalDocumentNumber=cheque_params['fns_fiscalDocumentNumber'], fns_fiscalDriveNumber=cheque_params['fns_fiscalDriveNumber'], fns_fiscalSign=cheque_params['fns_fiscalSign'], fns_dateTime=cheque_params['fns_dateTime'], fns_totalSum=cheque_params['fns_totalSum'])
+	fns_cheque = FNSCheque.create_fns_cheque_from_qr_text(qr_text, company_family)
 	fns_cheque.save()
 
         fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
-
-        if not type(fns_cheque_info_json) is dict or not type(fns_cheque_info_json['data']) is dict:
-            print u'Alert: This is not good JSON!'
-            return
-
         fns_cheque_info_json["document"] = {}
         fns_cheque_info_json["document"]["receipt"] = fns_cheque_info_json['data']['json']
 

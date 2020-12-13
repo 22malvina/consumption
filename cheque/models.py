@@ -71,6 +71,12 @@ class FNSCheque(models.Model):
     fns_dateTime = models.CharField(blank=True, max_length=254) #date t
     fns_totalSum = models.CharField(blank=True, max_length=254) #sum s
 
+    @classmethod
+    def create_fns_cheque_from_qr_text(cls, qr_text, company):
+	qr_params = QRCodeReader.qr_text_to_params(qr_text)
+	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
+	return FNSCheque(company=company, fns_fiscalDocumentNumber=cheque_params['fns_fiscalDocumentNumber'], fns_fiscalDriveNumber=cheque_params['fns_fiscalDriveNumber'], fns_fiscalSign=cheque_params['fns_fiscalSign'], fns_dateTime=cheque_params['fns_dateTime'], fns_totalSum=cheque_params['fns_totalSum'])
+
     def format_date_qr_srt(self):
         #return str(self.fns_dateTime[0:4]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[8:10]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
         return str(self.fns_dateTime[8:10]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[0:4]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
