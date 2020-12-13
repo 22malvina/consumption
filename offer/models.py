@@ -67,17 +67,18 @@ class ChequeOffer(object):
 	    max_offer = g[-1]
 
 	    offer_analiticks.append({
-		'product': {
-		    'title': g[0]['product']['title'],
+		u'product': {
+		    u'title': g[0]['product']['title'],
 		},
-		'showcase': {
-		    'address': g[0]['showcase']['address'],
+		u'showcase': {
+		    u'address': g[0]['showcase']['address'],
 		},
-		'price_analitics': {
-		    'last': last_offer['price'],
-		    'min': min_offer['price'],
-		    'max': max_offer['price'],
+		u'price_analitics': {
+		    u'last': last_offer['price'],
+		    u'min': min_offer['price'],
+		    u'max': max_offer['price'],
 		},
+                u'last_datetime': last_offer['datetime']['update'],
 	    })
 
 	offer_analiticks = sorted(offer_analiticks, key = lambda x : x['product']['title'])
