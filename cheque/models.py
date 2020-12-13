@@ -215,6 +215,10 @@ class FNSChequeElement(models.Model):
         #add = ast.literal_eval(json.loads(self.fns_cheque.json))['json']
 
         #addd = self.fns_cheque.json
+
+        if not self.fns_cheque.json or not ast.literal_eval(self.fns_cheque.json).has_key('data'):
+            print 'Error: not find json or json["data"]'
+            return
         
         addd = ast.literal_eval(self.fns_cheque.json)['data']['json']
         #'retailAddress', u'buyerPhoneOrAddress',  retailPlaceAddress
@@ -250,7 +254,7 @@ class FNSChequeElement(models.Model):
             add = ''
             #assert False
         #add = addd['json']
-        print add.encode('utf8')
+#        print add.encode('utf8')
         #get_retailAddress
         return add
 
