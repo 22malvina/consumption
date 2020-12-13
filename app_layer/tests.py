@@ -343,8 +343,6 @@ class Base(TestCase):
 	self.assertEqual('', FNSCheque.objects.get(fns_fiscalDocumentNumber='115180').fns_userInn)
 
         fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
-        fns_cheque_json["document"] = {}
-        fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
 
         account = None
         self.assertTrue(FNSCheque.has_cheque_with_fiscal_params(company_family, account, 
