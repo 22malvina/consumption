@@ -225,20 +225,20 @@ class FNSChequeElement(models.Model):
         k = 0
         if addd.has_key('retailPlaceAddress'):
             k += 1
-            print '--1'
+            #print '--1'
         if addd.has_key('retailAddress'):
             k += 1
-            print '--2'
+            #print '--2'
         #if addd.has_key(u'buyerPhoneOrAddress') and addd.get('buyerPhoneOrAddress') not in ['', 'k.a.vakulin@mail.ru', 'l.krylova@muz-lab.ru','yuriy_per@yahoo.com']:
         #    k += 1
         #    print '--3'
 
         if k > 1:
-            print addd.keys()
-            print addd.get('retailPlaceAddress', '').encode('utf8')
-            print addd.get('retailAddress', '').encode('utf8')
-            print addd.get('buyerPhoneOrAddress', '').encode('utf8')
-            print '----'
+            #print addd.keys()
+            #print addd.get('retailPlaceAddress', '').encode('utf8')
+            #print addd.get('retailAddress', '').encode('utf8')
+            #print addd.get('buyerPhoneOrAddress', '').encode('utf8')
+            #print '----'
             assert False
 
         if addd.has_key('retailPlaceAddress'):
@@ -248,9 +248,9 @@ class FNSChequeElement(models.Model):
         #elif addd.has_key(u'buyerPhoneOrAddress'):
         #    add = addd[u'buyerPhoneOrAddress']
         else:
-            print '+++ k=', k
+            #print '+++ k=', k
             #print addd.get(u'buyerPhoneOrAddress')
-            print addd.keys()
+            #print addd.keys()
             add = ''
             #assert False
         #add = addd['json']
@@ -536,8 +536,8 @@ class IsPackedAndWeight(object):
         result_ll = re.findall(u'^(\d*.?\d+)Л$', word)
         result_lll = re.findall(u'^(\d*.?\d+)L$', word)
         result_llll = re.findall(u'^(\d*.?\d+)l$', word)
-        print 'word =',word.encode('utf8')
-        print result_l + result_ll + result_lll + result_llll
+        #print 'word =',word.encode('utf8')
+        #print result_l + result_ll + result_lll + result_llll
         return result_l + result_ll + result_lll + result_llll
 
     @classmethod
