@@ -79,6 +79,7 @@ class ChequeOffer(object):
 		    u'max': max_offer['price'],
 		},
                 u'last_datetime': last_offer['datetime']['update'],
+                u'count': len(g),
 	    })
 
 	offer_analiticks = sorted(offer_analiticks, key = lambda x : x['product']['title'])
