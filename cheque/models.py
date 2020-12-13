@@ -11,6 +11,8 @@ import urllib2, base64
 
 import re
 
+import ast # нужен для того чтобы из сохраненного как бы джисона достать данные
+
 """
 json чека ипортированного из ФНС России
 место хранения
@@ -190,9 +192,6 @@ class FNSChequeElement(models.Model):
     # пользователь сам указывает по данной позиции этот параметр
     volume = models.DecimalField(blank=True, null=True, max_digits=10, decimal_places=3) # указываем 1 если весовой товар или вес одной штуки в килошраммах
 
-    def get_title(self):
-        return self.name
-
     def consumption_element_params(self):
         #if self.volume * self.quantity != self.get_weight_from_title():
         #    print self.volume * self.quantity, '!=', self.get_weight_from_title()
@@ -210,12 +209,63 @@ class FNSChequeElement(models.Model):
             'weight': self.get_weight(),
         }
 
+    def get_address(self):
+        #add = self.fns_cheque.json["document"]["receipt"]["retailAddress"]
+        #add = self.fns_cheque.json['json']["retailAddress"]
+        #add = ast.literal_eval(json.loads(self.fns_cheque.json))['json']
+
+        #addd = self.fns_cheque.json
+        
+        addd = ast.literal_eval(self.fns_cheque.json)['data']['json']
+        #'retailAddress', u'buyerPhoneOrAddress',  retailPlaceAddress
+        k = 0
+        if addd.has_key('retailPlaceAddress'):
+            k += 1
+            print '--1'
+        if addd.has_key('retailAddress'):
+            k += 1
+            print '--2'
+        #if addd.has_key(u'buyerPhoneOrAddress') and addd.get('buyerPhoneOrAddress') not in ['', 'k.a.vakulin@mail.ru', 'l.krylova@muz-lab.ru','yuriy_per@yahoo.com']:
+        #    k += 1
+        #    print '--3'
+
+        if k > 1:
+            print addd.keys()
+            print addd.get('retailPlaceAddress', '').encode('utf8')
+            print addd.get('retailAddress', '').encode('utf8')
+            print addd.get('buyerPhoneOrAddress', '').encode('utf8')
+            print '----'
+            assert False
+
+        if addd.has_key('retailPlaceAddress'):
+            add = addd['retailPlaceAddress']
+        elif addd.has_key('retailAddress'):
+            add = addd['retailAddress']
+        #elif addd.has_key(u'buyerPhoneOrAddress'):
+        #    add = addd[u'buyerPhoneOrAddress']
+        else:
+            print '+++ k=', k
+            #print addd.get(u'buyerPhoneOrAddress')
+            print addd.keys()
+            add = ''
+            #assert False
+        #add = addd['json']
+        print add.encode('utf8')
+        #get_retailAddress
+        return add
+
+    def get_datetime(self):
+        return self.fns_cheque.get_datetime()
+
     def get_price_per_one_gram(self):
         if int(self.price * self.quantity) != int(self.sum):
             print 'Error: price * quantity != sum.',self.price * float(self.quantity), '!=', self.sum
         if not self.get_weight():
             return None
         return float("{0:.2f}".format(self.price * float(self.quantity) / self.get_weight()))
+
+    def get_title(self):
+        return self.name
 
     def get_weight(self):
         if self.__has_weight_from_title() and self.volume:
@@ -341,13 +391,34 @@ class IsPackedAndWeight(object):
     @classmethod
     def __create_words_from_cheque_title(cls, title):
         #title = title.replace('.',' ').replace('(',' ').replace(')',' ')
-        title = title.replace('.',' ') # Ащан для разделения слов, которые они сократили, использует точки
+
+        #title = title.replace('.',' ') # Ащан для разделения слов, которые они сократили, использует точки. Просто так нельзя делать так как есть товар "Напиток б/а PEPSI жесть 0.33L"
+
+        result = re.findall(u'(\d+\.\d+)', title)
+        #print '========>>>>'
+        #print 'title =', title.encode('utf8')
+        #print 'len(result)=', len(result)
+        #assert False
+        #print 'result =', result
+        if len(result) > 1:
+            assert False
+        elif len(result) == 1:
+            result_update = result[0].replace('.',',')
+            #print 'result_update =', result_update
+            title = title.replace(result[0], ' ' + result_update)
+            #print 'title =', title.encode('utf8')
+
+        title = title.replace('.',' ')
+        #print 'title =', title.encode('utf8')
+        #print '<<========'
+
         words = []
         for word in title.split():
             #word = word.replace('.','').replace('(','').replace(')','')
             word = word.replace(',','.')
             word = word.upper()
-            if len(word) > 2:
+            #if len(word) > 2:
+            if len(word) > 1: # не проходит "2L" из "Напиток б/а PEPSI Light с/газ  2L"
                 words.append(word)
         return words
 
@@ -370,11 +441,29 @@ class IsPackedAndWeight(object):
             assert False
 
     @classmethod
+    def __get_weight_in_litr_for_title(cls, word):
+        result = cls.__prepare_date_for_match_weight_in_litr(word)
+        if result:
+            weight = float(result[0])*1000
+            return weight
+        else:
+            assert False
+
+    @classmethod
     def has_weight_from_cheque_title(cls, title):
         try:
             w = cls.weight_from_cheque_title(title)
             return True
         except:
+            import traceback
+            traceback.print_exc()
+            #traceback.print_exception()
+            import sys
+            print sys.exc_info()
+            traceback.print_exception(*sys.exc_info())
+            #traceback.print_stack()
+            print '------------'
+
             return False
 
     @classmethod
@@ -388,6 +477,14 @@ class IsPackedAndWeight(object):
     @classmethod
     def __has_weight_in_kilogram_for_title(cls, word):
         result = cls.__prepare_date_for_match_weight_in_kilogram(word)
+        if result:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def __has_weight_in_litr_for_title(cls, word):
+        result = cls.__prepare_date_for_match_weight_in_litr(word)
         if result:
             return True
         else:
@@ -416,9 +513,20 @@ class IsPackedAndWeight(object):
 
     @classmethod
     def __prepare_date_for_match_weight_in_kilogram(cls, word):
-        result_kg = re.findall(u'^(\d*.&\d+)кг$', word)
+        #result_kg = re.findall(u'^(\d*.&\d+)кг$', word)
+        result_kg = re.findall(u'^(\d*.?\d+)кг$', word)
         result_kgkg = re.findall(u'^(\d*.?\d+)КГ$', word)
         return result_kg + result_kgkg
+
+    @classmethod
+    def __prepare_date_for_match_weight_in_litr(cls, word):
+        result_l = re.findall(u'^(\d*.?\d+)л$', word)
+        result_ll = re.findall(u'^(\d*.?\d+)Л$', word)
+        result_lll = re.findall(u'^(\d*.?\d+)L$', word)
+        result_llll = re.findall(u'^(\d*.?\d+)l$', word)
+        print 'word =',word.encode('utf8')
+        print result_l + result_ll + result_lll + result_llll
+        return result_l + result_ll + result_lll + result_llll
 
     @classmethod
     def weight_from_cheque_title(cls, title):
@@ -428,6 +536,9 @@ class IsPackedAndWeight(object):
                 break
             elif cls.__has_weight_in_kilogram_for_title(word):
                 weight = cls.__get_weight_in_kilogram_for_title(word)
+                break
+            elif cls.__has_weight_in_litr_for_title(word):
+                weight = cls.__get_weight_in_litr_for_title(word)
                 break
         else:
             assert False
