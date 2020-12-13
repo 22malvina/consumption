@@ -4,7 +4,7 @@ from prediction.models import Element, Prediction, PredictionLinear, PredictionL
 from product_card.models import ProductCard
 from offer.models import Offer, ChequeOffer
 from company.models import Company, Employee
-from cheque.models import FNSCheque, FNSChequeElement, QRCodeReader 
+from cheque.models import FNSCheque, FNSChequeElement, QRCodeReader, ImportProverkachekaComFormatLikeFNS 
 from datetime import datetime
 
 #from prediction.tests.Base import list_buy_milk 
@@ -325,3 +325,37 @@ class Base(TestCase):
 	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    ], offer_analiticks)
 
+    def test_7(self):
+        """
+	1. создать чек на основе строки полученой из QR кода
+	2. обновить данные в чеке из проверка чеков ком 
+	"""
+
+	company_family = Company(title='family')
+	company_family.save()
+
+	qr_text = 't=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1'
+	qr_params = QRCodeReader.qr_text_to_params(qr_text)
+	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
+
+	fns_cheque = FNSCheque(company=company_family, fns_fiscalDocumentNumber=cheque_params['fns_fiscalDocumentNumber'], fns_fiscalDriveNumber=cheque_params['fns_fiscalDriveNumber'], fns_fiscalSign=cheque_params['fns_fiscalSign'], fns_dateTime=cheque_params['fns_dateTime'], fns_totalSum=cheque_params['fns_totalSum'])
+	fns_cheque.save()
+
+        fns_cheque_info_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
+
+        if not type(fns_cheque_info_json) is dict or not type(fns_cheque_info_json['data']) is dict:
+            print u'Alert: This is not good JSON!'
+            return
+
+        fns_cheque_info_json["document"] = {}
+        fns_cheque_info_json["document"]["receipt"] = fns_cheque_info_json['data']['json']
+
+        account = None
+        self.assertTrue(FNSCheque.has_cheque_with_fiscal_params(company_family, account, 
+            fns_cheque_info_json["document"]["receipt"]["fiscalDocumentNumber"],
+            fns_cheque_info_json["document"]["receipt"]["fiscalDriveNumber"],
+            fns_cheque_info_json["document"]["receipt"]["fiscalSign"],
+            fns_cheque_info_json["document"]["receipt"]["dateTime"],
+            fns_cheque_info_json["document"]["receipt"].get("totalSum", 'Error')))
+
+	

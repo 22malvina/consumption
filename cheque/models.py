@@ -62,12 +62,14 @@ class FNSCheque(models.Model):
     company = models.ForeignKey(Company, blank=True, null=True) #TODO чек простой элемент и компанию надо вынести из чека
 #    datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
     fns_userInn = models.CharField(blank=True, max_length=254) # ИНН организации
-    fns_fiscalDocumentNumber = models.CharField(blank=True, max_length=254)
-    fns_fiscalDriveNumber = models.CharField(blank=True, max_length=254)
-    fns_fiscalSign = models.CharField(blank=True, max_length=254)
 
-    fns_dateTime = models.CharField(blank=True, max_length=254)
-    fns_totalSum = models.CharField(blank=True, max_length=254)
+    #t=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1
+    fns_fiscalDocumentNumber = models.CharField(blank=True, max_length=254) #FD i
+    fns_fiscalDriveNumber = models.CharField(blank=True, max_length=254) #FN fn
+    fns_fiscalSign = models.CharField(blank=True, max_length=254) #FDP fp
+
+    fns_dateTime = models.CharField(blank=True, max_length=254) #date t
+    fns_totalSum = models.CharField(blank=True, max_length=254) #sum s
 
     def format_date_qr_srt(self):
         #return str(self.fns_dateTime[0:4]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[8:10]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
@@ -374,6 +376,20 @@ class QRCodeReader(object):
             elif k == 'i':
                 cheque['FD'] = v
         return cheque
+
+    @classmethod
+    def convert_data(cls, d):
+        return d[0:4] + '-' + d[4:6] + '-' + d[6:11] + ':' + d[11:13] + ':' + d[13:15]
+
+    @classmethod
+    def qr_params_to_cheque_params(cls, qr_params):
+        return {
+            'fns_fiscalDocumentNumber': qr_params['FD'],
+            'fns_fiscalDriveNumber': qr_params['FN'],
+            'fns_fiscalSign': qr_params['FDP'],
+            'fns_dateTime': cls.convert_data(qr_params['date']),
+            'fns_totalSum': qr_params['sum'],
+        }
 
 class ImportProverkachekaComFormatLikeFNS(object):
     """
