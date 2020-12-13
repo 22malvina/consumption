@@ -278,7 +278,7 @@ class Base(TestCase):
 	    {u'last_datetime': u'2020-06-03T14:50:00',
 		u'count': 2,
 	    u'price_analitics': {u'last': {u'one': 5990, u'per_one_gram': 5990.0},
-	    u'max': {u'one': 5990, u'per_one_gram': 5990.0},
+	    u'max': {u'one': 6990, u'per_one_gram': 6990.0},
 	    u'min': {u'one': 5990, u'per_one_gram': 5990.0}},
 	    u'product': {u'title': u'4607045982771 \u041c\u041e\u041b\u041e\u041a\u041e SPAR \u0423\u041b\u042c\u0422\u0420\u0410\u041f\u0410'},
 	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},

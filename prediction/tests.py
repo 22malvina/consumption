@@ -120,7 +120,7 @@ class Base(TestCase):
 	    {
 		"dateTime":"2020-05-28T22:51:00",
 		'items': [
-		    {"weight": 1000, "quantity":2,"sum":11980,"price":5990,"name":u"4607045982771 МОЛОКО SPAR УЛЬТРАПА", 'volume': 1},
+		    {"weight": 1000, "quantity":2,"sum":11980,"price":6990,"name":u"4607045982771 МОЛОКО SPAR УЛЬТРАПА", 'volume': 1},
 		],
 		"retailPlaceAddress":u"г.Москва, ул.Богородский Вал, д.6, корп.2",
 	    },
