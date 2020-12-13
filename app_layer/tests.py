@@ -272,55 +272,28 @@ class Base(TestCase):
 	#u'product': {u'title': u'4607004892677 \u0421\u042b\u0420 hochland \u041c\u042f\u0413\u041a\u0418\u0419'},
 	#u'showcase': {u'address': '107076, \xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}}
 
-	split_by_offer_groups = []
-	groups = {}
-	for offer in offers:
-	    key = offer['product']['title'].encode('utf8') + ' ' + (offer['showcase']['address'].encode('utf8') if offer['showcase']['address'] else '')
-	    if not groups.get(key):
-		groups[key] = []
-	    groups[key].append(offer)
-	for k in groups.keys():
-	    split_by_offer_groups.append(groups[k])
-
-	#self.assertEqual([], split_by_offer_groups)
-
-	#3) формируем для каждого 100% совпадения названия соответствующую матрицу из описания с разбивкой по диапазонам.
-
-	offer_analiticks = []
-	for g in split_by_offer_groups: #100% совпадение навзание и адреса
-	    #последний по дате оффер, минимальный, и максимальный за последнюю неделю/месяц/квартал/год/все время
-
-	    g = sorted(g, key = lambda x : x['datetime']['update'])
-	    last_offer = g[-1]
-
-	    g = sorted(g, key = lambda x : x['price']['per_one_gram'])
-	    min_offer = g[0]
-	    max_offer = g[-1]
-
-	    offer_analiticks.append({
-		'product': {
-		    'title': g[0]['product']['title'],
-		},
-		'showcase': {
-		    'address': g[0]['showcase']['address'],
-		},
-		'price_analitics': {
-		    'last': last_offer['price'],
-		    'min': min_offer['price'],
-		    'max': max_offer['price'],
-		},
-	    })
+	offer_analiticks = ChequeOffer.analitics_last_min_max_price(offers)
 
 	self.assertEqual([
-	    {'price_analitics': {'last': {u'one': 8990, u'per_one_gram': 5288.24},
-	    'max': {u'one': 8990, u'per_one_gram': 5288.24},
-	    'min': {u'one': 8990, u'per_one_gram': 5288.24}},
-	    'product': {'title': u'4607167841154 \u041c\u041e\u041b\u041e\u041a\u041e SPAR 2,5% 1,7'},
+	    {'price_analitics': {'last': {u'one': 5990, u'per_one_gram': 5990.0},
+	    'max': {u'one': 5990, u'per_one_gram': 5990.0},
+	    'min': {u'one': 5990, u'per_one_gram': 5990.0}},
+	    'product': {'title': u'4607045982771 \u041c\u041e\u041b\u041e\u041a\u041e SPAR \u0423\u041b\u042c\u0422\u0420\u0410\u041f\u0410'},
 	    'showcase': {'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {'price_analitics': {'last': {u'one': 4990, u'per_one_gram': 4990.0},
 	    'max': {u'one': 4990, u'per_one_gram': 4990.0},
 	    'min': {u'one': 4990, u'per_one_gram': 4990.0}},
 	    'product': {'title': u'4607045982788 \u041c\u041e\u041b\u041e\u041a\u041e SPAR \u0423\u041b\u042c\u0422\u0420\u0410\u041f\u0410'},
+	    'showcase': {'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
+	    {'price_analitics': {'last': {u'one': 5490, u'per_one_gram': 5935.14},
+	    'max': {u'one': 5490, u'per_one_gram': 5935.14},
+	    'min': {u'one': 5490, u'per_one_gram': 5935.14}},
+	    'product': {'title': u'4607167840416 \u041c\u041e\u041b\u041e\u041a\u041e SPAR 3,2% 925'},
+	    'showcase': {'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
+	    {'price_analitics': {'last': {u'one': 8990, u'per_one_gram': 5288.24},
+	    'max': {u'one': 8990, u'per_one_gram': 5288.24},
+	    'min': {u'one': 8990, u'per_one_gram': 5288.24}},
+	    'product': {'title': u'4607167841154 \u041c\u041e\u041b\u041e\u041a\u041e SPAR 2,5% 1,7'},
 	    'showcase': {'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {'price_analitics': {'last': {u'one': 5990, u'per_one_gram': 5990.0},
 	    'max': {u'one': 5990, u'per_one_gram': 5990.0},
@@ -332,16 +305,6 @@ class Base(TestCase):
 	    'min': {u'one': 7990, u'per_one_gram': 5707.14}},
 	    'product': {'title': u'\u041c\u041e\u041b\u041e\u041a\u041e \u041f\u0410\u0421\u0422.3,7%1400'},
 	    'showcase': {'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
-	    {'price_analitics': {'last': {u'one': 5990, u'per_one_gram': 5990.0},
-	    'max': {u'one': 5990, u'per_one_gram': 5990.0},
-	    'min': {u'one': 5990, u'per_one_gram': 5990.0}},
-	    'product': {'title': u'4607045982771 \u041c\u041e\u041b\u041e\u041a\u041e SPAR \u0423\u041b\u042c\u0422\u0420\u0410\u041f\u0410'},
-	    'showcase': {'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
-	    {'price_analitics': {'last': {u'one': 5490, u'per_one_gram': 5935.14},
-	    'max': {u'one': 5490, u'per_one_gram': 5935.14},
-	    'min': {u'one': 5490, u'per_one_gram': 5935.14}},
-	    'product': {'title': u'4607167840416 \u041c\u041e\u041b\u041e\u041a\u041e SPAR 3,2% 925'},
-	    'showcase': {'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}}
 	    ], offer_analiticks)
 
 	
