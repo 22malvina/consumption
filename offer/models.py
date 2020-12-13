@@ -39,7 +39,7 @@ class Offer(models.Model):
 class ChequeOffer(object):
 
     @classmethod
-    def analitics_last_min_max_price(cls, offers):
+    def analytics_last_min_max_price(cls, offers):
 	split_by_offer_groups = []
 	groups = {}
 	for offer in sorted(offers, key = lambda x : x['datetime']['update']):
@@ -55,7 +55,7 @@ class ChequeOffer(object):
 
 	#3) формируем для каждого 100% совпадения названия соответствующую матрицу из описания с разбивкой по диапазонам.
 
-	offer_analiticks = []
+	offer_analytics = []
 	for g in split_by_offer_groups: #100% совпадение навзание и адреса
 	    #последний по дате оффер, минимальный, и максимальный за последнюю неделю/месяц/квартал/год/все время
 
@@ -66,14 +66,14 @@ class ChequeOffer(object):
 	    min_offer = g[0]
 	    max_offer = g[-1]
 
-	    offer_analiticks.append({
+	    offer_analytics.append({
 		u'product': {
 		    u'title': g[0]['product']['title'],
 		},
 		u'showcase': {
 		    u'address': g[0]['showcase']['address'],
 		},
-		u'price_analitics': {
+		u'price_analytics': {
 		    u'last': last_offer['price'],
 		    u'min': min_offer['price'],
 		    u'max': max_offer['price'],
@@ -82,8 +82,8 @@ class ChequeOffer(object):
                 u'count': len(g),
 	    })
 
-	offer_analiticks = sorted(offer_analiticks, key = lambda x : x['product']['title'])
-	return offer_analiticks
+	offer_analytics = sorted(offer_analytics, key = lambda x : x['product']['title'])
+	return offer_analytics
 
     @classmethod
     def find(cls, text):

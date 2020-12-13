@@ -272,26 +272,26 @@ class Base(TestCase):
 	#u'product': {u'title': u'4607004892677 \u0421\u042b\u0420 hochland \u041c\u042f\u0413\u041a\u0418\u0419'},
 	#u'showcase': {u'address': '107076, \xd0\xb3.\xd0\x9c\xd0\xbe\xd1\x81\xd0\xba\xd0\xb2\xd0\xb0, \xd1\x83\xd0\xbb.\xd0\x91\xd0\xbe\xd0\xb3\xd0\xbe\xd1\x80\xd0\xbe\xd0\xb4\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd0\x92\xd0\xb0\xd0\xbb, \xd0\xb4.6, \xd0\xba\xd0\xbe\xd1\x80\xd0\xbf.2'}}
 
-	offer_analiticks = ChequeOffer.analitics_last_min_max_price(offers)
+	offer_analytics = ChequeOffer.analytics_last_min_max_price(offers)
 
 	self.assertEqual([
 	    {u'last_datetime': u'2020-06-03T14:50:00',
 		u'count': 2,
-	    u'price_analitics': {u'last': {u'one': 5990, u'per_one_gram': 5990.0},
+	    u'price_analytics': {u'last': {u'one': 5990, u'per_one_gram': 5990.0},
 	    u'max': {u'one': 6990, u'per_one_gram': 6990.0},
 	    u'min': {u'one': 5990, u'per_one_gram': 5990.0}},
 	    u'product': {u'title': u'4607045982771 \u041c\u041e\u041b\u041e\u041a\u041e SPAR \u0423\u041b\u042c\u0422\u0420\u0410\u041f\u0410'},
 	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'last_datetime': u'2020-05-24T12:56:00',
 		u'count': 1,
-	    u'price_analitics': {u'last': {u'one': 4990, u'per_one_gram': 4990.0},
+	    u'price_analytics': {u'last': {u'one': 4990, u'per_one_gram': 4990.0},
 	    u'max': {u'one': 4990, u'per_one_gram': 4990.0},
 	    u'min': {u'one': 4990, u'per_one_gram': 4990.0}},
 	    u'product': {u'title': u'4607045982788 \u041c\u041e\u041b\u041e\u041a\u041e SPAR \u0423\u041b\u042c\u0422\u0420\u0410\u041f\u0410'},
 	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
 	    {u'last_datetime': u'2020-05-15T20:45:00',
 		u'count': 1,
-	    u'price_analitics': {u'last': {u'one': 5490, u'per_one_gram': 5935.14},
+	    u'price_analytics': {u'last': {u'one': 5490, u'per_one_gram': 5935.14},
 	    u'max': {u'one': 5490, u'per_one_gram': 5935.14},
 	    u'min': {u'one': 5490, u'per_one_gram': 5935.14}},
 	    u'product': {u'title': u'4607167840416 \u041c\u041e\u041b\u041e\u041a\u041e SPAR 3,2% 925'},
@@ -299,7 +299,7 @@ class Base(TestCase):
 	    {
 		u'count': 2,
 		u'last_datetime': u'2020-05-10T21:08:00',
-		u'price_analitics': {u'last': {u'one': 8990, u'per_one_gram': 5288.24},
+		u'price_analytics': {u'last': {u'one': 8990, u'per_one_gram': 5288.24},
 	    u'max': {u'one': 8990, u'per_one_gram': 5288.24},
 	    u'min': {u'one': 8990, u'per_one_gram': 5288.24}},
 	    u'product': {u'title': u'4607167841154 \u041c\u041e\u041b\u041e\u041a\u041e SPAR 2,5% 1,7'},
@@ -307,7 +307,7 @@ class Base(TestCase):
 	    {
 		u'count': 1,
 		u'last_datetime': u'2020-05-06T21:53:00',
-	    u'price_analitics': {u'last': {u'one': 5990, u'per_one_gram': 5990.0},
+	    u'price_analytics': {u'last': {u'one': 5990, u'per_one_gram': 5990.0},
 	    u'max': {u'one': 5990, u'per_one_gram': 5990.0},
 	    u'min': {u'one': 5990, u'per_one_gram': 5990.0}},
 	    u'product': {u'title': u'4690228007842 \u041c\u041e\u041b\u041e\u041a\u041e \u0414\u041e\u041c\u0418\u041a \u0412 \u0414\u0415\u0420\u0415\u0412'},
@@ -315,7 +315,7 @@ class Base(TestCase):
 	    {
 		u'count': 1,
 		u'last_datetime': u'2020-05-23T21:58:00',
-		u'price_analitics': {
+		u'price_analytics': {
 		    u'last': {
 			u'one': 7990, u'per_one_gram': 5707.14
 		    },
@@ -323,7 +323,7 @@ class Base(TestCase):
 	    u'min': {u'one': 7990, u'per_one_gram': 5707.14}},
 	    u'product': {u'title': u'\u041c\u041e\u041b\u041e\u041a\u041e \u041f\u0410\u0421\u0422.3,7%1400'},
 	    u'showcase': {u'address': u'\u0433.\u041c\u043e\u0441\u043a\u0432\u0430, \u0443\u043b.\u0411\u043e\u0433\u043e\u0440\u043e\u0434\u0441\u043a\u0438\u0439 \u0412\u0430\u043b, \u0434.6, \u043a\u043e\u0440\u043f.2'}},
-	    ], offer_analiticks)
+	    ], offer_analytics)
 
     def test_7(self):
         """
@@ -356,3 +356,17 @@ class Base(TestCase):
 
         self.assertEqual(u'5258056945', fns_cheque.fns_userInn)
 	self.assertEqual(u'5258056945', FNSCheque.objects.get(fns_fiscalDocumentNumber='115180').fns_userInn)
+
+    def test_8(self):
+        """
+	Смоделировать ввидение команд новым пользователем.
+
+	/start
+	t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
+	t=20200506T215300&s=1351.88&fn=9285000100127255&i=83300&fp=328049751&n=1
+	t=20200421T140400&s=1057.46&fn=9285000100127255&i=79753&fp=3686248129&n=1
+	/cheques
+	/catirory_analytics
+	"""
+	pass
+	
