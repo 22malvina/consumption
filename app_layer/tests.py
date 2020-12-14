@@ -401,3 +401,9 @@ class Base(TestCase):
 	Telegram.proccess_message(company_family, chat_id, '/list')
 	Telegram.proccess_message(company_family, chat_id, '/cheque 2')
 
+    def test_9(self):
+	"""
+	пробуем подучить сообщения из телеграмма
+	"""
+	Telegram.proccess_last_messages_from_bot()
+

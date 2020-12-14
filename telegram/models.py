@@ -8,6 +8,7 @@ import urllib
 import urllib2
 #import  base64
 from django.conf import settings
+from company.models import Employee, Company
 
 class Telegram(object):
     @classmethod
@@ -46,20 +47,93 @@ class Telegram(object):
             Telegram.send_message(new_message)
 
     @classmethod
+    def get_messages(cls):
+        bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
+        url_api = "https://api.telegram.org/bot%s/" % bot_token
+	#telegram_bot_id = getattr(settings, "TELEGRAM_BOT_ID", None)
+        request_timeout = 10
+
+        request = urllib2.Request(url=url_api + 'getUpdates')
+        responce = urllib2.urlopen(request, timeout=request_timeout)
+	print "result code: " + str(responce.getcode()) 
+	responce = json.load(responce)
+
+        messages = []
+        if responce['ok']:
+            for message in responce['result']:
+                print message
+                messages.append(message)
+        else:
+            assert False
+        return messages
+
+    @classmethod
+    def proccess_last_messages_from_bot(cls):
+        """
+        {u'message': {u'date': 1607980137, u'text': u'test', u'from': {u'username': u'artem', u'first_name': u'Art', u'last_name': u'em', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, u'message_id': 2995, u'chat': {u'username': u'artem', u'first_name': u'Art', u'last_name': u'em', u'type': u'private', u'id': 383332826}}, u'update_id': 397005353}
+        """
+        for full_message in cls.get_messages():
+            #TODO надо проверять не обрабатвалось ли это сообщение уже
+
+            chat_id = full_message['message']['chat']['id']
+            message = full_message['message']['text']
+            telegram_user_id = full_message['message']['from']['id']
+            username = full_message['message']['from'].get('username')
+            first_name = full_message['message']['from'].get('first_name', '')
+            last_name = full_message['message']['from'].get('last_name', '')
+            language_code = full_message['message']['from'].get('language_code', '')
+
+            employees = Employee.objects.filter(telegram_id=telegram_user_id)
+            if len(employees) > 1:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Добрый день, сервис временно не доступен.',
+                }
+                Telegram.send_message(new_message)
+                assert False
+            elif len(employees) < 1:
+                employee = Employee(title=username, first_name=first_name, last_name=last_name, language_code=language_code, telegram_id=telegram_user_id)
+                employee.save()
+                company = Company(title='family')
+                company.save()
+	        company.employees.add(employee)
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Приветсвую! Отправьте /help чтобы получить справку.',
+                }
+                Telegram.send_message(new_message)
+            elif len(employees) == 1:
+                employee = employees[0]
+                companys = Company.objects.filter(employees=employee)
+                if len(companys) > 1:
+                    new_message = {
+                        u'chat_id': chat_id,
+                        u'text': u'Добрый день, сервис временно не доступен.',
+                    }
+                    Telegram.send_message(new_message)
+                    assert False
+                elif len(companys) == 1:
+                    company = companys[0]
+                elif len(companys) < 0:
+                    new_message = {
+                        u'chat_id': chat_id,
+                        u'text': u'Добрый день, сервис временно не доступен.',
+                    }
+                    Telegram.send_message(new_message)
+                    assert False
+                else:
+                    assert False
+            else:
+                assert False
+            
+            Telegram.proccess_message(company, chat_id, message)
+
+    @classmethod
     def is_new_user(cls):
         return False
 
     @classmethod
     def proccess_message(cls, company, chat_id, message):
-#	full_message = {}
-#
-#	chat_id = full_message['message']['chat']['id']
-#	message = full_message['message']['text']
-#	#telegram_user_id = message['message']['from']['id']
-#	#first_name = message['message']['from'].get('first_name', '')
-#	#last_name = message['message']['from'].get('last_name', '')
-#	#language_code = message['message']['from'].get('language_code', '')
-	
         if Telegram.is_new_user() and not message.find('/start') >= 0 and not message.find('/help') >= 0:
             new_message = {
                 u'chat_id': chat_id,
@@ -68,16 +142,10 @@ class Telegram(object):
 	    Telegram.send_message(new_message)
 
         if message.find('/start') >= 0:
-            if is_new:
-                new_message = {
-                    u'chat_id': chat_id,
-                    u'text': u'Приветсвую! Отправьте /help чтобы получить справку.',
-                }
-            else:
-                new_message = {
-                    'chat_id': chat_id,
-                    'text': u'И снова здравствуйте! Отправьте /help чтобы получить справку.'
-                }
+            new_message = {
+                'chat_id': chat_id,
+                'text': u'И снова здравствуйте! Отправьте /help чтобы получить справку.'
+            }
 	    Telegram.send_message(new_message)
         elif message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
             new_message = {
@@ -113,8 +181,8 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
 	    new_message = {
 		u'chat_id': chat_id,
 		u'text': {
-		    u'Рекомендуем к покупке сегодня': new_recomendate,
-		    u'Среднее потребеление в день': average_weight_per_day,
+#		    u'Рекомендуем к покупке сегодня': new_recomendate,
+#		    u'Среднее потребеление в день': average_weight_per_day,
 		},
 	    }
 	    Telegram.send_message(new_message)
