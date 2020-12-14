@@ -293,6 +293,15 @@ class FNSChequeElement(models.Model):
     def get_datetime(self):
         return self.fns_cheque.get_datetime()
 
+    def get_price(self):
+        return self.price * self.quantity
+
+    def get_quantity(self):
+        return self.quantity
+
+    def get_sum(self):
+        return self.sum
+
     def get_price_per_one_gram(self):
         if int(self.price * self.quantity) != int(self.sum):
             print 'Error: price * quantity != sum.',self.price * float(self.quantity), '!=', self.sum

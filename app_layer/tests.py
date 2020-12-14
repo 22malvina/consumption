@@ -6,6 +6,7 @@ from offer.models import Offer, ChequeOffer
 from company.models import Company, Employee
 from cheque.models import FNSCheque, FNSChequeElement, QRCodeReader, ImportProverkachekaComFormatLikeFNS 
 from datetime import datetime
+from telegram.models import Telegram
 
 #from prediction.tests.Base import list_buy_milk 
 from prediction.tests import Base as BasePrediction 
@@ -366,7 +367,37 @@ class Base(TestCase):
 	t=20200506T215300&s=1351.88&fn=9285000100127255&i=83300&fp=328049751&n=1
 	t=20200421T140400&s=1057.46&fn=9285000100127255&i=79753&fp=3686248129&n=1
 	/cheques
-	/catirory_analytics
+
+	что приходит от пользователя?
+	    сообщение из ТГ, которое содержит запрос к боту.
+		который может не ожидать ответ
+		может ожидать мгновенный ответ
+		может ожидать отложенный ответ
+		может ожидать несколько отложенных ответов
 	"""
-	pass
+	company_family = Company(title='family')
+	company_family.save()
+
+	#full_message = {}
+	#chat_id = full_message['message']['chat']['id']
+	#message = full_message['message']['text']
+	#telegram_user_id = message['message']['from']['id']
+	#first_name = message['message']['from'].get('first_name', '')
+	#last_name = message['message']['from'].get('last_name', '')
+	#language_code = message['message']['from'].get('language_code', '')
 	
+	qr_tests = [
+	    't=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1',
+	    't=20200506T215300&s=1351.88&fn=9285000100127255&i=83300&fp=328049751&n=1',
+	    't=20200421T140400&s=1057.46&fn=9285000100127255&i=79753&fp=3686248129&n=1',
+	]
+	chat_id = 'Test chat id = 100500'
+	chat_id = '383332826'
+
+	for qr_test in qr_tests:
+	    message = qr_test
+	    Telegram.proccess_message(company_family, chat_id, message)
+
+	Telegram.proccess_message(company_family, chat_id, '/list')
+	Telegram.proccess_message(company_family, chat_id, '/cheque 2')
+
