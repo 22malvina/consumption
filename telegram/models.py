@@ -139,20 +139,41 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
             request = message.split(' ')
             if len(request) > 1:
                 cheque_id = request[1]
-            cheque = FNSCheque.objects.get(company=company, id=cheque_id)
-            elements = []
-            for e in FNSChequeElement.objects.filter(fns_cheque=cheque):
-                elements.append([e.get_title(), str(e.get_price()), str(e.get_quantity()), str(e.get_sum())])
-	    new_message = {
-		u'chat_id': chat_id,
-		u'text': {
-		    u'Общая сумма': cheque.fns_totalSum,
-		    u'Дата покупки': cheque.fns_dateTime,
-		    u'Всего товаров в чек': str(len(elements)),
-		    u'Ваши покупки': elements,
-		},
-	    }
-	    Telegram.send_message(new_message)
+            cheques = FNSCheque.objects.filter(company=company, id=cheque_id)
+            if len(cheques) > 1:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: нащли больше чем 1 чек с таким id = ' + cheque_id
+                }
+                Telegram.send_message(new_message)
+            elif len(cheques) < 1:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: не нашли чек с таким id = ' + cheque_id
+                }
+                Telegram.send_message(new_message)
+            elif len(cheques) == 1:
+                cheque = cheques[0]
+                elements = []
+                for e in FNSChequeElement.objects.filter(fns_cheque=cheque):
+                    elements.append([e.get_title(), str(e.get_price()), str(e.get_quantity()), str(e.get_sum())])
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': {
+                        u'Общая сумма': cheque.fns_totalSum,
+                        u'Дата покупки': cheque.fns_dateTime,
+                        u'Всего товаров в чек': str(len(elements)),
+                        u'Ваши покупки': elements,
+                    },
+                }
+	        Telegram.send_message(new_message)
+            else:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: не известная ошибка',
+                }
+                Telegram.send_message(new_message)
+               
 
     @classmethod
     def send_message(cls, message):
