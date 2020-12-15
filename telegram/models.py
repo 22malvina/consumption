@@ -134,6 +134,11 @@ class Telegram(object):
         for full_message in cls.get_last_messages(more_by_1_than_last_update_id):
             #TODO надо проверять не обрабатвалось ли это сообщение уже
 
+            if not full_message.get('message', False):
+                pm = ProcessedMessage(json=json.dumps(full_message, sort_keys=True))
+                pm.save()
+                continue
+
             message_id = full_message['message']['message_id']
             update_id = full_message['update_id']
 
