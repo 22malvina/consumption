@@ -12,7 +12,8 @@ from company.models import Employee, Company
 
 class ProcessedMessage(models.Model):
     json = models.TextField(blank=True, )
-    message_id =  models.CharField(blank=True, max_length=254)
+    message_id = models.CharField(blank=True, max_length=254) # ид собщения в рамках чата
+    update_id = models.CharField(blank=True, max_length=254) # использовать при веб хуках
  
 class Telegram(object):
     @classmethod
@@ -98,13 +99,18 @@ class Telegram(object):
         return company
 
     @classmethod
-    def get_messages(cls):
+    #def get_messages(cls):
+    def get_last_messages(cls, more_by_1_than_last_update_id):
         bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
         url_api = "https://api.telegram.org/bot%s/" % bot_token
 	#telegram_bot_id = getattr(settings, "TELEGRAM_BOT_ID", None)
-        request_timeout = 10
 
-        request = urllib2.Request(url=url_api + 'getUpdates')
+        # сделаем тайматы отличабщимис яна секунду, а в кроне будем скрипт запсукть каждую минут.
+        request_timeout = 59
+        long_polling_timeout = 58
+
+        #request = urllib2.Request(url=url_api + 'getUpdates')
+        request = urllib2.Request(url=url_api + 'getUpdates?timeout=' + str(long_polling_timeout) + (('&offset=' + more_by_1_than_last_update_id) if more_by_1_than_last_update_id else ''))
         responce = urllib2.urlopen(request, timeout=request_timeout)
 	print "result code: " + str(responce.getcode()) 
 	responce = json.load(responce)
@@ -123,12 +129,15 @@ class Telegram(object):
         """
         {u'message': {u'date': 1607980137, u'text': u'test', u'from': {u'username': u'artem', u'first_name': u'Art', u'last_name': u'em', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, u'message_id': 2995, u'chat': {u'username': u'artem', u'first_name': u'Art', u'last_name': u'em', u'type': u'private', u'id': 383332826}}, u'update_id': 397005353}
         """
-        for full_message in cls.get_messages():
+        last_update_ids = ProcessedMessage.objects.order_by('-update_id')[0:1]
+        more_by_1_than_last_update_id = str(int(last_update_ids[0].update_id) + 1) if len(last_update_ids) > 0 else None
+        for full_message in cls.get_last_messages(more_by_1_than_last_update_id):
             #TODO надо проверять не обрабатвалось ли это сообщение уже
 
             message_id = full_message['message']['message_id']
+            update_id = full_message['update_id']
 
-            if cls.__was_message_processed(message_id):
+            if cls.__was_message_processed(update_id):
                 continue
 
             chat_id = full_message['message']['chat']['id']
@@ -144,7 +153,7 @@ class Telegram(object):
                        
             Telegram.process_message(company, chat_id, message)
 
-            pm = ProcessedMessage(message_id=message_id, json=json.dumps(full_message, sort_keys=True))
+            pm = ProcessedMessage(message_id=message_id, update_id=update_id, json=json.dumps(full_message, sort_keys=True))
             pm.save()
 
     @classmethod
@@ -312,7 +321,7 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
 #	print data_r
 
     @classmethod
-    def __was_message_processed(cls, message_id):
-        if ProcessedMessage.objects.filter(message_id=message_id):
+    def __was_message_processed(cls, update_id):
+        if ProcessedMessage.objects.filter(update_id=update_id):
             return True
         return False
