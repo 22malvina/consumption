@@ -396,17 +396,17 @@ class Base(TestCase):
 
 	for qr_test in qr_tests:
 	    message = qr_test
-	    Telegram.proccess_message(company_family, chat_id, message)
+	    Telegram.process_message(company_family, chat_id, message)
 
-	Telegram.proccess_message(company_family, chat_id, '/list')
-	Telegram.proccess_message(company_family, chat_id, '/cheque 2')
-	Telegram.proccess_message(company_family, chat_id, '/cheque_1')
-	Telegram.proccess_message(company_family, chat_id, '/cheque3')
+	Telegram.process_message(company_family, chat_id, '/list')
+	Telegram.process_message(company_family, chat_id, '/cheque 2')
+	Telegram.process_message(company_family, chat_id, '/cheque_1')
+	Telegram.process_message(company_family, chat_id, '/cheque3')
 
     def test_9(self):
 	"""
 	пробуем подучить сообщения из телеграмма
 	"""
-	Telegram.proccess_last_messages_from_bot()
-	Telegram.proccess_last_messages_from_bot()
+	Telegram.process_last_messages_from_bot()
+	Telegram.process_last_messages_from_bot()
 

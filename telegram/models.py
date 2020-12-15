@@ -119,7 +119,7 @@ class Telegram(object):
         return messages
 
     @classmethod
-    def proccess_last_messages_from_bot(cls):
+    def process_last_messages_from_bot(cls):
         """
         {u'message': {u'date': 1607980137, u'text': u'test', u'from': {u'username': u'artem', u'first_name': u'Art', u'last_name': u'em', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, u'message_id': 2995, u'chat': {u'username': u'artem', u'first_name': u'Art', u'last_name': u'em', u'type': u'private', u'id': 383332826}}, u'update_id': 397005353}
         """
@@ -128,7 +128,7 @@ class Telegram(object):
 
             message_id = full_message['message']['message_id']
 
-            if cls.__was_message_proccessed(message_id):
+            if cls.__was_message_processed(message_id):
                 continue
 
             chat_id = full_message['message']['chat']['id']
@@ -142,13 +142,13 @@ class Telegram(object):
 
             company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code)
                        
-            Telegram.proccess_message(company, chat_id, message)
+            Telegram.process_message(company, chat_id, message)
 
             pm = ProcessedMessage(message_id=message_id, json=json.dumps(full_message, sort_keys=True))
             pm.save()
 
     @classmethod
-    def proccess_message(cls, company, chat_id, message):
+    def process_message(cls, company, chat_id, message):
         #FYI: Отправьте /help чтобы получить справку.
         #И снова здравствуйте! Отправьте /help чтобы получить справку.
         if message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
@@ -312,7 +312,7 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
 #	print data_r
 
     @classmethod
-    def __was_message_proccessed(cls, message_id):
+    def __was_message_processed(cls, message_id):
         if ProcessedMessage.objects.filter(message_id=message_id):
             return True
         return False
