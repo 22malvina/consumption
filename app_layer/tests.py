@@ -408,4 +408,5 @@ class Base(TestCase):
 	пробуем подучить сообщения из телеграмма
 	"""
 	Telegram.proccess_last_messages_from_bot()
+	Telegram.proccess_last_messages_from_bot()
 

@@ -10,6 +10,10 @@ import urllib2
 from django.conf import settings
 from company.models import Employee, Company
 
+class ProcessedMessage(models.Model):
+    json = models.TextField(blank=True, )
+    message_id =  models.CharField(blank=True, max_length=254)
+ 
 class Telegram(object):
     @classmethod
     def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, qr_text, chat_id):
@@ -122,6 +126,11 @@ class Telegram(object):
         for full_message in cls.get_messages():
             #TODO надо проверять не обрабатвалось ли это сообщение уже
 
+            message_id = full_message['message']['message_id']
+
+            if cls.__was_message_proccessed(message_id):
+                continue
+
             chat_id = full_message['message']['chat']['id']
             message = full_message['message']['text']
             telegram_user_id = full_message['message']['from']['id']
@@ -134,6 +143,9 @@ class Telegram(object):
             company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code)
                        
             Telegram.proccess_message(company, chat_id, message)
+
+            pm = ProcessedMessage(message_id=message_id, json=json.dumps(full_message, sort_keys=True))
+            pm.save()
 
     @classmethod
     def proccess_message(cls, company, chat_id, message):
@@ -299,4 +311,8 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
 #	data_r = json.load(responce)
 #	print data_r
 
-
+    @classmethod
+    def __was_message_proccessed(cls, message_id):
+        if ProcessedMessage.objects.filter(message_id=message_id):
+            return True
+        return False

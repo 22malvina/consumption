@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'prediction',
     'company',
     'app_layer',
+    'telegram',
 ]
 
 MIDDLEWARE_CLASSES = [
