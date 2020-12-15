@@ -400,6 +400,8 @@ class Base(TestCase):
 
 	Telegram.proccess_message(company_family, chat_id, '/list')
 	Telegram.proccess_message(company_family, chat_id, '/cheque 2')
+	Telegram.proccess_message(company_family, chat_id, '/cheque_1')
+	Telegram.proccess_message(company_family, chat_id, '/cheque3')
 
     def test_9(self):
 	"""

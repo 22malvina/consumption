@@ -129,25 +129,10 @@ class Telegram(object):
             Telegram.proccess_message(company, chat_id, message)
 
     @classmethod
-    def is_new_user(cls):
-        return False
-
-    @classmethod
     def proccess_message(cls, company, chat_id, message):
-        if Telegram.is_new_user() and not message.find('/start') >= 0 and not message.find('/help') >= 0:
-            new_message = {
-                u'chat_id': chat_id,
-                u'text': u'FYI: Отправьте /help чтобы получить справку.',
-            }
-	    Telegram.send_message(new_message)
-
-        if message.find('/start') >= 0:
-            new_message = {
-                'chat_id': chat_id,
-                'text': u'И снова здравствуйте! Отправьте /help чтобы получить справку.'
-            }
-	    Telegram.send_message(new_message)
-        elif message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
+        #FYI: Отправьте /help чтобы получить справку.
+        #И снова здравствуйте! Отправьте /help чтобы получить справку.
+        if message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
             new_message = {
                 'chat_id': chat_id,
                 'text': u"""Help : Здравствуйте, я могу рассказать вам как можно сэкономить при ежедневных походах в магазин.
@@ -207,6 +192,12 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
             request = message.split(' ')
             if len(request) > 1:
                 cheque_id = request[1]
+            elif message.find('/cheque_') >= 0 or message.find('Cheque_') >= 0:
+                request = message.split('_')
+                if len(request) > 1:
+                    cheque_id = request[1]
+            else:
+                cheque_id = message[7:]
             cheques = FNSCheque.objects.filter(company=company, id=cheque_id)
             if len(cheques) > 1:
                 new_message = {
