@@ -46,6 +46,53 @@ class Telegram(object):
             }
             Telegram.send_message(new_message)
 
+ 
+    @classmethod
+    def __get_company_for_user(cls, telegram_user_id, chat_id, username, first_name, last_name, language_code):
+        employees = Employee.objects.filter(telegram_id=telegram_user_id)
+        if len(employees) > 1:
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'Добрый день, сервис временно не доступен.',
+            }
+            Telegram.send_message(new_message)
+            assert False
+        elif len(employees) < 1:
+            employee = Employee(title=username, first_name=first_name, last_name=last_name, language_code=language_code, telegram_id=telegram_user_id)
+            employee.save()
+            company = Company(title='family')
+            company.save()
+            company.employees.add(employee)
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'Приветсвую! Отправьте /help чтобы получить справку.',
+            }
+            Telegram.send_message(new_message)
+        elif len(employees) == 1:
+            employee = employees[0]
+            companys = Company.objects.filter(employees=employee)
+            if len(companys) > 1:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Добрый день, сервис временно не доступен.',
+                }
+                Telegram.send_message(new_message)
+                assert False
+            elif len(companys) == 1:
+                company = companys[0]
+            elif len(companys) < 0:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Добрый день, сервис временно не доступен.',
+                }
+                Telegram.send_message(new_message)
+                assert False
+            else:
+                assert False
+        else:
+            assert False
+        return company
+
     @classmethod
     def get_messages(cls):
         bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
@@ -78,54 +125,14 @@ class Telegram(object):
             chat_id = full_message['message']['chat']['id']
             message = full_message['message']['text']
             telegram_user_id = full_message['message']['from']['id']
+
             username = full_message['message']['from'].get('username')
             first_name = full_message['message']['from'].get('first_name', '')
             last_name = full_message['message']['from'].get('last_name', '')
             language_code = full_message['message']['from'].get('language_code', '')
 
-            employees = Employee.objects.filter(telegram_id=telegram_user_id)
-            if len(employees) > 1:
-                new_message = {
-                    u'chat_id': chat_id,
-                    u'text': u'Добрый день, сервис временно не доступен.',
-                }
-                Telegram.send_message(new_message)
-                assert False
-            elif len(employees) < 1:
-                employee = Employee(title=username, first_name=first_name, last_name=last_name, language_code=language_code, telegram_id=telegram_user_id)
-                employee.save()
-                company = Company(title='family')
-                company.save()
-	        company.employees.add(employee)
-                new_message = {
-                    u'chat_id': chat_id,
-                    u'text': u'Приветсвую! Отправьте /help чтобы получить справку.',
-                }
-                Telegram.send_message(new_message)
-            elif len(employees) == 1:
-                employee = employees[0]
-                companys = Company.objects.filter(employees=employee)
-                if len(companys) > 1:
-                    new_message = {
-                        u'chat_id': chat_id,
-                        u'text': u'Добрый день, сервис временно не доступен.',
-                    }
-                    Telegram.send_message(new_message)
-                    assert False
-                elif len(companys) == 1:
-                    company = companys[0]
-                elif len(companys) < 0:
-                    new_message = {
-                        u'chat_id': chat_id,
-                        u'text': u'Добрый день, сервис временно не доступен.',
-                    }
-                    Telegram.send_message(new_message)
-                    assert False
-                else:
-                    assert False
-            else:
-                assert False
-            
+            company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code)
+                       
             Telegram.proccess_message(company, chat_id, message)
 
     @classmethod
@@ -176,7 +183,8 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
             for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):
                 cheques.append({
                     u'totalSum': str(cheque.fns_totalSum),
-                    u'see': u'/cheque ' + str(cheque.id),
+                    #u'see': u'/cheque ' + str(cheque.id),
+                    u'see': u'/cheque' + str(cheque.id),
                     #u'date': u'%s' % str(cheque.fns_dateTime.date()),
                     u'date': u'%s' % str(cheque.fns_dateTime),
                 })
@@ -198,6 +206,14 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
                     cheque_id = request[1]
             else:
                 cheque_id = message[7:]
+            if not cheque_id:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: не нашли чек с таким id = ' + cheque_id
+                }
+                Telegram.send_message(new_message)
+                return
+
             cheques = FNSCheque.objects.filter(company=company, id=cheque_id)
             if len(cheques) > 1:
                 new_message = {
