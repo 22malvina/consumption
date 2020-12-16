@@ -375,7 +375,7 @@ class FNSChequeElement(models.Model):
         }
 
     def __str__(self):
-        return self.name.encode('utf8') + str(' ') + str(self.quantity) + str(' ') + str(self.volume) + str(' ') + str(self.sum) + str(' ') + str(self.price)# + self.name.encode('utf8') 
+        return (self.name.encode('utf8') if self.name else '') + str(' ') + str(self.quantity) + str(' ') + str(self.volume) + str(' ') + str(self.sum) + str(' ') + str(self.price)# + self.name.encode('utf8') 
  
 class QRCodeReader(object):
     @classmethod

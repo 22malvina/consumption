@@ -14,6 +14,9 @@ class ProcessedMessage(models.Model):
     json = models.TextField(blank=True, )
     message_id = models.CharField(blank=True, max_length=254) # ид собщения в рамках чата
     update_id = models.CharField(blank=True, max_length=254) # использовать при веб хуках
+
+    def __unicode__(self):
+        return u"U: %s, M: %s, JSON: %s" % (self.update_id, self.message_id, self.json)
  
 class Telegram(object):
     @classmethod
@@ -28,6 +31,7 @@ class Telegram(object):
         #    return
 
 	fns_cheque = FNSCheque.create_fns_cheque_from_qr_text(qr_text, company)
+        #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
 	fns_cheque.save()
         fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
         account = None
