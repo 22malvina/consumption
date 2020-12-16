@@ -1,0 +1,113 @@
+
+# импорт данных с сайта proverkacheka
+
+
+
+
+
+from django.test import TestCase
+from prediction.models import Element, Prediction, PredictionLinear, PredictionLinearFunction
+from product_card.models import ProductCard
+from offer.models import Offer
+from company.models import Company, Employee
+from cheque.models import FNSCheque, FNSChequeElement, QRCodeReader
+from datetime import datetime
+import json
+import time
+import urllib
+import urllib2, base64
+
+from loader.cheque.proverkacheka_com import generate_cheque_qr_codes
+
+#robo1_employee = Employee(title='robo1', key='robo1_123zxc456')
+#robo1_employee.save()
+#company_family = Company(title='family')
+#company_family.save()
+#company_family.employees.add(robo1_employee)
+
+
+cc = Company.objects.all()
+company_family = cc[0]
+last_fns_cheques = FNSCheque.objects.filter(company=company_family).order_by('-id')[0:2]
+has_last_fns_cheques = False
+last_fns_cheque = None
+if last_fns_cheques:
+  has_last_fns_cheques = True
+  last_fns_cheque = last_fns_cheques[0]
+
+cheque_params = generate_cheque_qr_codes(has_last_fns_cheques, last_fns_cheque)
+
+k = 0
+for s in cheque_params:
+  print s
+  k+=1
+  print k
+  FNSCheque.import_from_proverkacheka_com_format_like_fns(s, company_family)
+
+
+
+
+##############
+
+
+
+
+from django.test import TestCase
+from prediction.models import Element, Prediction, PredictionLinear, PredictionLinearFunction
+from product_card.models import ProductCard
+from offer.models import Offer
+from company.models import Company, Employee
+from cheque.models import FNSCheque, FNSChequeElement, QRCodeReader
+from datetime import datetime
+import json
+import time
+import urllib
+import urllib2, base64
+
+from loader.cheque.proverkacheka_com import generate_cheque_qr_codes
+
+#robo1_employee = Employee(title='robo1', key='robo1_123zxc456')
+#robo1_employee.save()
+#company_family = Company(title='family')
+#company_family.save()
+#company_family.employees.add(robo1_employee)
+
+
+cc = Company.objects.all()
+company_family = cc[0]
+last_fns_cheques = FNSCheque.objects.filter(company=company_family).order_by('-id')
+has_last_fns_cheques = False
+last_fns_cheque = None
+if last_fns_cheques:
+  has_last_fns_cheques = True
+  last_fns_cheque = last_fns_cheques[0]
+
+cheque_params = generate_cheque_qr_codes(has_last_fns_cheques, last_fns_cheque)
+
+for s in cheque_params:
+  print s
+  FNSCheque.import_from_proverkacheka_com_format_like_fns(s, company_family)
+
+
+
+
+
+from offer.models import ChequeOffer
+offers = ChequeOffer.find(u'PHONE 7')
+offers.sort(key=lambda x: x['price']['per_one_gram'])
+for i in offers:
+ print i['price'], i['datetime']['update'], i['product']['title'].encode('utf8')
+
+print '================='
+offer_analytics = ChequeOffer.analytics_last_min_max_price(offers)
+for i in offer_analytics:
+ print i['count'], i['price_analytics']['min']['one'], i['price_analytics']['last']['one'], i['price_analytics']['max']['one'], i['product']['title'].encode('utf8'), 
+
+'|||', i['showcase']['address'].encode('utf8')
+
+
+
+# пока бота будем запускать так
+#nohup python botstart.py &
+nohup ./manage.py botstart &
+
