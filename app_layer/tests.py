@@ -345,8 +345,7 @@ class Base(TestCase):
 
         fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
 
-        account = None
-        self.assertTrue(FNSCheque.has_cheque_with_fiscal_params(company_family, account, 
+        self.assertTrue(FNSCheque.has_cheque_with_fiscal_params(company_family, 
             fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalSign"],

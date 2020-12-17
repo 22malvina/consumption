@@ -21,21 +21,15 @@ class ProcessedMessage(models.Model):
 class Telegram(object):
     @classmethod
     def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, qr_text, chat_id):
-        #account = None
-        #if FNSCheque.has_cheque_with_fiscal_params():
-        #    new_message = {
-        #        u'chat_id': chat_id,
-        #        u'text': u'Такой чек уже существует 1',
-        #    }
-        #    Telegram.send_message(new_message)
-        #    return
-
-	fns_cheque = FNSCheque.create_fns_cheque_from_qr_text(qr_text, company)
-        #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
-	fns_cheque.save()
-        fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
-        account = None
-	FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+        if FNSCheque.has_cheque_with_qr_text(company, qr_text):
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'Такой чек уже существует в данной компании!',
+            }
+            Telegram.send_message(new_message)
+            return
+        else:
+            fns_cheque = FNSCheque.create_save_update_fns_cheque_from_proverkacheka_com(qr_text, company)
 
         if fns_cheque:
             new_message = {
@@ -54,7 +48,6 @@ class Telegram(object):
                 u'text': u'Не смогли загрузить ваш чек :' + qr_text,
             }
             Telegram.send_message(new_message)
-
  
     @classmethod
     def __get_company_for_user(cls, telegram_user_id, chat_id, username, first_name, last_name, language_code):

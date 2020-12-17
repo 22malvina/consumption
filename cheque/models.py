@@ -73,9 +73,22 @@ class FNSCheque(models.Model):
 
     @classmethod
     def create_fns_cheque_from_qr_text(cls, qr_text, company):
+        if cls.has_cheque_with_qr_text(company, qr_text):
+            #Такой чек уже существует'
+            print u'Alert: We has this cheque in this company!'
+            assert False
 	qr_params = QRCodeReader.qr_text_to_params(qr_text)
 	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
 	return FNSCheque(company=company, fns_fiscalDocumentNumber=cheque_params['fns_fiscalDocumentNumber'], fns_fiscalDriveNumber=cheque_params['fns_fiscalDriveNumber'], fns_fiscalSign=cheque_params['fns_fiscalSign'], fns_dateTime=cheque_params['fns_dateTime'], fns_totalSum=cheque_params['fns_totalSum'])
+
+    @classmethod
+    def create_save_update_fns_cheque_from_proverkacheka_com(cls, qr_text, company):
+	fns_cheque = FNSCheque.create_fns_cheque_from_qr_text(qr_text, company)
+        #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
+	fns_cheque.save()
+        fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
+	FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+        return fns_cheque
 
     def format_date_qr_srt(self):
         #return str(self.fns_dateTime[0:4]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[8:10]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
@@ -97,8 +110,7 @@ class FNSCheque(models.Model):
             print 'Error: not good json!'
             return
 
-        account = None
-        if FNSCheque.has_cheque_with_fiscal_params(company, account, 
+        if FNSCheque.has_cheque_with_fiscal_params(company,  
             fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalSign"],
@@ -110,18 +122,33 @@ class FNSCheque(models.Model):
         FNSCheque.save_cheque_from_fns_cheque_json(company, fns_cheque_json)
 
     @classmethod
-    def has_cheque_with_fiscal_params(cls, company, accaunt, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
+    def has_cheque_with_fiscal_params(cls, company, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
         for cheque in FNSCheque.objects.filter(
             company=company,
             fns_fiscalDocumentNumber=fiscalDocumentNumber,
             fns_fiscalDriveNumber=fiscalDriveNumber,
             fns_fiscalSign=fiscalSign,
-            fns_dateTime=dateTime,
+            fns_dateTime__contains=dateTime,
             fns_totalSum=totalSum):
             print '---has cheque----------'
             print cheque
             return True
         return False
+
+    @classmethod
+    def has_cheque_with_qr_text(cls, company, qr_text):
+	qr_params = QRCodeReader.qr_text_to_params(qr_text)
+	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
+        return FNSCheque.has_cheque_with_params(company, cheque_params)
+
+    @classmethod
+    def has_cheque_with_params(cls, company, cheque_params):
+        return FNSCheque.has_cheque_with_fiscal_params(company, 
+            cheque_params['fns_fiscalDocumentNumber'],
+            cheque_params['fns_fiscalDriveNumber'],
+            cheque_params['fns_fiscalSign'],
+            cheque_params['fns_dateTime'],
+            cheque_params['fns_totalSum'])
 
     @classmethod
     def save_cheque_from_fns_cheque_json(cls, company, fns_cheque_json):
@@ -135,7 +162,7 @@ class FNSCheque(models.Model):
             return 
 
         account = None
-        if cls.has_cheque_with_fiscal_params(company, account,
+        if cls.has_cheque_with_fiscal_params(company,
             fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
             fns_cheque_json["document"]["receipt"]["fiscalSign"],
