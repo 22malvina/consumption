@@ -19,6 +19,36 @@ class ProcessedMessage(models.Model):
         return u"U: %s, M: %s, JSON: %s" % (self.update_id, self.message_id, self.json)
  
 class Telegram(object):
+#message with photo
+#   {
+#       u'message': {
+#           u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826},
+#           u'photo': [
+#               {u'width': 240, u'height': 320, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA20AAz1sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz1sBQAB', u'file_size': 11934},
+#               {u'width': 600, u'height': 800, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3gAAz9sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz9sBQAB', u'file_size': 52646},
+#               {u'width': 960, u'height': 1280, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz5sBQAB', u'file_size': 85969}
+#           ], 
+#           u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826},
+#           u'date': 1608229238, 
+#           u'message_id': 3632,
+#           u'media_group_id': u'12865833907857842'},
+#       u'update_id': 397005490
+#   }
+
+#https://api.telegram.org/bot1185379535:AAFH80I6a84DA26U1ue91IOj3o5TpyfOZx0/getFile?file_id=AgACAgIAAxkBAAIOLV_bm_ADUaQ8SPjcyA1Ht44OVxQsAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ
+#{
+#    "ok": true,
+#    "result": {
+#        "file_id": "AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ",
+#        "file_unique_id": "AQADmo2gli4AAz5sBQAB",
+#        "file_size": 85969,
+#        "file_path": "photos/file_1.jpg"
+#    }
+#}
+
+#https://api.telegram.org/file/bot1185379535:AAFH80I6a84DA26U1ue91IOj3o5TpyfOZx0/photos/file_1.jpg
+#Получаем фаил
+
     @classmethod
     def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, qr_text, chat_id):
         if FNSCheque.has_cheque_with_qr_text(company, qr_text):
@@ -96,6 +126,35 @@ class Telegram(object):
         return company
 
     @classmethod
+    def get_file(cls, file_path):
+        bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
+        url_api = "https://api.telegram.org/file/bot%s/" % bot_token
+        request_timeout = 59
+
+        request = urllib2.Request(url=url_api + str(file_path))
+        responce = urllib2.urlopen(request, timeout=request_timeout)
+	print "result code: " + str(responce.getcode()) 
+        return responce.read()
+
+    @classmethod
+    def get_file_info(cls, file_id):
+        bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
+        url_api = "https://api.telegram.org/bot%s/" % bot_token
+        request_timeout = 59
+
+        request = urllib2.Request(url=url_api + 'getFile?file_id=' + str(file_id))
+        responce = urllib2.urlopen(request, timeout=request_timeout)
+	print "result code: " + str(responce.getcode()) 
+	responce = json.load(responce)
+
+        messages = []
+        if responce['ok']:
+            return responce['result']
+        else:
+            assert False
+        return messages
+
+    @classmethod
     #def get_messages(cls):
     def get_last_messages(cls, more_by_1_than_last_update_id):
         bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
@@ -106,8 +165,10 @@ class Telegram(object):
         request_timeout = 59
         long_polling_timeout = 58
 
+        #TODO времено отклчил
         #request = urllib2.Request(url=url_api + 'getUpdates')
         request = urllib2.Request(url=url_api + 'getUpdates?timeout=' + str(long_polling_timeout) + (('&offset=' + more_by_1_than_last_update_id) if more_by_1_than_last_update_id else ''))
+        #print request.get_full_url()
         responce = urllib2.urlopen(request, timeout=request_timeout)
 	print "result code: " + str(responce.getcode()) 
 	responce = json.load(responce)
@@ -135,19 +196,20 @@ class Telegram(object):
                 print 'Alert: message with update_id =', full_message['update_id'], 'was processed!' 
                 continue
 
-            if not full_message.get('message', False):
-                pm = ProcessedMessage(json=json.dumps(full_message, sort_keys=True))
+            pm = ProcessedMessage(json=json.dumps(full_message, sort_keys=True))
+            pm.save()
+            if full_message.get('update_id', None):
+                pm.update_id = full_message.get('update_id')
                 pm.save()
-                if full_message.get('update_id', None):
-                    pm.update_id = full_message.get('update_id')
-                    pm.save()
+
+            if not full_message.get('message', False):
                 continue
 
             message_id = full_message['message']['message_id']
             update_id = full_message['update_id']
 
             chat_id = full_message['message']['chat']['id']
-            message = full_message['message']['text']
+            message = full_message['message'].get('text')
             telegram_user_id = full_message['message']['from']['id']
 
             username = full_message['message']['from'].get('username')
@@ -155,12 +217,176 @@ class Telegram(object):
             last_name = full_message['message']['from'].get('last_name', '')
             language_code = full_message['message']['from'].get('language_code', '')
 
+
             company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code)
                        
-            Telegram.process_message(company, chat_id, message)
+            if message:
+                Telegram.process_message(company, chat_id, message)
+                #pm = ProcessedMessage(message_id=message_id, update_id=update_id, json=json.dumps(full_message, sort_keys=True))
+                pm.message_id = message_id
+                pm.save()
+                print 'save'
+            elif full_message['message'].get('photo'):
+                #сортируем по размеру чтобы получить самый большой
+                photos = full_message['message'].get('photo')
+                photos.sort(key = lambda x : int(x['width']))
+                bigest_photo = photos[-1]
+                file_id = bigest_photo['file_id']
 
-            pm = ProcessedMessage(message_id=message_id, update_id=update_id, json=json.dumps(full_message, sort_keys=True))
-            pm.save()
+                file_info = cls.get_file_info(file_id)
+                file_path = file_info['file_path']
+
+                new_file = cls.get_file(file_path)
+
+                f = open(file_id, "a")
+                f.write(new_file)
+                f.close()
+                #пока не сохраняем сразу отправляем дальше в проверку чеков
+
+                fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
+                print fns_cheque_json
+
+                fns_cheque = FNSCheque(company=company)
+                #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
+                fns_cheque.save()
+                fns_cheque_json["document"] = {}
+                fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
+
+                FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+
+
+                if fns_cheque:
+                    new_message = {
+                        'chat_id': chat_id,
+                        'text': u'Здесь будет в JSON чека полученный от ФНС',
+                    }
+                    Telegram.send_message(new_message)
+                    new_message = {
+                        u'chat_id': chat_id,
+                        u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. сохранен.'
+                    }
+                    Telegram.send_message(new_message)
+
+
+
+            else:
+                print 'Alert: Not message text.'
+
+    @classmethod
+    def get_fns_cheque_json_from_proverkacheka_com(cls, new_file):
+        #работает
+        #curl -F 'qrfile=@AgACAgIAAxkBAAIOLV_bm_ADUaQ8SPjcyA1Ht44OVxQsAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ'  https://proverkacheka.com/check/get
+
+        import requests
+        #так работает
+        #with open('AgACAgIAAxkBAAIOLV_bm_ADUaQ8SPjcyA1Ht44OVxQsAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ', 'rb') as f:
+        #    r = requests.post('https://proverkacheka.com/check/get', files={'qrfile': f})
+
+
+
+        r = requests.post('https://proverkacheka.com/check/get', files={'qrfile': new_file})
+
+        #print r.text.encode('utf8')
+        rr = r.json()
+        print rr
+        return rr
+        return json.load(rr)
+        #return json.load(r.text.encode('utf8'))
+
+
+
+#        #import urllib.request
+#        #import urllib.parse
+#        from lib.multipart_sender import MultiPartForm
+#
+#        myfile = new_file
+#        form = MultiPartForm()
+#        form.add_field('qr', 2)
+#        form.add_file('qrfile', 'logo.jpg', fileHandle=myfile)
+#        form.make_result()
+#
+#        url = 'https://proverkacheka.com/check/get'
+#        req1 = urllib.request.Request(url)
+#        req1.add_header('Content-type', form.get_content_type())
+#        req1.add_header('Content-length', len(form.form_data))
+#        req1.add_data(form.form_data)
+#        fp = urllib.request.urlopen(req1)
+#        print(fp.read()) # to view status
+#
+#
+#
+#
+#        #print new_file
+#    
+#        request_timeout = 60
+#
+#        #https://stackoverflow.com/questions/680305/using-multipartposthandler-to-post-form-data-with-python
+#        from poster.streaminghttp import register_openers
+#        from poster.encode import multipart_encode
+#        register_openers()
+#        datagen, headers = multipart_encode({'qr': 2, 'qrfile': new_file})
+#        #print params_v['document']
+#        #request = urllib2.Request(url=url_api + 'sendDocument', data=data, files={'document': json.dumps(message['text'], ensure_ascii=False).encode('utf8')})
+#        #request = urllib2.Request(url=url_api + 'sendDocument', files={'document': json.dumps(message['text'], ensure_ascii=False).encode('utf8')})
+#        #request = urllib2.Request(url_api + 'sendDocument?chat_id=' + str(message['chat_id']), datagen, headers)
+#
+#        #artem
+#        #request = urllib2.Request('https://proverkacheka.com/check/get', datagen, headers)
+#
+#        request = urllib2.Request(url='https://proverkacheka.com/check/get', files={'qrfile': new_file})
+#
+#        responce = urllib2.urlopen(request, timeout=request_timeout)
+#        print "result code: " + str(responce.getcode()) 
+#        ##data = weburl.read()
+#        ##print data
+#        data_r = json.load(responce)
+#        print data_r
+#
+#        print data_r['data'].encode('utf8')
+#
+#
+#        return data_r
+#
+#
+#
+#        #theRequest = urllib2.Request(theUrl, theFile, theHeaders)('https://proverkacheka.com/check/get', new_file, {'Content-Type': 'text/xml'}).read()
+#        #response = urllib2.urlopen(theRequest)
+#        #print response.read()
+#
+#	req = urllib2.Request('https://proverkacheka.com/check/get')
+#        da = urllib.urlencode({
+#            #'qrraw': 't=20201107T2058&s=63.00&fn=9288000100192401&i=439&fp=2880362760&n=1',
+#            #'qrraw': qr_text,
+#            'qr': 2,
+#            'qrfile': new_file,
+#        })
+#        #data = urllib2.urlopen(url=req, data=da).read()
+#
+#        data = urllib2.urlopen('https://proverkacheka.com/check/get', new_file, {'Content-Type': 'text/xml'}).read()
+#        print data
+#
+#        fns_cheque_json = json.loads(data)
+#
+#        if not type(fns_cheque_json) is dict or not type(fns_cheque_json['data']) is dict:
+#            print u'Alert: This is not good JSON!'
+#            return
+#
+#        fns_cheque_json["document"] = {}
+#        fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
+#
+#        return fns_cheque_json
+#
+#
+##        request = urllib2.Request(url=url_api + 'getUpdates')
+##        #request = urllib2.Request(url=url_api + 'getUpdates?timeout=' + str(long_polling_timeout) + (('&offset=' + more_by_1_than_last_update_id) if more_by_1_than_last_update_id else ''))
+##        #print request.get_full_url()
+##        responce = urllib2.urlopen(request, timeout=request_timeout)
+##	print "result code: " + str(responce.getcode()) 
+##	responce = json.load(responce)
+
+
+
+
 
     @classmethod
     def process_message(cls, company, chat_id, message):
