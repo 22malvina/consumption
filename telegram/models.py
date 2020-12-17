@@ -131,16 +131,20 @@ class Telegram(object):
         for full_message in cls.get_last_messages(more_by_1_than_last_update_id):
             #TODO надо проверять не обрабатвалось ли это сообщение уже
 
+            if full_message.get('update_id', None) and cls.__was_message_processed(full_message['update_id']):
+                print 'Alert: message with update_id =', full_message['update_id'], 'was processed!' 
+                continue
+
             if not full_message.get('message', False):
                 pm = ProcessedMessage(json=json.dumps(full_message, sort_keys=True))
                 pm.save()
+                if full_message.get('update_id', None):
+                    pm.update_id = full_message.get('update_id')
+                    pm.save()
                 continue
 
             message_id = full_message['message']['message_id']
             update_id = full_message['update_id']
-
-            if cls.__was_message_processed(update_id):
-                continue
 
             chat_id = full_message['message']['chat']['id']
             message = full_message['message']['text']
