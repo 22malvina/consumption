@@ -352,7 +352,8 @@ class Base(TestCase):
             fns_cheque_json["document"]["receipt"]["dateTime"],
             fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')))
 
-	FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+	#FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+	fns_cheque.update_cheque_from_json(fns_cheque_json)
 
         self.assertEqual(u'5258056945', fns_cheque.fns_userInn)
 	self.assertEqual(u'5258056945', FNSCheque.objects.get(fns_fiscalDocumentNumber='115180').fns_userInn)
@@ -408,4 +409,91 @@ class Base(TestCase):
 	"""
 	Telegram.process_last_messages_from_bot()
 	Telegram.process_last_messages_from_bot()
+
+    def test_10(self):
+	"""
+	вделим 5(6 - дата и время) нужных параметров и запроса
+	"""
+
+	#t=20201216T1818&s=29.00&fn=9280440301295284&i=236&fp=3107860384&n=1
+	s2 = [
+	    '20201216T1818 29.00 9280440301295284 236 3107860384',
+	    #'2020.12.16 18:18:01 29.00 9280440301295284 236 3107860384',
+	    '2020.12.16 18:18 29.00 9280440301295284 236 3107860384',
+	    '18:18 2020.12.16 29.00 9280440301295284 236 3107860384',
+	    '18:18 16.12.2020 29.00 9280440301295284 236 3107860384',
+	    '18:18 2020.12.16 29.00 9280440301295284 236 3107860384',
+	]
+	
+	s1 = '18:18 2020.12.16 29.00 9280440301295284 236 3107860384'
+
+	import re
+
+	t1 = s1.split(' ')
+	p = {}
+	for j in t1:
+	    s = re.findall(u'^(\d+\.\d{1,2})$', j)
+	    fn = re.findall(u'^(\d{16})$', j)
+	    fp = re.findall(u'^(\d{9,10})$', j)
+	    i = re.findall(u'^(\d{1,6})$', j)
+	    time = re.findall(u'^(\d{1,2}\:\d{1,2}\:?\d{1,2})$', j)
+	    date_1 = re.findall(u'^(\d{4}\.\d{1,2}\.\d{1,2})$', j)
+	    date_2 = re.findall(u'^(\d{1,2}\.\d{1,2}\.\d{4})$', j)
+
+	    if s:
+		p['s'] = re.findall(u'^(\d+\.\d{1,2})$', j)[0]
+	    elif fn:
+		p['fn'] = re.findall(u'^(\d{16})$', j)[0]
+	    elif fp:
+		p['fp'] = re.findall(u'^(\d{9,10})$', j)[0]
+	    elif i:
+		p['i'] = re.findall(u'^(\d{1,6})$', j)[0]
+	    elif time:
+		p['time'] = re.findall(u'^(\d{1,2}\:\d{1,2}\:?\d{1,2})$', j)[0]
+	    elif date_1:
+		p['date'] = re.findall(u'^(\d{4}\.\d{1,2}\.\d{1,2})$', j)[0]
+	    elif date_2:
+		p['date'] = re.findall(u'^(\d{1,2}\.\d{1,2}\.\d{4})$', j)[0]
+		p['date'] = p['date'][4:8] + p['date'][2:4] + p['date'][0:2]
+	    else:
+		print 'Alert not identify' + j
+
+	    #if not p['s']:
+	    #p['s'] = re.findall(u'^(\d+\.\d{1,2})$', i)
+
+	#p['s'] = re.findall(u'(\d+\.\d{1,2})', s1)[0]
+	#p['fn'] = re.findall(u'(\d{16})', s1)[0]
+	#p['fp'] = re.findall(u'(\d{9,10})', s1)[0]
+	#p['i'] = re.findall(u'(\d{1,6})', s1)[0]
+	#p['time'] = re.findall(u'(\d{1,2}\:\d{1,2}\:?\d{1,2})', s1)[0]
+	#p['date'] = re.findall(u'(\d{4}\.\d{1,2}\.\d{1,2})', s1)[0]
+
+	p['t'] = ''.join(p['date'].split('.')) + 'T' + ''.join(p['time'].split(':'))
+	del p['time']
+	del p['date']
+	
+	self.assertEqual({'s': '29.00', 'fn': '9280440301295284', 'fp': '3107860384', 'i': '236', 't':'20201216T1818'}, p)
+	self.assertEqual({'s': '29.00', 'fn': '9280440301295284', 'fp': '3107860384', 'i': '236', 't':'20201216T1818'}, QRCodeReader.parse_1(s1))
+
+	for s in s2:
+	    print s
+	    self.assertEqual({'s': '29.00', 'fn': '9280440301295284', 'fp': '3107860384', 'i': '236', 't':'20201216T1818'}, QRCodeReader.parse_1(s))
+	
+    def test_11(self):
+	company_family = Company(title='family')
+	company_family.save()
+
+	tests = [
+	    '20201216T1818 29.00 9280440301295284 236 3107860384',
+	    #'2020.12.16 18:18:01 29.00 9280440301295284 236 3107860384',
+	    '2020.12.16 18:18 29.00 9280440301295284 236 3107860384',
+	    '18:18 2020.12.16 29.00 9280440301295284 236 3107860384',
+	    '18:18 16.12.2020 29.00 9280440301295284 236 3107860384',
+	    '18:18 2020.12.16 29.00 9280440301295284 236 3107860384',
+	]
+	chat_id = '383332826'
+
+	for test in tests:
+	    message = test
+	    Telegram.process_message(company_family, chat_id, message)
 

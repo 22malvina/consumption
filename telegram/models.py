@@ -62,6 +62,8 @@ class Telegram(object):
             fns_cheque = FNSCheque.create_save_update_fns_cheque_from_proverkacheka_com(qr_text, company)
 
         if fns_cheque:
+            fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
+
             new_message = {
                 'chat_id': chat_id,
                 'text': u'Здесь будет в JSON чека полученный от ФНС',
@@ -222,6 +224,7 @@ class Telegram(object):
             company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code)
                        
             if message:
+                #TODO если к фото привязан текс то такое фото не боработается
                 Telegram.process_message(company, chat_id, message)
                 #pm = ProcessedMessage(message_id=message_id, update_id=update_id, json=json.dumps(full_message, sort_keys=True))
                 pm.message_id = message_id
@@ -253,11 +256,10 @@ class Telegram(object):
                 fns_cheque_json["document"] = {}
                 fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
 
-                FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
-
+                #FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+                fns_cheque.update_cheque_from_json(fns_cheque_json)
 
                 if fns_cheque:
-                    
                     fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
 
                     new_message = {
@@ -398,10 +400,6 @@ class Telegram(object):
 ##	print "result code: " + str(responce.getcode()) 
 ##	responce = json.load(responce)
 
-
-
-
-
     @classmethod
     def process_message(cls, company, chat_id, message):
         #FYI: Отправьте /help чтобы получить справку.
@@ -436,6 +434,12 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
 	    ):
             qr_text = message
 	    Telegram.__add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(company, qr_text, chat_id)
+
+        elif QRCodeReader.has_5_params_for_create_cheque(message):
+            params = QRCodeReader.parse_1(message)
+            qr_text = '&'.join(map(lambda k: k + '=' + params[k], params.keys()))
+	    Telegram.__add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(company, qr_text, chat_id)
+
         elif message.find('/basket_today') >= 0 or message.find('Basket_today') >= 0:
 	    new_message = {
 		u'chat_id': chat_id,

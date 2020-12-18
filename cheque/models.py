@@ -87,7 +87,8 @@ class FNSCheque(models.Model):
         #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
 	fns_cheque.save()
         fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
-	FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+	#FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+	fns_cheque.update_cheque_from_json(fns_cheque_json)
         return fns_cheque
 
     def format_date_qr_srt(self):
@@ -262,20 +263,30 @@ class FNSCheque(models.Model):
         fns_cheque.fns_dateTime = datetime_buy
         fns_cheque.save()
 
-        cls.update_cheque_from_json(fns_cheque, fns_cheque_json)
+        #cls.update_cheque_from_json(fns_cheque, fns_cheque_json)
+        fns_cheque.update_cheque_from_json(fns_cheque_json)
 
-    @classmethod
-    def update_cheque_from_json(cls, fns_cheque, fns_cheque_json):
-        fns_cheque.json = fns_cheque_json
-        fns_cheque.fns_userInn = fns_cheque_json["document"]["receipt"]["userInn"]
+    #@classmethod
+    #def update_cheque_from_json(cls, fns_cheque, fns_cheque_json):
+    def update_cheque_from_json(self, fns_cheque_json):
+        #fns_cheque.json = fns_cheque_json
+        self.json = fns_cheque_json
+        #fns_cheque.fns_userInn = fns_cheque_json["document"]["receipt"]["userInn"]
+        self.fns_userInn = fns_cheque_json["document"]["receipt"]["userInn"]
 
-        fns_cheque.fns_fiscalDocumentNumber = fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"]
-        fns_cheque.fns_fiscalDriveNumber = fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"]
-        fns_cheque.fns_fiscalSign = fns_cheque_json["document"]["receipt"]["fiscalSign"]
-        fns_cheque.fns_dateTime = fns_cheque_json["document"]["receipt"]["dateTime"]
-        fns_cheque.fns_totalSum = fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')
+        #fns_cheque.fns_fiscalDocumentNumber = fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"]
+        #fns_cheque.fns_fiscalDriveNumber = fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"]
+        #fns_cheque.fns_fiscalSign = fns_cheque_json["document"]["receipt"]["fiscalSign"]
+        #fns_cheque.fns_dateTime = fns_cheque_json["document"]["receipt"]["dateTime"]
+        #fns_cheque.fns_totalSum = fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')
+        self.fns_fiscalDocumentNumber = fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"]
+        self.fns_fiscalDriveNumber = fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"]
+        self.fns_fiscalSign = fns_cheque_json["document"]["receipt"]["fiscalSign"]
+        self.fns_dateTime = fns_cheque_json["document"]["receipt"]["dateTime"]
+        self.fns_totalSum = fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')
 
-        fns_cheque.save()
+        #fns_cheque.save()
+        self.save()
 
         for elemnt in fns_cheque_json["document"]["receipt"].get("items", []):
             #Сначало можно попытаться найти найти товар с таким же названием и пустыми поялми чтобы лишний раз не делать одно и тоже
@@ -289,8 +300,15 @@ class FNSCheque(models.Model):
             #fns_cheque_element.save()
 
             try:
+                #fns_cheque_element = FNSChequeElement(
+                #    fns_cheque=fns_cheque,
+                #    quantity=elemnt.get("quantity"),
+                #    name=elemnt.get("name"),
+                #    price=elemnt.get("price"),
+                #    sum=elemnt.get("sum"),
+                #)
                 fns_cheque_element = FNSChequeElement(
-                    fns_cheque=fns_cheque,
+                    fns_cheque=self,
                     quantity=elemnt.get("quantity"),
                     name=elemnt.get("name"),
                     price=elemnt.get("price"),
@@ -469,6 +487,67 @@ class QRCodeReader(object):
             'fns_dateTime': cls.convert_data(qr_params['date']),
             'fns_totalSum': qr_params['sum'],
         }
+
+    @classmethod
+    def has_5_params_for_create_cheque(cls, s):
+        p = cls.parse_1(s)
+        for k in ['s', 'fn', 'fp', 'i', 't']:
+            if not p.has_key(k):
+                return False
+        return True
+
+    @classmethod
+    def parse_1(cls, s1):
+	t2 = s1.split(' ')
+	p = {}
+	for j in t2:
+	    s = re.findall(u'^(\d+\.\d{1,2})$', j)
+	    fn = re.findall(u'^(\d{16})$', j)
+	    fp = re.findall(u'^(\d{9,10})$', j)
+	    i = re.findall(u'^(\d{1,6})$', j)
+	    time = re.findall(u'^(\d{1,2}\:\d{1,2}\:?\d{0,2})$', j)
+	    date_1 = re.findall(u'^(\d{4}\.\d{1,2}\.\d{1,2})$', j)
+	    date_2 = re.findall(u'^(\d{1,2}\.\d{1,2}\.\d{4})$', j)
+	    date_time = re.findall(u'^(\d{8}T\d{1,2}\d{1,2}\d{0,2})$', j)
+	    #'20201216T1818 29.00 9280440301295284 236 3107860384',
+
+	    if s:
+		p['s'] = re.findall(u'^(\d+\.\d{1,2})$', j)[0]
+	    elif fn:
+		p['fn'] = re.findall(u'^(\d{16})$', j)[0]
+	    elif fp:
+		p['fp'] = re.findall(u'^(\d{9,10})$', j)[0]
+	    elif i:
+		p['i'] = re.findall(u'^(\d{1,6})$', j)[0]
+	    elif time:
+		p['time'] = re.findall(u'^(\d{1,2}\:\d{1,2}\:?\d{1,2})$', j)[0]
+	    elif date_1:
+		p['date'] = re.findall(u'^(\d{4}\.\d{1,2}\.\d{1,2})$', j)[0]
+	    elif date_2:
+		p['date'] = re.findall(u'^(\d{1,2}\.\d{1,2}\.\d{4})$', j)[0]
+		p['date'] = p['date'][6:10] + p['date'][3:5] + p['date'][0:2]
+            elif date_time:
+                p['date'] = re.findall(u'^(\d{8})T', j)[0]
+                p['time'] = re.findall(u'T(\d{1,2}\d{1,2}\d{0,2})$', j)[0]
+	    else:
+		print 'Alert not identify: ' + j
+
+	    #if not p['s']:
+	    #p['s'] = re.findall(u'^(\d+\.\d{1,2})$', i)
+
+	#p['s'] = re.findall(u'(\d+\.\d{1,2})', s1)[0]
+	#p['fn'] = re.findall(u'(\d{16})', s1)[0]
+	#p['fp'] = re.findall(u'(\d{9,10})', s1)[0]
+	#p['i'] = re.findall(u'(\d{1,6})', s1)[0]
+	#p['time'] = re.findall(u'(\d{1,2}\:\d{1,2}\:?\d{1,2})', s1)[0]
+	#p['date'] = re.findall(u'(\d{4}\.\d{1,2}\.\d{1,2})', s1)[0]
+
+        if p.has_key('date') and p.has_key('time'):
+    	    p['t'] = ''.join(p['date'].split('.')) + 'T' + ''.join(p['time'].split(':'))
+    	    del p['time']
+	    del p['date']
+	
+        return p
 
 class ImportProverkachekaComFormatLikeFNS(object):
     """
