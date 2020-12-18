@@ -307,9 +307,9 @@ class Telegram(object):
             #u'chat': {u'all_members_are_administrators': True, u'type': u'group', u'id': -419745626, u'title': u'\u041c\u043e\u044f \u0441\u0435\u043c\u044c\u044f'}, 
             chat_id = full_message['message']['chat']['id']
             if full_message['message']['chat']['type'] == 'group':
-                chat_title = full_message['message']['chat']['title']
+                chat_title = full_message['message']['chat'].get('title', '')
             elif full_message['message']['chat']['type'] == 'private':
-                chat_title = full_message['message']['chat']['username']
+                chat_title = full_message['message']['chat'].get('username', '')
             else:
                 print 'Error: New type chat!'
                 assert False
@@ -317,7 +317,7 @@ class Telegram(object):
             message = full_message['message'].get('text')
 
             telegram_user_id = full_message['message']['from']['id']
-            username = full_message['message']['from'].get('username')
+            username = full_message['message']['from'].get('username', '')
             first_name = full_message['message']['from'].get('first_name', '')
             last_name = full_message['message']['from'].get('last_name', '')
             language_code = full_message['message']['from'].get('language_code', '')
@@ -401,7 +401,7 @@ class Telegram(object):
 
         r = requests.post('https://proverkacheka.com/check/get', files={'qrfile': new_file})
 
-        #print r.text.encode('utf8')
+        print r.text.encode('utf8')
         rr = r.json()
         print rr
         return rr
