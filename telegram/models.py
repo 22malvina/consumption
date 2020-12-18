@@ -49,12 +49,44 @@ class Telegram(object):
 #https://api.telegram.org/file/bot1185379535:AAFH80I6a84DA26U1ue91IOj3o5TpyfOZx0/photos/file_1.jpg
 #Получаем фаил
 
+#TODO добавили бота в группу
+#{u'message': {
+#   u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#   u'chat': {u'all_members_are_administrators': True, u'type': u'group', u'id': -419745626, u'title': u'\u041c\u043e\u044f \u0441\u0435\u043c\u044c\u044f'}
+#   u'date': 1608311909, 
+#   u'message_id': 3837, 
+#   u'group_chat_created': True, 
+#   }, 
+#u'update_id': 397005544}
+
+#отключил настройки приватности в BotFather  и теперь бот получет все сообщения из груп в которые его боавили
+#{u'message': {
+#    u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826},
+#    u'chat': {u'all_members_are_administrators': True, u'type': u'group', u'id': -419745626, u'title': u'\u041c\u043e\u044f \u0441\u0435\u043c\u044c\u044f'}, 
+#    u'date': 1608313264, 
+#    u'message_id': 3843
+#    u'text': u'/help', 
+#    u'entities': [{u'length': 5, u'type': u'bot_command', u'offset': 0}], 
+#    }, 
+#u'update_id': 397005550}
+
+# обычное сообщение
+#{u'message': {
+#    u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#    u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826}, 
+#    u'date': 1608313675, 
+#    u'message_id': 3850, 
+#    u'text': u'1111', 
+#    }
+#u'update_id': 397005554}
+
+
     @classmethod
     def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, qr_text, chat_id):
         if FNSCheque.has_cheque_with_qr_text(company, qr_text):
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Такой чек уже существует в данной компании!',
+                u'text': u'Такой чек уже существует в данном чате!',
             }
             Telegram.send_message(new_message)
             return
@@ -83,7 +115,7 @@ class Telegram(object):
             Telegram.send_message(new_message)
  
     @classmethod
-    def __get_company_for_user(cls, telegram_user_id, chat_id, username, first_name, last_name, language_code):
+    def __get_company_for_user(cls, telegram_user_id, chat_id, username, first_name, last_name, language_code, chat_title):
         employees = Employee.objects.filter(telegram_id=telegram_user_id)
         if len(employees) > 1:
             new_message = {
@@ -92,20 +124,11 @@ class Telegram(object):
             }
             Telegram.send_message(new_message)
             assert False
-        elif len(employees) < 1:
+        elif len(employees) == 0:
             employee = Employee(title=username, first_name=first_name, last_name=last_name, language_code=language_code, telegram_id=telegram_user_id)
             employee.save()
-            company = Company(title='family')
-            company.save()
-            company.employees.add(employee)
-            new_message = {
-                u'chat_id': chat_id,
-                u'text': u'Приветсвую! Отправьте /help чтобы получить справку.',
-            }
-            Telegram.send_message(new_message)
-        elif len(employees) == 1:
-            employee = employees[0]
-            companys = Company.objects.filter(employees=employee)
+
+            companys = Company.objects.filter(telegram_chat_id=chat_id)
             if len(companys) > 1:
                 new_message = {
                     u'chat_id': chat_id,
@@ -115,16 +138,86 @@ class Telegram(object):
                 assert False
             elif len(companys) == 1:
                 company = companys[0]
-            elif len(companys) < 0:
+                company.employees.add(employee)
+            elif len(companys) == 0:
+                company = Company(title=chat_title, telegram_chat_id=chat_id)
+                company.save()
+                company.employees.add(employee)
+            else:
                 new_message = {
                     u'chat_id': chat_id,
                     u'text': u'Добрый день, сервис временно не доступен.',
                 }
                 Telegram.send_message(new_message)
                 assert False
+            #company = Company(title=chat_title, telegram_chat_id=chat_id)
+            #company.save()
+            #company.employees.add(employee)
+            #new_message = {
+            #    u'chat_id': chat_id,
+            #    u'text': u'Приветсвую! Отправьте /help чтобы получить справку.',
+            #}
+            #Telegram.send_message(new_message)
+        elif len(employees) == 1:
+            employee = employees[0]
+            companys = Company.objects.filter(employees=employee, telegram_chat_id=chat_id)
+            if len(companys) > 1:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Добрый день, сервис временно не доступен.',
+                }
+                Telegram.send_message(new_message)
+                assert False
+            elif len(companys) == 1:
+                company = companys[0]
+            elif len(companys) == 0:
+                #new_message = {
+                #    u'chat_id': chat_id,
+                #    u'text': u'Добрый день, сервис временно не доступен.',
+                #}
+                #Telegram.send_message(new_message)
+                #print telegram_user_id, chat_id
+                #assert False
+                companys = Company.objects.filter(telegram_chat_id=chat_id)
+                if len(companys) > 1:
+                    new_message = {
+                        u'chat_id': chat_id,
+                        u'text': u'Добрый день, сервис временно не доступен.',
+                    }
+                    Telegram.send_message(new_message)
+                    assert False
+                elif len(companys) == 1:
+                    company = companys[0]
+                    company.employees.add(employee)
+                elif len(companys) == 0:
+                    company = Company(title=chat_title, telegram_chat_id=chat_id)
+                    company.save()
+                    company.employees.add(employee)
+                else:
+                    new_message = {
+                        u'chat_id': chat_id,
+                        u'text': u'Добрый день, сервис временно не доступен.',
+                    }
+                    Telegram.send_message(new_message)
+                    assert False
+                #new_message = {
+                #    u'chat_id': chat_id,
+                #    u'text': u'Приветсвую! Теперь вы можете использовать функционал в данной группе',
+                #}
+                #Telegram.send_message(new_message)
             else:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Добрый день, сервис временно не доступен.',
+                }
+                Telegram.send_message(new_message)
                 assert False
         else:
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'Добрый день, сервис временно не доступен.',
+            }
+            Telegram.send_message(new_message)
             assert False
         return company
 
@@ -211,17 +304,25 @@ class Telegram(object):
             message_id = full_message['message']['message_id']
             update_id = full_message['update_id']
 
+            #u'chat': {u'all_members_are_administrators': True, u'type': u'group', u'id': -419745626, u'title': u'\u041c\u043e\u044f \u0441\u0435\u043c\u044c\u044f'}, 
             chat_id = full_message['message']['chat']['id']
-            message = full_message['message'].get('text')
-            telegram_user_id = full_message['message']['from']['id']
+            if full_message['message']['chat']['type'] == 'group':
+                chat_title = full_message['message']['chat']['title']
+            elif full_message['message']['chat']['type'] == 'private':
+                chat_title = full_message['message']['chat']['username']
+            else:
+                print 'Error: New type chat!'
+                assert False
 
+            message = full_message['message'].get('text')
+
+            telegram_user_id = full_message['message']['from']['id']
             username = full_message['message']['from'].get('username')
             first_name = full_message['message']['from'].get('first_name', '')
             last_name = full_message['message']['from'].get('last_name', '')
             language_code = full_message['message']['from'].get('language_code', '')
 
-
-            company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code)
+            company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code, chat_title)
                        
             if message:
                 #TODO если к фото привязан текс то такое фото не боработается
@@ -275,11 +376,9 @@ class Telegram(object):
                     }
                     Telegram.send_message(new_message)
 
-
                 pm.message_id = message_id
                 pm.save()
                 print 'save'
-
 
             else:
                 print 'Alert: Not message text.'

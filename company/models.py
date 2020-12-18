@@ -11,7 +11,16 @@ class Employee(models.Model):
     language_code = models.CharField(blank=True, null=True, max_length=15)
     telegram_id = models.CharField(blank=True, max_length=254)
 
+    def __unicode__(self):
+        return u"Employee: %s,  %s, %s, %s" % (self.id, self.title, self.first_name, self.last_name)
+
 class Company(models.Model):
     title = models.CharField(blank=True, max_length=254)
     employees = models.ManyToManyField(Employee)
     datetime_create = models.DateTimeField(auto_now_add = True)
+    telegram_chat_id = models.CharField(blank=True, max_length=254)
+
+    def __unicode__(self):
+        return u"Company: %s, %s, %s" % (self.id, self.title, self.telegram_chat_id)
+
+
