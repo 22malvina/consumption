@@ -263,10 +263,14 @@ class Telegram(object):
                     Telegram.send_message(new_message)
                     new_message = {
                         u'chat_id': chat_id,
-                        u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. сохранен.'
+                        u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + 'fns_cheque.get_address()' + 'сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id)
                     }
                     Telegram.send_message(new_message)
 
+
+                pm.message_id = message_id
+                pm.save()
+                print 'save'
 
 
             else:
