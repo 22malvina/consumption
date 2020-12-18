@@ -69,7 +69,8 @@ class Telegram(object):
             Telegram.send_message(new_message)
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. сохранен.'
+                #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. сохранен.'
+                'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
             }
             Telegram.send_message(new_message)
         else:
@@ -256,6 +257,9 @@ class Telegram(object):
 
 
                 if fns_cheque:
+                    
+                    fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
+
                     new_message = {
                         'chat_id': chat_id,
                         'text': u'Здесь будет в JSON чека полученный от ФНС',
@@ -263,7 +267,9 @@ class Telegram(object):
                     Telegram.send_message(new_message)
                     new_message = {
                         u'chat_id': chat_id,
-                        u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + 'fns_cheque.get_address()' + 'сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id)
+                        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
+                        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
+                        'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
                     }
                     Telegram.send_message(new_message)
 
@@ -275,6 +281,10 @@ class Telegram(object):
 
             else:
                 print 'Alert: Not message text.'
+
+    @classmethod
+    def __get_answer_string_when_add_cheque(cls, fns_cheque):
+        return 'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id)
 
     @classmethod
     def get_fns_cheque_json_from_proverkacheka_com(cls, new_file):

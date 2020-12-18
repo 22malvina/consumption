@@ -97,8 +97,85 @@ class FNSCheque(models.Model):
     def format_sum_qr_srt(self):
         return str(self.fns_totalSum[0:-2]) + '.' + str(self.fns_totalSum[-2:])
 
+    def get_address(self):
+        #add = self.fns_cheque.json["document"]["receipt"]["retailAddress"]
+        #add = self.fns_cheque.json['json']["retailAddress"]
+        #add = ast.literal_eval(json.loads(self.fns_cheque.json))['json']
+
+        #addd = self.fns_cheque.json
+
+        #if not self.fns_cheque.json or not ast.literal_eval(self.fns_cheque.json).has_key('data'):
+        if not self.json or not ast.literal_eval(self.json).has_key('data'):
+        #if not self.json or not json.loads(self.json).has_key('data'):
+            print 'Error: not find json or json["data"]'
+            return
+        
+        #addd = ast.literal_eval(self.fns_cheque.json)['data']['json']
+        addd = ast.literal_eval(self.json)['data']['json']
+        #'retailAddress', u'buyerPhoneOrAddress',  retailPlaceAddress
+        k = 0
+        if addd.has_key('retailPlaceAddress'):
+            k += 1
+            #print '--1'
+        if addd.has_key('retailAddress'):
+            k += 1
+            #print '--2'
+        #if addd.has_key(u'buyerPhoneOrAddress') and addd.get('buyerPhoneOrAddress') not in ['', 'k.a.vakulin@mail.ru', 'l.krylova@muz-lab.ru','yuriy_per@yahoo.com']:
+        #    k += 1
+        #    print '--3'
+
+        if k > 1:
+            #print addd.keys()
+            #print addd.get('retailPlaceAddress', '').encode('utf8')
+            #print addd.get('retailAddress', '').encode('utf8')
+            #print addd.get('buyerPhoneOrAddress', '').encode('utf8')
+            #print '----'
+            assert False
+
+        if addd.has_key('retailPlaceAddress'):
+            add = addd['retailPlaceAddress']
+        elif addd.has_key('retailAddress'):
+            add = addd['retailAddress']
+        #elif addd.has_key(u'buyerPhoneOrAddress'):
+        #    add = addd[u'buyerPhoneOrAddress']
+        else:
+            #print '+++ k=', k
+            #print addd.get(u'buyerPhoneOrAddress')
+            #print addd.keys()
+            add = ''
+            #assert False
+        #add = addd['json']
+#        print add.encode('utf8')
+        #get_retailAddress
+        return add
+
     def get_datetime(self):
         return self.fns_dateTime
+
+    def get_shop_info_string(self):
+        return 'МАГАЗИН: ' + self.get_user() + ' ИНН: ' + self.get_user_inn() + ' АДРЕС: ' + self.get_address()
+
+    def get_user(self):
+        if not self.json or not ast.literal_eval(self.json).has_key('data'):
+            print 'Error: not find json or json["data"]'
+            return
+        
+        addd = ast.literal_eval(self.json)['data']['json']
+        k = 0
+        if addd.has_key('user'):
+            k += 1
+
+        if k > 1:
+            assert False
+
+        if addd.has_key('user'):
+            add = addd['user']
+        else:
+            add = ''
+        return add
+
+    def get_user_inn(self):
+        return self.fns_userInn
 
     @staticmethod
     def import_from_proverkacheka_com_format_like_fns(qr_text, company):
@@ -269,53 +346,8 @@ class FNSChequeElement(models.Model):
         }
 
     def get_address(self):
-        #add = self.fns_cheque.json["document"]["receipt"]["retailAddress"]
-        #add = self.fns_cheque.json['json']["retailAddress"]
-        #add = ast.literal_eval(json.loads(self.fns_cheque.json))['json']
+        return self.fns_cheque.get_address()
 
-        #addd = self.fns_cheque.json
-
-        if not self.fns_cheque.json or not ast.literal_eval(self.fns_cheque.json).has_key('data'):
-            print 'Error: not find json or json["data"]'
-            return
-        
-        addd = ast.literal_eval(self.fns_cheque.json)['data']['json']
-        #'retailAddress', u'buyerPhoneOrAddress',  retailPlaceAddress
-        k = 0
-        if addd.has_key('retailPlaceAddress'):
-            k += 1
-            #print '--1'
-        if addd.has_key('retailAddress'):
-            k += 1
-            #print '--2'
-        #if addd.has_key(u'buyerPhoneOrAddress') and addd.get('buyerPhoneOrAddress') not in ['', 'k.a.vakulin@mail.ru', 'l.krylova@muz-lab.ru','yuriy_per@yahoo.com']:
-        #    k += 1
-        #    print '--3'
-
-        if k > 1:
-            #print addd.keys()
-            #print addd.get('retailPlaceAddress', '').encode('utf8')
-            #print addd.get('retailAddress', '').encode('utf8')
-            #print addd.get('buyerPhoneOrAddress', '').encode('utf8')
-            #print '----'
-            assert False
-
-        if addd.has_key('retailPlaceAddress'):
-            add = addd['retailPlaceAddress']
-        elif addd.has_key('retailAddress'):
-            add = addd['retailAddress']
-        #elif addd.has_key(u'buyerPhoneOrAddress'):
-        #    add = addd[u'buyerPhoneOrAddress']
-        else:
-            #print '+++ k=', k
-            #print addd.get(u'buyerPhoneOrAddress')
-            #print addd.keys()
-            add = ''
-            #assert False
-        #add = addd['json']
-#        print add.encode('utf8')
-        #get_retailAddress
-        return add
 
     def get_datetime(self):
         return self.fns_cheque.get_datetime()
