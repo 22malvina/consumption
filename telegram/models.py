@@ -152,13 +152,13 @@ class Telegram(object):
 #    u'media_group_id': u'12866976216359970'}, 
 #u'update_id': 397005608}
 
-
     @classmethod
     def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, qr_text, chat_id):
         if FNSCheque.has_cheque_with_qr_text(company, qr_text):
+            cheque = FNSCheque.get_cheque_with_qr_text(company, qr_text)
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Такой чек уже существует в данном чате!',
+                u'text': u'Такой чек уже существует в данном чате! /cheque' + str(cheque.id),
             }
             Telegram.send_message(new_message)
             return
@@ -579,9 +579,10 @@ class Telegram(object):
         fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
 
         if FNSCheque.has_cheque_with_fns_cheque_json(company, fns_cheque_json):
+            cheque = FNSCheque.get_cheque_with_fns_cheque_json(company, fns_cheque_json)
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Такой чек уже существует в данном чате!',
+                u'text': u'Такой чек уже существует в данном чате! /cheque' + str(cheque.id),
             }
             Telegram.send_message(new_message)
             return False

@@ -150,6 +150,41 @@ class FNSCheque(models.Model):
         #get_retailAddress
         return add
 
+    @classmethod
+    def get_cheque_with_qr_text(cls, company, qr_text):
+	qr_params = QRCodeReader.qr_text_to_params(qr_text)
+	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
+
+        fiscalDocumentNumber = cheque_params['fns_fiscalDocumentNumber']
+        fiscalDriveNumber = cheque_params['fns_fiscalDriveNumber']
+        fiscalSign = cheque_params['fns_fiscalSign']
+        dateTime = cheque_params['fns_dateTime']
+        totalSum = cheque_params['fns_totalSum']
+
+        return FNSCheque.objects.get(
+            company=company,
+            fns_fiscalDocumentNumber=fiscalDocumentNumber,
+            fns_fiscalDriveNumber=fiscalDriveNumber,
+            fns_fiscalSign=fiscalSign,
+            fns_dateTime__contains=dateTime,
+            fns_totalSum=totalSum)
+
+    @classmethod
+    def get_cheque_with_fns_cheque_json(cls, company, fns_cheque_json):
+        fiscalDocumentNumber = fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"]
+        fiscalDriveNumber = fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"]
+        fiscalSign = fns_cheque_json["document"]["receipt"]["fiscalSign"]
+        dateTime = fns_cheque_json["document"]["receipt"]["dateTime"]
+        totalSum = fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')
+
+        return FNSCheque.objects.get(
+            company=company,
+            fns_fiscalDocumentNumber=fiscalDocumentNumber,
+            fns_fiscalDriveNumber=fiscalDriveNumber,
+            fns_fiscalSign=fiscalSign,
+            fns_dateTime__contains=dateTime,
+            fns_totalSum=totalSum)
+
     def get_datetime(self):
         return self.fns_dateTime
 
