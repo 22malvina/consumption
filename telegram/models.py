@@ -693,6 +693,34 @@ class Telegram(object):
 		},
 	    }
 	    Telegram.send_message(new_message)
+        elif message.find('/list_by_month') >= 0 or message.find('List_by_month') >= 0:
+            cheques = {}
+            def __get_year_month(date_time):
+                print '----'
+                print date_time
+                d = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S').date()
+                print d
+                return str(d.year) + ' ' + ('0' if d.month <10 else '') + str(d.month)
+
+            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):
+                #TODO нужно работать и с ручными чеками тоже 
+                if cheque.is_manual:
+                    print 'Alert: Need fix'
+                    continue
+                print cheque
+                year_month = __get_year_month(cheque.fns_dateTime)
+                if not cheques.has_key(year_month):
+                    cheques[year_month] = 0 
+                cheques[year_month] += int(cheque.fns_totalSum)
+            l = map(lambda x : x + ': ' + str(cheques[x]), sorted(cheques.keys()) )
+            t = '\r\n'.join(l)
+	    new_message = {
+		u'chat_id': chat_id,
+		#u'text': cheques,
+		#u'text': l,
+		u'text': t,
+	    }
+	    Telegram.send_message(new_message)
         elif message.find('/list') >= 0 or message.find('List') >= 0:
             cheques = []
             for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):

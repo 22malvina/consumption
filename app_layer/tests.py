@@ -520,3 +520,37 @@ class Base(TestCase):
 	    message = test
 	    Telegram.process_message(company_family, chat_id, message)
 
+    def test_12(self):
+	company_family = Company(title='family')
+	company_family.save()
+
+	qr_tests = [
+	    't=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1',
+	    't=20200506T215300&s=1351.88&fn=9285000100127255&i=83300&fp=328049751&n=1',
+	    't=20200421T140400&s=1057.46&fn=9285000100127255&i=79753&fp=3686248129&n=1',
+	    'test t=20200421T140400&s=1057.46&fn=9285000100127255&i=79753&fp=3686248129&n=1 test',
+	    u'Привет test t=20200421T140400&s=1057.46&fn=9285000100127255&i=79753&fp=3686248129&n=1 test',
+	    u"""
+               message.find('i') >= 0   t=20201216T1818&s=29.00&fn=9280440301295284&i=236&fp=3107860384&n=1  sf s выаавы ы ва ывage.find('t') >= 0 and \
+                 message.find('i') >= 0   t=20201216T1818&s=29.00&fn=9280440301295284&i=236&fp=3107860384&n=1  sf s выаавы ы ва ывage.find('t') >= 0 and \
+                 message.find('fp') >= 0 and \
+                 message.find('i') >= 0   t=20201216T1818&s=29.00&fn=9280440301295284&i=236&fp=3107860384&n=1  sf s выаавы ы ва ыв
+	    """,
+	    'print "====", message.en',
+	    'dsf ds fvt=20201216T1818&s=29.00&fn=9280440301295284&i=236&fp=3107860384&n=1  sdf ds',
+
+#	    u'spent; 101.01; буреговы; мак авто',
+#	    u'spend; 60; кофе; ван бакс тверская 7; 2020.12.19 18:46',
+#	    u'spend; 60; кофе; ван бакс; 2020.12.15',
+
+	    '/list_by_month',
+	]
+	chat_id = 'Test chat id = 100500'
+	chat_id = '383332826'
+
+	for qr_test in qr_tests:
+	    message = qr_test
+	    print '====', message.encode('utf8')
+	    Telegram.process_message(company_family, chat_id, message)
+
+
