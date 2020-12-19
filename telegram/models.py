@@ -154,6 +154,14 @@ class Telegram(object):
 
     @classmethod
     def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, qr_text, chat_id):
+        if not FNSCheque.is_it_qr_test(qr_text):
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'Данных параметров не достаточно для проверки чека.',
+            }
+            Telegram.send_message(new_message)
+            return
+
         if FNSCheque.has_cheque_with_qr_text(company, qr_text):
             cheque = FNSCheque.get_cheque_with_qr_text(company, qr_text)
             new_message = {
@@ -406,8 +414,8 @@ class Telegram(object):
 
             elif full_message['message'].get('document'):
                 document = full_message['message'].get('document')
-                if not document['mime_type'] == 'image/jpeg':
-                    continue
+                #if not document['mime_type'] == 'image/jpeg':
+                #    continue
                 file_id = document['file_id']
                 if not cls.process_file(company, chat_id, file_id):
                     continue
@@ -723,6 +731,7 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
                         u'Дата покупки': cheque.fns_dateTime,
                         u'Всего товаров в чек': str(len(elements)),
                         u'Ваши покупки': elements,
+                        u'Для удаения чека пройдите по ссылке': '/delete_cheque_' + str(cheque.id),
                     },
                 }
 	        Telegram.send_message(new_message)
@@ -733,6 +742,53 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
                 }
                 Telegram.send_message(new_message)
                
+        elif message.find('/delete_cheque') >= 0 or message.find('Delete_cheque') >= 0:
+            request = message.split(' ')
+            if len(request) > 1:
+                cheque_id = request[1]
+            elif message.find('/delete_cheque_') >= 0 or message.find('Delete_cheque_') >= 0:
+                request = message.split('_')
+                if len(request) > 2:
+                    cheque_id = request[2]
+            else:
+                cheque_id = message[14:]
+
+            if not cheque_id:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: не нашли чек с таким id = ' + cheque_id
+                }
+                Telegram.send_message(new_message)
+                return
+
+            cheques = FNSCheque.objects.filter(company=company, id=cheque_id)
+            if len(cheques) > 1:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: нащли больше чем 1 чек с таким id = ' + cheque_id
+                }
+                Telegram.send_message(new_message)
+            elif len(cheques) < 1:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: не нашли чек с таким id = ' + cheque_id
+                }
+                Telegram.send_message(new_message)
+            elif len(cheques) == 1:
+                cheque = cheques[0]
+                cheque_id = cheque.id
+                cheque.delete()
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Чек с id = ' + str(cheque_id) + ' успешно удален.',
+                }
+	        Telegram.send_message(new_message)
+            else:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Error: не известная ошибка',
+                }
+                Telegram.send_message(new_message)
 
     @classmethod
     def send_message(cls, message):

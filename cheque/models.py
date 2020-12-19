@@ -78,6 +78,8 @@ class FNSCheque(models.Model):
             print u'Alert: We has this cheque in this company!'
             assert False
 	qr_params = QRCodeReader.qr_text_to_params(qr_text)
+        if len(qr_params.keys()) != 5:
+            assert False
 	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
 	return FNSCheque(company=company, fns_fiscalDocumentNumber=cheque_params['fns_fiscalDocumentNumber'], fns_fiscalDriveNumber=cheque_params['fns_fiscalDriveNumber'], fns_fiscalSign=cheque_params['fns_fiscalSign'], fns_dateTime=cheque_params['fns_dateTime'], fns_totalSum=cheque_params['fns_totalSum'])
 
@@ -153,6 +155,8 @@ class FNSCheque(models.Model):
     @classmethod
     def get_cheque_with_qr_text(cls, company, qr_text):
 	qr_params = QRCodeReader.qr_text_to_params(qr_text)
+        if len(qr_params.keys()) != 5:
+            assert False
 	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
 
         fiscalDocumentNumber = cheque_params['fns_fiscalDocumentNumber']
@@ -215,9 +219,12 @@ class FNSCheque(models.Model):
 
     @staticmethod
     def import_from_proverkacheka_com_format_like_fns(qr_text, company):
-        cheque = QRCodeReader.qr_text_to_params(qr_text)
+        qr_params = QRCodeReader.qr_text_to_params(qr_text)
+        if len(qr_params.keys()) != 5:
+            print 'Error: Not enough params'
+            return
         #fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque)
-        fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(cheque, qr_text)
+        fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params(qr_params, qr_text)
 
         if not fns_cheque_json:
             print 'Error: not good json!'
@@ -238,6 +245,10 @@ class FNSCheque(models.Model):
         FNSCheque.save_cheque_from_fns_cheque_json(company, fns_cheque_json)
 
     @classmethod
+    def is_it_qr_test(cls, qr_text):
+        return QRCodeReader.is_it_qr_test(qr_text)
+
+    @classmethod
     def has_cheque_with_fiscal_params(cls, company, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
         for cheque in FNSCheque.objects.filter(
             company=company,
@@ -254,6 +265,8 @@ class FNSCheque(models.Model):
     @classmethod
     def has_cheque_with_qr_text(cls, company, qr_text):
 	qr_params = QRCodeReader.qr_text_to_params(qr_text)
+        if len(qr_params.keys()) != 5:
+            assert False
 	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
         return FNSCheque.has_cheque_with_params(company, cheque_params)
 
@@ -509,8 +522,21 @@ class FNSChequeElement(models.Model):
  
 class QRCodeReader(object):
     @classmethod
+    def is_it_qr_test(cls, text):
+        el = text.split('&')
+        if len(el) < 5:
+            return False
+        for e in el:
+            if len(e.split('=')) != 2:
+                return False
+        return True
+
+    @classmethod
     def qr_text_to_params(cls, text):
         #qr_text = 't=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1'
+        if not FNSCheque.is_it_qr_test(text):
+            return {}
+
         cheque = {}
         for e in text.split('&'):
             k, v = e.split('=')
