@@ -79,9 +79,10 @@ class FNSCheque(models.Model):
     #manual_when = models.CharField(blank=True, max_length=254) # используем fns_dateTime чтобы сортировать
 
     @classmethod
-    def create_cheque_from_text(cls, text, company):
-        p = text.split(';')
-	return FNSCheque(is_manual=True, company=company, manual_how_much=p[0], manual_what=p[1], manual_where=p[2], fns_dateTime=p[3])
+    def create_and_save_cheque_from_text(cls, company, p0, p1, p2, p3):
+	c = FNSCheque(is_manual=True, company=company, manual_how_much=p0, manual_what=p1, manual_where=p2, fns_dateTime=p3)
+        c.save()
+        return c
         
     @classmethod
     def create_fns_cheque_from_qr_text(cls, qr_text, company):

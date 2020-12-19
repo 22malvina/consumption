@@ -10,6 +10,8 @@ import urllib2
 from django.conf import settings
 from company.models import Employee, Company
 
+from datetime import datetime
+
 class ProcessedMessage(models.Model):
     json = models.TextField(blank=True, )
     message_id = models.CharField(blank=True, max_length=254) # ид собщения в рамках чата
@@ -453,7 +455,7 @@ class Telegram(object):
 
     @classmethod
     def __get_answer_string_when_add_cheque(cls, fns_cheque):
-        return 'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id)
+        return 'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в "' + fns_cheque.get_shop_info_string() + '" сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id)
 
     @classmethod
     def get_fns_cheque_json_from_proverkacheka_com(cls, new_file):
@@ -802,6 +804,19 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
                     u'text': u'Error: не известная ошибка',
                 }
                 Telegram.send_message(new_message)
+
+        elif message.find('/spent') >= 0 or message.find('Spent') >= 0 or message.find('spent') >= 0 or \
+            message.find('/spend') >= 0 or message.find('Spend') >= 0 or message.find('spend') >= 0: 
+
+            p = message.split(';')
+            if len(p) == 4:
+                p.append(datetime.now())
+            cheque = FNSCheque.create_and_save_cheque_from_text(company, p[1], p[2], p[3], p[4])
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'Ваш чек от ' + str(cheque.get_datetime()) + u' на сумму ' + cheque.manual_how_much + u' руб. приобретенный в "' + cheque.manual_where  + '" сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(cheque.id)
+            }
+            Telegram.send_message(new_message)
 
     @classmethod
     def send_message(cls, message):
