@@ -739,6 +739,8 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
                 elements = []
                 for e in FNSChequeElement.objects.filter(fns_cheque=cheque):
                     elements.append([e.get_title(), str(e.get_price()), str(e.get_quantity()), str(e.get_sum())])
+                if cheque.is_manual:
+                    elements.append(cheque.manual_what)
                 new_message = {
                     u'chat_id': chat_id,
                     u'text': {
@@ -746,6 +748,7 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
                         u'Дата покупки': cheque.fns_dateTime,
                         u'Всего товаров в чек': str(len(elements)),
                         u'Ваши покупки': elements,
+                        u'Приобретено в': cheque.get_address(),
                         u'Для удаения чека пройдите по ссылке': '/delete_cheque_' + str(cheque.id),
                     },
                 }
@@ -810,11 +813,12 @@ t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1
 
             p = message.split(';')
             if len(p) == 4:
-                p.append(datetime.now())
+                now = datetime.now()
+                p.append(now.strftime('%Y-%m-%dT%H:%M'))
             cheque = FNSCheque.create_and_save_cheque_from_text(company, p[1], p[2], p[3], p[4])
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Ваш чек от ' + str(cheque.get_datetime()) + u' на сумму ' + cheque.manual_how_much + u' руб. приобретенный в "' + cheque.manual_where  + '" сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(cheque.id)
+                u'text': u'Ваш чек от ' + str(cheque.get_datetime()) + u' на сумму ' + cheque.fns_totalSum + u' руб. приобретенный в "' + cheque.manual_where  + '" сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(cheque.id)
             }
             Telegram.send_message(new_message)
 
