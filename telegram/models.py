@@ -575,12 +575,20 @@ class Telegram(object):
             return False
 
         #print fns_cheque_json
+        fns_cheque_json["document"] = {}
+        fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
+
+        if FNSCheque.has_cheque_with_fns_cheque_json(company, fns_cheque_json):
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'Такой чек уже существует в данном чате!',
+            }
+            Telegram.send_message(new_message)
+            return False
 
         fns_cheque = FNSCheque(company=company)
         #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
         fns_cheque.save()
-        fns_cheque_json["document"] = {}
-        fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
 
         #FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
         fns_cheque.update_cheque_from_json(fns_cheque_json)

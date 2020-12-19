@@ -351,6 +351,7 @@ class Base(TestCase):
             fns_cheque_json["document"]["receipt"]["fiscalSign"],
             fns_cheque_json["document"]["receipt"]["dateTime"],
             fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')))
+        self.assertTrue(FNSCheque.has_cheque_with_fns_cheque_json(company_family, fns_cheque_json))
 
 	#FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
 	fns_cheque.update_cheque_from_json(fns_cheque_json)

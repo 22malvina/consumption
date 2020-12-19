@@ -188,15 +188,18 @@ class FNSCheque(models.Model):
             print 'Error: not good json!'
             return
 
-        if FNSCheque.has_cheque_with_fiscal_params(company,  
-            fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
-            fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
-            fns_cheque_json["document"]["receipt"]["fiscalSign"],
-            fns_cheque_json["document"]["receipt"]["dateTime"],
-            fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')):
-            print u'Alert: We has this cheque!'
-            #Такой чек уже существует'
+        #if FNSCheque.has_cheque_with_fiscal_params(company,  
+        #    fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
+        #    fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
+        #    fns_cheque_json["document"]["receipt"]["fiscalSign"],
+        #    fns_cheque_json["document"]["receipt"]["dateTime"],
+        #    fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')):
+        #    print u'Alert: We has this cheque!'
+        #    #Такой чек уже существует'
+        #    return
+        if FNSCheque.has_cheque_with_fns_cheque_json(company, fns_cheque_json):
             return
+
         FNSCheque.save_cheque_from_fns_cheque_json(company, fns_cheque_json)
 
     @classmethod
@@ -229,6 +232,19 @@ class FNSCheque(models.Model):
             cheque_params['fns_totalSum'])
 
     @classmethod
+    def has_cheque_with_fns_cheque_json(cls, company, fns_cheque_json):
+        if FNSCheque.has_cheque_with_fiscal_params(company,  
+            fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
+            fns_cheque_json["document"]["receipt"]["fiscalSign"],
+            fns_cheque_json["document"]["receipt"]["dateTime"],
+            fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')):
+            print u'Alert: We has this cheque!'
+            #Такой чек уже существует'
+            return True
+        return False
+
+    @classmethod
     def save_cheque_from_fns_cheque_json(cls, company, fns_cheque_json):
         """
         fix надо разделить на три метода:
@@ -240,13 +256,15 @@ class FNSCheque(models.Model):
             return 
 
         account = None
-        if cls.has_cheque_with_fiscal_params(company,
-            fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
-            fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
-            fns_cheque_json["document"]["receipt"]["fiscalSign"],
-            fns_cheque_json["document"]["receipt"]["dateTime"],
-            fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')):
-            print u'Alert: Find same cheque!'
+        #if cls.has_cheque_with_fiscal_params(company,
+        #    fns_cheque_json["document"]["receipt"]["fiscalDocumentNumber"],
+        #    fns_cheque_json["document"]["receipt"]["fiscalDriveNumber"],
+        #    fns_cheque_json["document"]["receipt"]["fiscalSign"],
+        #    fns_cheque_json["document"]["receipt"]["dateTime"],
+        #    fns_cheque_json["document"]["receipt"].get("totalSum", 'Error')):
+        #    print u'Alert: Find same cheque!'
+        #    assert False
+        if cls.has_cheque_with_fns_cheque_json(company, fns_cheque_json):
             assert False
 
         # везде добавил временуж зону Москва timezone
