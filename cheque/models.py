@@ -245,10 +245,6 @@ class FNSCheque(models.Model):
         FNSCheque.save_cheque_from_fns_cheque_json(company, fns_cheque_json)
 
     @classmethod
-    def is_it_qr_test(cls, qr_text):
-        return QRCodeReader.is_it_qr_test(qr_text)
-
-    @classmethod
     def has_cheque_with_fiscal_params(cls, company, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
         for cheque in FNSCheque.objects.filter(
             company=company,
@@ -522,29 +518,37 @@ class FNSChequeElement(models.Model):
  
 class QRCodeReader(object):
     @classmethod
-    def is_it_qr_test(cls, text):
+    def is_it_qr_text(cls, text):
         el = text.split('&')
-        if len(el) < 5:
+        if len(el) < 5 or len(el) > 9:
             return False
         for e in el:
             if len(e.split('=')) != 2:
                 return False
+
+        cheque = {}
+        for e in text.split('&'):
+            k, v = e.split('=')
+            if k == 't':
+                cheque['date'] = v
+	        #cheque['date'] = str(datetime.strptime(v, '%Y%m%dT%H%M'))
+            elif k == 's':
+                cheque['sum'] = str(int(float(v)*100))
+            elif k == 'fn':
+                cheque['FN'] = v
+            elif k == 'fp':
+                cheque['FDP'] = v
+            elif k == 'i':
+                cheque['FD'] = v
+
+        if len(cheque.keys()) != 5:
+            return False
+
         return True
 
     @classmethod
-    def qr_text_to_params(cls, text_all):
-        #qr_text = 't=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1'
-        #qr_text = 'test test t=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1 test'
-        for text in text_all.split(' '):
-            p = cls.qr_text_to_params_one(text)
-            if len(p) == 5:
-                return p
-        return {}
-
-    @classmethod
-    def qr_text_to_params_one(cls, text):
- 
-        if not FNSCheque.is_it_qr_test(text):
+    def qr_text_to_params(cls, text):
+        if not cls.is_it_qr_text(text):
             return {}
 
         cheque = {}
@@ -619,7 +623,10 @@ class QRCodeReader(object):
                 p['date'] = re.findall(u'^(\d{8})T', j)[0]
                 p['time'] = re.findall(u'T(\d{1,2}\d{1,2}\d{0,2})$', j)[0]
 	    else:
-		print 'Alert not identify: ' + j
+		#print u'Alert not identify: %s' % j.encode('utf8')
+		#print u'Alert not identify: %s' % j
+		#print u'Alert not identify: ' + j
+                pass
 
 	    #if not p['s']:
 	    #p['s'] = re.findall(u'^(\d+\.\d{1,2})$', i)

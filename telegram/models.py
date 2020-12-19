@@ -153,8 +153,8 @@ class Telegram(object):
 #u'update_id': 397005608}
 
     @classmethod
-    def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, qr_text, chat_id):
-        if not FNSCheque.is_it_qr_test(qr_text):
+    def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(cls, company, message_text, chat_id):
+        if not cls.is_it_contains_qr_text(message_text):
             new_message = {
                 u'chat_id': chat_id,
                 u'text': u'Данных параметров не достаточно для проверки чека.',
@@ -162,6 +162,12 @@ class Telegram(object):
             Telegram.send_message(new_message)
             return
 
+        for text in message_text.split(' '):
+            if QRCodeReader.is_it_qr_text(text):
+                cls.__add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat_1(company, text, chat_id)
+
+    @classmethod
+    def __add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat_1(cls, company, qr_text, chat_id):
         if FNSCheque.has_cheque_with_qr_text(company, qr_text):
             cheque = FNSCheque.get_cheque_with_qr_text(company, qr_text)
             new_message = {
@@ -357,6 +363,13 @@ class Telegram(object):
         else:
             assert False
         return messages
+
+    @classmethod
+    def is_it_contains_qr_text(cls, text):
+        for t in text.split(' '):
+            if QRCodeReader.is_it_qr_text(t):
+                return True
+        return False
 
     @classmethod
     def process_last_messages_from_bot(cls):
