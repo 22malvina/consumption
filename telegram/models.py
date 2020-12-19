@@ -20,20 +20,37 @@ class ProcessedMessage(models.Model):
  
 class Telegram(object):
 #message with photo
-#   {
-#       u'message': {
-#           u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826},
-#           u'photo': [
-#               {u'width': 240, u'height': 320, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA20AAz1sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz1sBQAB', u'file_size': 11934},
-#               {u'width': 600, u'height': 800, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3gAAz9sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz9sBQAB', u'file_size': 52646},
-#               {u'width': 960, u'height': 1280, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz5sBQAB', u'file_size': 85969}
-#           ], 
-#           u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826},
-#           u'date': 1608229238, 
-#           u'message_id': 3632,
-#           u'media_group_id': u'12865833907857842'},
-#       u'update_id': 397005490
-#   }
+#{u'message': {
+#    u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826},
+#    u'photo': [
+#        {u'width': 240, u'height': 320, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA20AAz1sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz1sBQAB', u'file_size': 11934},
+#        {u'width': 600, u'height': 800, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3gAAz9sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz9sBQAB', u'file_size': 52646},
+#        {u'width': 960, u'height': 1280, u'file_id': u'AgACAgIAAxkBAAIOMF_boXZYtLpffoHzg47fU0v06wNUAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ', u'file_unique_id': u'AQADmo2gli4AAz5sBQAB', u'file_size': 85969}
+#    ], 
+#    u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826},
+#    u'date': 1608229238, 
+#    u'message_id': 3632,
+#    u'media_group_id': u'12865833907857842'},
+#u'update_id': 397005490}
+
+
+# не сжатаая картинка
+#{u'message': {
+#    u'date': 1608372565, 
+#    u'document': {
+#        u'thumb': {u'width': 240, u'height': 320, u'file_id': u'AAMCAgADGQEAAg97X93RVVVjKoQuKBZ1MHsjhpb0elcAAuQKAAKS4_FKg_bK000rJ0ussnOdLgADAQAHbQADDVEAAh4E', u'file_unique_id': u'AQADrLJznS4AAw1RAAI', u'file_size': 10416}, 
+#        u'file_name': u'photo_2020-12-17_20-57-39.jpg', 
+#        u'mime_type': u'image/jpeg', 
+#        u'file_size': 54462, 
+#        u'file_unique_id': u'AgAD5AoAApLj8Uo', 
+#        u'file_id': u'BQACAgIAAxkBAAIPe1_d0VVVYyqELigWdTB7I4aW9HpXAALkCgACkuPxSoP2ytNNKydLHgQ'    
+#    }, 
+#    u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#    u'message_id': 3963, 
+#    u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826}
+#}, 
+#u'update_id': 397005609}
+
 
 #https://api.telegram.org/bot1185379535:AAFH80I6a84DA26U1ue91IOj3o5TpyfOZx0/getFile?file_id=AgACAgIAAxkBAAIOLV_bm_ADUaQ8SPjcyA1Ht44OVxQsAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ
 #{
@@ -79,6 +96,61 @@ class Telegram(object):
 #    u'text': u'1111', 
 #    }
 #u'update_id': 397005554}
+
+#чек с картинкой
+#{u'message': {
+#u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#u'photo': [
+#    {u'width': 240, u'height': 320, u'file_id': u'AgACAgIAAxkBAAIPbF_dzpGuoy9ET2emn0PVEIYnQaXBAALtrzEbkuPxStG3PlyMT54rerSUly4AAwEAAwIAA20AAxOnBAABHgQ', u'file_unique_id': u'AQADerSUly4AAxOnBAAB', u'file_size': 11966}, 
+#    {u'width': 600, u'height': 800, u'file_id': u'AgACAgIAAxkBAAIPbF_dzpGuoy9ET2emn0PVEIYnQaXBAALtrzEbkuPxStG3PlyMT54rerSUly4AAwEAAwIAA3gAAxSnBAABHgQ', u'file_unique_id': u'AQADerSUly4AAxSnBAAB', u'file_size': 52344}, 
+#    {u'width': 960, u'height': 1280, u'file_id': u'AgACAgIAAxkBAAIPbF_dzpGuoy9ET2emn0PVEIYnQaXBAALtrzEbkuPxStG3PlyMT54rerSUly4AAwEAAwIAA3kAAxKnBAABHgQ', u'file_unique_id': u'AQADerSUly4AAxKnBAAB', u'file_size': 64628}], 
+#u'caption_entities': [
+#    {u'length': 13, u'type': u'bot_command', u'offset': 0}], 
+#u'caption': u'/cheque169756', 
+#u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826}, 
+#u'date': 1608371857, 
+#u'message_id': 3948}, 
+#u'update_id': 397005604}
+
+
+#2 раздельные картинки
+
+#{u'message': {
+#   u'date': 1608371563, 
+#   u'photo': 
+#   u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#   u'message_id': 3944, u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826}
+#}, 
+#u'update_id': 397005602}
+#{u'message': {
+#   u'date': 1608371567,
+#   u'photo': ,
+#   u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#   u'message_id': 3947, 
+#   u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826}
+#}, 
+#u'update_id': 397005603}
+
+
+# 2 слитные картинки(групой)
+
+#{u'message': {
+#    u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#    u'photo': 
+#    u'caption': u'test test test', 
+#    u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826}, 
+#    u'date': 1608372027, 
+#    u'message_id': 3957, 
+#    u'media_group_id': u'12866976216359970'}, 
+#u'update_id': 397005607}
+#{u'message': {
+#    u'from': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'is_bot': False, u'language_code': u'ru', u'id': 383332826}, 
+#    u'photo': , 
+#    u'chat': {u'username': u'atsurkov', u'first_name': u'Art', u'last_name': u'Ts', u'type': u'private', u'id': 383332826}, 
+#    u'date': 1608372027, 
+#    u'message_id': 3958, 
+#    u'media_group_id': u'12866976216359970'}, 
+#u'update_id': 397005608}
 
 
     @classmethod
@@ -314,7 +386,7 @@ class Telegram(object):
                 print 'Error: New type chat!'
                 assert False
 
-            message = full_message['message'].get('text')
+            text = full_message['message'].get('text')
 
             telegram_user_id = full_message['message']['from']['id']
             username = full_message['message']['from'].get('username', '')
@@ -324,64 +396,78 @@ class Telegram(object):
 
             company = cls.__get_company_for_user(telegram_user_id, chat_id, username, first_name, last_name, language_code, chat_title)
                        
-            if message:
+            if text:
                 #TODO если к фото привязан текс то такое фото не боработается
-                Telegram.process_message(company, chat_id, message)
+                Telegram.process_message(company, chat_id, text)
                 #pm = ProcessedMessage(message_id=message_id, update_id=update_id, json=json.dumps(full_message, sort_keys=True))
                 pm.message_id = message_id
                 pm.save()
                 print 'save'
+
+            elif full_message['message'].get('document'):
+                document = full_message['message'].get('document')
+                if not document['mime_type'] == 'image/jpeg':
+                    continue
+                file_id = document['file_id']
+                if not cls.process_file(company, chat_id, file_id):
+                    continue
+                pm.message_id = message_id
+                pm.save()
+                print 'save documen(image)'
+
             elif full_message['message'].get('photo'):
                 #сортируем по размеру чтобы получить самый большой
                 photos = full_message['message'].get('photo')
                 photos.sort(key = lambda x : int(x['width']))
                 bigest_photo = photos[-1]
                 file_id = bigest_photo['file_id']
-
-                file_info = cls.get_file_info(file_id)
-                file_path = file_info['file_path']
-
-                new_file = cls.get_file(file_path)
-
-                f = open(file_id, "a")
-                f.write(new_file)
-                f.close()
-                #пока не сохраняем сразу отправляем дальше в проверку чеков
-
-                fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
-                if not fns_cheque_json:
+                if not cls.process_file(company, chat_id, file_id):
                     continue
 
-                #print fns_cheque_json
+                #file_info = cls.get_file_info(file_id)
+                #file_path = file_info['file_path']
 
-                fns_cheque = FNSCheque(company=company)
-                #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
-                fns_cheque.save()
-                fns_cheque_json["document"] = {}
-                fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
+                #new_file = cls.get_file(file_path)
 
-                #FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
-                fns_cheque.update_cheque_from_json(fns_cheque_json)
+                #f = open(file_id, "a")
+                #f.write(new_file)
+                #f.close()
+                ##пока не сохраняем сразу отправляем дальше в проверку чеков
 
-                if fns_cheque:
-                    fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
+                #fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
+                #if not fns_cheque_json:
+                #    continue
 
-                    new_message = {
-                        'chat_id': chat_id,
-                        'text': u'Здесь будет в JSON чека полученный от ФНС',
-                    }
-                    Telegram.send_message(new_message)
-                    new_message = {
-                        u'chat_id': chat_id,
-                        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
-                        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
-                        'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
-                    }
-                    Telegram.send_message(new_message)
+                ##print fns_cheque_json
+
+                #fns_cheque = FNSCheque(company=company)
+                ##TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
+                #fns_cheque.save()
+                #fns_cheque_json["document"] = {}
+                #fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
+
+                ##FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+                #fns_cheque.update_cheque_from_json(fns_cheque_json)
+
+                #if fns_cheque:
+                #    fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
+
+                #    new_message = {
+                #        'chat_id': chat_id,
+                #        'text': u'Здесь будет в JSON чека полученный от ФНС',
+                #    }
+                #    Telegram.send_message(new_message)
+                #    new_message = {
+                #        u'chat_id': chat_id,
+                #        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
+                #        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
+                #        'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
+                #    }
+                #    Telegram.send_message(new_message)
 
                 pm.message_id = message_id
                 pm.save()
-                print 'save'
+                print 'save photo'
 
             else:
                 print 'Alert: Not message text.'
@@ -512,6 +598,51 @@ class Telegram(object):
 ##        responce = urllib2.urlopen(request, timeout=request_timeout)
 ##	print "result code: " + str(responce.getcode()) 
 ##	responce = json.load(responce)
+
+    @classmethod
+    def process_file(cls, company, chat_id, file_id):
+
+        file_info = cls.get_file_info(file_id)
+        file_path = file_info['file_path']
+
+        new_file = cls.get_file(file_path)
+
+        f = open(file_id, "a")
+        f.write(new_file)
+        f.close()
+        #пока не сохраняем сразу отправляем дальше в проверку чеков
+
+        fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
+        if not fns_cheque_json:
+            return False
+
+        #print fns_cheque_json
+
+        fns_cheque = FNSCheque(company=company)
+        #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
+        fns_cheque.save()
+        fns_cheque_json["document"] = {}
+        fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
+
+        #FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
+        fns_cheque.update_cheque_from_json(fns_cheque_json)
+
+        if fns_cheque:
+            fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
+
+            new_message = {
+                'chat_id': chat_id,
+                'text': u'Здесь будет в JSON чека полученный от ФНС',
+            }
+            Telegram.send_message(new_message)
+            new_message = {
+                u'chat_id': chat_id,
+                #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
+                #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
+                'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
+            }
+            Telegram.send_message(new_message)
+        return True
 
     @classmethod
     def process_message(cls, company, chat_id, message):
