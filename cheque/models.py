@@ -64,9 +64,9 @@ class FNSCheque(models.Model):
     fns_userInn = models.CharField(blank=True, max_length=254) # ИНН организации
 
     #t=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1
-    fns_fiscalDocumentNumber = models.CharField(blank=True, max_length=254) #FD i
-    fns_fiscalDriveNumber = models.CharField(blank=True, max_length=254) #FN fn
-    fns_fiscalSign = models.CharField(blank=True, max_length=254) #FDP fp
+    fns_fiscalDocumentNumber = models.CharField(blank=True, max_length=254) #FD i ФД
+    fns_fiscalDriveNumber = models.CharField(blank=True, max_length=254) #FN fn ФН
+    fns_fiscalSign = models.CharField(blank=True, max_length=254) #FDP fp ФП
 
     fns_dateTime = models.CharField(blank=True, max_length=254) #date t
     fns_totalSum = models.CharField(blank=True, max_length=254) #sum s
