@@ -349,7 +349,10 @@ class Telegram(object):
                 #пока не сохраняем сразу отправляем дальше в проверку чеков
 
                 fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
-                print fns_cheque_json
+                if not fns_cheque_json:
+                    continue
+
+                #print fns_cheque_json
 
                 fns_cheque = FNSCheque(company=company)
                 #TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
@@ -401,11 +404,22 @@ class Telegram(object):
 
         r = requests.post('https://proverkacheka.com/check/get', files={'qrfile': new_file})
 
-        print r.text.encode('utf8')
-        rr = r.json()
-        print rr
-        return rr
-        return json.load(rr)
+        #print r.text.encode('utf8')
+        #rr = r.json()
+        #print r.headers['Content-Type']
+        #print r.status_code
+        #print r.raise_for_status()  
+        if r.status_code == requests.codes.ok:
+            decoded_result = r.json()
+            return decoded_result
+        else:
+            print r.text.encode('utf8')
+            #non_json_result = r.data
+            #print non_json_result.encode('utf8')
+        return
+        #print rr
+        #return rr
+        #return json.load(rr)
         #return json.load(r.text.encode('utf8'))
 
 
