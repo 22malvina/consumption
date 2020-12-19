@@ -532,8 +532,18 @@ class QRCodeReader(object):
         return True
 
     @classmethod
-    def qr_text_to_params(cls, text):
+    def qr_text_to_params(cls, text_all):
         #qr_text = 't=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1'
+        #qr_text = 'test test t=20200523T2158&s=3070.52&fn=9289000100405801&i=69106&fp=3872222871&n=1 test'
+        for text in text_all.split(' '):
+            p = cls.qr_text_to_params_one(text)
+            if len(p) == 5:
+                return p
+        return {}
+
+    @classmethod
+    def qr_text_to_params_one(cls, text):
+ 
         if not FNSCheque.is_it_qr_test(text):
             return {}
 
