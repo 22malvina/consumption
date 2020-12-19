@@ -423,48 +423,6 @@ class Telegram(object):
                 file_id = bigest_photo['file_id']
                 if not cls.process_file(company, chat_id, file_id):
                     continue
-
-                #file_info = cls.get_file_info(file_id)
-                #file_path = file_info['file_path']
-
-                #new_file = cls.get_file(file_path)
-
-                #f = open(file_id, "a")
-                #f.write(new_file)
-                #f.close()
-                ##пока не сохраняем сразу отправляем дальше в проверку чеков
-
-                #fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
-                #if not fns_cheque_json:
-                #    continue
-
-                ##print fns_cheque_json
-
-                #fns_cheque = FNSCheque(company=company)
-                ##TODO проверить что такого чека еще нет в этой окмпании а то получается 2 раза один и тот же чек добавить
-                #fns_cheque.save()
-                #fns_cheque_json["document"] = {}
-                #fns_cheque_json["document"]["receipt"] = fns_cheque_json['data']['json']
-
-                ##FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
-                #fns_cheque.update_cheque_from_json(fns_cheque_json)
-
-                #if fns_cheque:
-                #    fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
-
-                #    new_message = {
-                #        'chat_id': chat_id,
-                #        'text': u'Здесь будет в JSON чека полученный от ФНС',
-                #    }
-                #    Telegram.send_message(new_message)
-                #    new_message = {
-                #        u'chat_id': chat_id,
-                #        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
-                #        #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' руб. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
-                #        'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
-                #    }
-                #    Telegram.send_message(new_message)
-
                 pm.message_id = message_id
                 pm.save()
                 print 'save photo'
