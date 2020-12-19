@@ -443,7 +443,7 @@ class Base(TestCase):
 	plf_milk.save()
 	for i in Base.list_buy_milk()[:5]:
 	#for i in Base.list_buy_milk():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
 		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
@@ -453,7 +453,7 @@ class Base(TestCase):
 	plf_cheese = PredictionLinearFunction(title='Cheese')
 	plf_cheese.save()
 	for i in Base.list_buy_cheese():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
 		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
@@ -498,7 +498,7 @@ class Base(TestCase):
 
 	##
 	for i in Base.list_buy_milk()[5:]:
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
 		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'])
@@ -539,7 +539,7 @@ class Base(TestCase):
 
 	#добавляем чеки в компанию
 	for i in Base.list_buy_milk():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
 		print j['name'].encode('utf8')
@@ -547,7 +547,7 @@ class Base(TestCase):
 		e.save()
 
 	for i in Base.list_buy_cheese():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'])
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'])
 	    fns_cheque.save() 
 	    for j in i['items']:
 		print j['name'].encode('utf8')

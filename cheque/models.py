@@ -71,6 +71,18 @@ class FNSCheque(models.Model):
     fns_dateTime = models.CharField(blank=True, max_length=254) #date t
     fns_totalSum = models.CharField(blank=True, max_length=254) #sum s
 
+    # ручно режим
+    is_manual = models.BooleanField() # если выставлено то значит ручная тарат
+    manual_how_much = models.CharField(blank=True, max_length=254)
+    manual_what = models.CharField(blank=True, max_length=254)
+    manual_where = models.CharField(blank=True, max_length=254)
+    #manual_when = models.CharField(blank=True, max_length=254) # используем fns_dateTime чтобы сортировать
+
+    @classmethod
+    def create_cheque_from_text(cls, text, company):
+        p = text.split(';')
+	return FNSCheque(is_manual=True, company=company, manual_how_much=p[0], manual_what=p[1], manual_where=p[2], fns_dateTime=p[3])
+        
     @classmethod
     def create_fns_cheque_from_qr_text(cls, qr_text, company):
         if cls.has_cheque_with_qr_text(company, qr_text):
@@ -81,7 +93,7 @@ class FNSCheque(models.Model):
         if len(qr_params.keys()) != 5:
             assert False
 	cheque_params = QRCodeReader.qr_params_to_cheque_params(qr_params)
-	return FNSCheque(company=company, fns_fiscalDocumentNumber=cheque_params['fns_fiscalDocumentNumber'], fns_fiscalDriveNumber=cheque_params['fns_fiscalDriveNumber'], fns_fiscalSign=cheque_params['fns_fiscalSign'], fns_dateTime=cheque_params['fns_dateTime'], fns_totalSum=cheque_params['fns_totalSum'])
+	return FNSCheque(is_manual=False, company=company, fns_fiscalDocumentNumber=cheque_params['fns_fiscalDocumentNumber'], fns_fiscalDriveNumber=cheque_params['fns_fiscalDriveNumber'], fns_fiscalSign=cheque_params['fns_fiscalSign'], fns_dateTime=cheque_params['fns_dateTime'], fns_totalSum=cheque_params['fns_totalSum'])
 
     @classmethod
     def create_save_update_fns_cheque_from_proverkacheka_com(cls, qr_text, company):
@@ -323,6 +335,7 @@ class FNSCheque(models.Model):
         fns_cheque = FNSCheque()
         fns_cheque.company = company
         fns_cheque.fns_dateTime = datetime_buy
+        fns_cheque.is_manual = False
         fns_cheque.save()
 
         #cls.update_cheque_from_json(fns_cheque, fns_cheque_json)

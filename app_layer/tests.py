@@ -147,14 +147,14 @@ class Base(TestCase):
 	company_family.save()
 
 	for i in BasePrediction.list_buy_milk():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
 	    fns_cheque.save() 
 	    for j in i['items']:
 		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'], price=j['price'])
 		e.save()
 
 	for i in BasePrediction.list_buy_cheese():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
 	    fns_cheque.save() 
 	    for j in i['items']:
 		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'], price=j['price'])
@@ -244,14 +244,14 @@ class Base(TestCase):
 	company_family.save()
 
 	for i in BasePrediction.list_buy_milk():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
 	    fns_cheque.save() 
 	    for j in i['items']:
 		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'], price=j['price'])
 		e.save()
 
 	for i in BasePrediction.list_buy_cheese():
-	    fns_cheque = FNSCheque(company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
+	    fns_cheque = FNSCheque(is_manual=False, company=company_family, fns_dateTime=i['dateTime'], json={'data': {'json': i}})
 	    fns_cheque.save() 
 	    for j in i['items']:
 		e = FNSChequeElement(fns_cheque=fns_cheque, name=j['name'], quantity=j['quantity'], volume=j['volume'], sum=j['sum'], price=j['price'])
@@ -407,6 +407,10 @@ class Base(TestCase):
 	    """,
 	    'print "====", message.en',
 	    'dsf ds fvt=20201216T1818&s=29.00&fn=9280440301295284&i=236&fp=3107860384&n=1  sdf ds',
+
+	    u'spent; 101.01; буреговы; мак авто',
+	    u'spend; 60; кофе; ван бакс тверская 7; 2020.12.19 18:46',
+	    u'spend; 60; кофе; ван бакс; 2020.12.15',
 	]
 	chat_id = 'Test chat id = 100500'
 	chat_id = '383332826'
