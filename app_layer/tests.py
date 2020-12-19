@@ -544,6 +544,7 @@ class Base(TestCase):
 #	    u'spend; 60; кофе; ван бакс; 2020.12.15',
 
 	    '/list_by_month',
+	    '/list_nice',
 	]
 	chat_id = 'Test chat id = 100500'
 	chat_id = '383332826'

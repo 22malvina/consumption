@@ -57,9 +57,18 @@ t=20200603T145000&s=3390.59&fn=9282440300628259&i=2031&fp=2548611914&n=1
 }
 """
 
+class ShowcasesCategory(models.Model):
+    """
+    Катигории витрин которые реализуют продукцию
+    Гипер маркеты, Финаносве операции, Кафе и рестораны, Мобильная связь, Общественный транспорт, Одежда и обувь, Отпуск и путеществия, Медицина и аптеки, Красота и доровье
+    """
+    title = models.CharField(blank=True, max_length=254)
+
 class FNSCheque(models.Model):
     json = models.TextField(blank=True, )
     company = models.ForeignKey(Company, blank=True, null=True) #TODO чек простой элемент и компанию надо вынести из чека
+    showcases_category = models.ForeignKey(ShowcasesCategory, blank=True, null=True) #TODO чек простой элемент и категорию витрины на которй он был пробит надо убрать
+
 #    datetime_create = models.DateTimeField(blank=True, auto_now_add = True)
     fns_userInn = models.CharField(blank=True, max_length=254) # ИНН организации
 
@@ -207,6 +216,16 @@ class FNSCheque(models.Model):
 
     def get_datetime(self):
         return self.fns_dateTime
+
+    def get_shop_short_info_string(self):
+        if self.get_user():
+            return self.get_user()
+        elif self.get_address():
+            return self.get_address()
+        elif self.get_user_inn():
+            return self.get_user_inn()
+        else:
+            return
 
     def get_shop_info_string(self):
         return 'МАГАЗИН: ' + self.get_user() + ' ИНН: ' + self.get_user_inn() + ' АДРЕС: ' + self.get_address()
@@ -450,10 +469,12 @@ class FNSChequeElement(models.Model):
         return self.fns_cheque.get_datetime()
 
     def get_price(self):
-        return self.price * self.quantity
+        #return self.price * self.quantity
+        return self.price
 
     def get_quantity(self):
-        return self.quantity
+        #print type(self.quantity)
+        return int(self.quantity) if self.quantity == int(self.quantity) else self.quantity
 
     def get_sum(self):
         return self.sum
