@@ -64,6 +64,9 @@ class ShowcasesCategory(models.Model):
     """
     title = models.CharField(blank=True, max_length=254)
 
+    def __unicode__(self):
+        return self.title
+
 class FNSCheque(models.Model):
     json = models.TextField(blank=True, )
     company = models.ForeignKey(Company, blank=True, null=True) #TODO чек простой элемент и компанию надо вынести из чека
@@ -121,6 +124,18 @@ class FNSCheque(models.Model):
 	#FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
 	fns_cheque.update_cheque_from_json(fns_cheque_json)
         return fns_cheque
+
+    @classmethod
+    def find_cheques_in_company_with_inn(cls, company, user_inn):
+        return list(FNSCheque.objects.filter(company=company, fns_userInn=user_inn))
+
+    @classmethod
+    def find_cheques_in_company_with_user(cls, company, user):
+        cheques = []
+        for c in FNSCheque.objects.filter(company=company):
+            if user == c.get_user():
+                cheques.append(c)
+        return cheques
 
     def format_date_qr_srt(self):
         #return str(self.fns_dateTime[0:4]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[8:10]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
@@ -244,10 +259,32 @@ class FNSCheque(models.Model):
         return add
 
     def get_recomended_showcases_category(self):
-        if ShowcasesCategory.objects.count():
-            return ShowcasesCategory.objects.get(id=1)
-        else:
-            return ShowcasesCategory(title='Time test', id=1)
+        inn_cheques = FNSCheque.find_cheques_in_company_with_inn(self.company, self.get_user_inn())
+        user_cheques = FNSCheque.find_cheques_in_company_with_user(self.company, self.get_user())
+        scs = {}
+        for c in inn_cheques + user_cheques:
+            if c.showcases_category:
+                if not scs.has_key(c.showcases_category):
+                    scs[c.showcases_category] = 0
+                scs[c.showcases_category] += 1
+
+        if len(scs.keys()) == 0:
+            if ShowcasesCategory.objects.count():
+                return ShowcasesCategory.objects.get(id=1)
+            else:
+                print 'Alert: Only for test!'
+                return ShowcasesCategory(title='Time test', id=1)
+
+        sort_scs = sorted(scs.items(), key=lambda x : x[1])
+
+        best_category = sort_scs[-1][0]
+        return best_category
+
+        #if ShowcasesCategory.objects.count():
+        #    return ShowcasesCategory.objects.get(id=1)
+        #else:
+        #    print 'Alert: Only for test!'
+        #    return ShowcasesCategory(title='Time test', id=1)
 
     def get_shop_short_info_string(self):
         if self.get_user():
