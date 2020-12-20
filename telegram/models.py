@@ -175,7 +175,7 @@ class Telegram(object):
             cheque = FNSCheque.get_cheque_with_qr_text(company, qr_text)
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Такой чек уже существует в данном чате! /cheque' + str(cheque.id),
+                u'text': u'Такой чек уже существует в данном чате! /cheque_' + str(cheque.id),
             }
             Telegram.send_message(new_message)
             return
@@ -456,7 +456,8 @@ class Telegram(object):
 
     @classmethod
     def __get_answer_string_when_add_cheque(cls, fns_cheque):
-        return 'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' р. приобретенный в "' + fns_cheque.get_shop_info_string() + '" сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id)
+        recomended_showcases_category = fns_cheque.get_recomended_showcases_category()
+        return 'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' р. приобретенный в "' + fns_cheque.get_shop_info_string() + '" сохранен. \nРасширенная информация по чеку доступна по команде /cheque_' + str(fns_cheque.id) + ' \nТакже вы можете указать категорию места приобретения из списка /cscats_' + str(fns_cheque.id) + ' Или быстро установить категорию "' + recomended_showcases_category.title + '" командой /cscat_' + str(fns_cheque.id) + '_' + str(recomended_showcases_category.id)
 
     @classmethod
     def get_fns_cheque_json_from_proverkacheka_com(cls, new_file):
@@ -606,7 +607,7 @@ class Telegram(object):
             cheque = FNSCheque.get_cheque_with_fns_cheque_json(company, fns_cheque_json)
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Такой чек уже существует в данном чате! /cheque' + str(cheque.id),
+                u'text': u'Такой чек уже существует в данном чате! /cheque_' + str(cheque.id),
             }
             Telegram.send_message(new_message)
             return False
@@ -628,8 +629,8 @@ class Telegram(object):
             Telegram.send_message(new_message)
             new_message = {
                 u'chat_id': chat_id,
-                #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' р. приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
-                #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' р. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(fns_cheque.id),
+                #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' р. приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque_' + str(fns_cheque.id),
+                #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' р. приобретенный в ' + fns_cheque.get_shop_info_string() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque_' + str(fns_cheque.id),
                 'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
             }
             Telegram.send_message(new_message)
@@ -637,9 +638,25 @@ class Telegram(object):
 
     @classmethod
     def process_message(cls, company, chat_id, message):
+        if message.find('/cscat') >= 0 or message.find('Cscat') >= 0:
+            p = message.split('_')
+            if len(p) == 3:
+                FNSCheque.change_showcases_category(company, p[1], p[2])
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Категория изменена',
+                }
+            else:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Не веный формат для смены категории',
+                }
+            Telegram.send_message(new_message)
+
+
         #FYI: Отправьте /help чтобы получить справку.
         #И снова здравствуйте! Отправьте /help чтобы получить справку.
-        if message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
+        elif message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
             new_message = {
                 'chat_id': chat_id,
                 'text': u"""Help : Здравствуйте, я могу рассказать вам как можно сэкономить при ежедневных походах в магазин.
@@ -734,6 +751,7 @@ class Telegram(object):
 
             cheques = []
             current_date = ''
+            current_category_title = ''
             for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):
                 if cheque.is_manual:
                     print 'Alert: Need fix'
@@ -744,7 +762,11 @@ class Telegram(object):
                     cheques.append('\r')
                     cheques.append(date)
                     current_date = date
-                cheques.append(' ' + str(float(cheque.fns_totalSum) / 100) + ' р. - ' + cheque.get_shop_short_info_string() + ' /cheque' + str(cheque.id))
+                    current_category_title = ''
+                if cheque.showcases_category and current_category_title != cheque.showcases_category.title:
+                    cheques.append(cheque.showcases_category.title)
+                    current_category_title = cheque.showcases_category.title
+                cheques.append(' ' + str(float(cheque.fns_totalSum) / 100) + ' р. - ' + cheque.get_shop_short_info_string() + ' /cheque_' + str(cheque.id))
             cheques.append(u'Всего покупок: ' + str(len(cheques)))
 	    new_message = {
 		u'chat_id': chat_id,
@@ -757,7 +779,7 @@ class Telegram(object):
                 cheques.append({
                     u'totalSum': str(cheque.fns_totalSum),
                     #u'see': u'/cheque ' + str(cheque.id),
-                    u'see': u'/cheque' + str(cheque.id),
+                    u'see': u'/cheque_' + str(cheque.id),
                     #u'date': u'%s' % str(cheque.fns_dateTime.date()),
                     u'date': u'%s' % str(cheque.fns_dateTime),
                 })
@@ -832,10 +854,12 @@ class Telegram(object):
                     #},
                     u'text': u'Общая сумма: ' + str(float(cheque.fns_totalSum) / 100) + '\n' + 
                         u'Дата покупки: ' + str(cheque.fns_dateTime) + '\n' + 
-                        u'Всего позиций в чек: ' + str(len(elements)) + '\n' + 
+                        ((u'Категория магазина: ' + cheque.showcases_category.title + '\n') if cheque.showcases_category else '') + 
                         u'Приобретено в: ' + cheque.get_shop_short_info_string() + '\n' + 
+                        u'Всего позиций в чек: ' + str(len(elements)) + '\n' + 
                         u'Ваши покупки:\r\n' +  '\r\n'.join(element_strs) + '\n' + 
-                        u'Для удаения чека пройдите по ссылке: ' + '/delete_cheque_' + str(cheque.id),
+                        u'Для удаления чека пройдите по ссылке: ' + '/delete_cheque_' + str(cheque.id) + '\n' +
+                        u'Для перехода в режим изменения категории введите команду /cscats_' + str(cheque.id),
                 }
 	        Telegram.send_message(new_message)
             else:
@@ -903,7 +927,7 @@ class Telegram(object):
             cheque = FNSCheque.create_and_save_cheque_from_text(company, p[1], p[2], p[3], p[4])
             new_message = {
                 u'chat_id': chat_id,
-                u'text': u'Ваш чек от ' + str(cheque.get_datetime()) + u' на сумму ' + cheque.fns_totalSum + u' р. приобретенный в "' + cheque.manual_where  + '" сохранен. Расширенная информация по чеку доступна по команде /cheque' + str(cheque.id)
+                u'text': u'Ваш чек от ' + str(cheque.get_datetime()) + u' на сумму ' + cheque.fns_totalSum + u' р. приобретенный в "' + cheque.manual_where  + '" сохранен. Расширенная информация по чеку доступна по команде /cheque_' + str(cheque.id)
             }
             Telegram.send_message(new_message)
 

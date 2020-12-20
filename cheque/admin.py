@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 
-from .models import FNSCheque, FNSChequeElement
+from .models import FNSCheque, FNSChequeElement, ShowcasesCategory
 
 #admin.site.register(FNSCheque)
 class FNSChequeElementInline(admin.TabularInline):
@@ -20,3 +20,5 @@ class FNSChequeElementAdmin(admin.ModelAdmin):
     search_fields = ['name', 'price', 'sum', 'quantity']
     readonly_fields = ['fns_cheque']
 
+
+admin.site.register(ShowcasesCategory)

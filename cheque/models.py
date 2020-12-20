@@ -60,7 +60,7 @@ t=20200603T145000&s=3390.59&fn=9282440300628259&i=2031&fp=2548611914&n=1
 class ShowcasesCategory(models.Model):
     """
     Катигории витрин которые реализуют продукцию
-    Гипер маркеты, Финаносве операции, Кафе и рестораны, Мобильная связь, Общественный транспорт, Одежда и обувь, Отпуск и путеществия, Медицина и аптеки, Красота и доровье
+    Гипермаркет, Финансовые операции, Кафе и рестораны, Мобильная связь, Общественный транспорт, Одежда и обувь, Отпуск и путешествия, Медицина и аптеки, Красота и здоровье
     """
     title = models.CharField(blank=True, max_length=254)
 
@@ -86,6 +86,13 @@ class FNSCheque(models.Model):
     manual_what = models.CharField(blank=True, max_length=254)
     manual_where = models.CharField(blank=True, max_length=254)
     #manual_when = models.CharField(blank=True, max_length=254) # используем fns_dateTime чтобы сортировать
+
+    @classmethod
+    def change_showcases_category(self, company, cheque_id, showcases_category_id):
+        cheque = FNSCheque.objects.get(company=company, id=cheque_id)
+        showcases_category = ShowcasesCategory.objects.get(id=showcases_category_id)
+        cheque.showcases_category = showcases_category
+        cheque.save()
 
     @classmethod
     def create_and_save_cheque_from_text(cls, company, p0, p1, p2, p3):
@@ -217,12 +224,38 @@ class FNSCheque(models.Model):
     def get_datetime(self):
         return self.fns_dateTime
 
+    def get_operator(self):
+        if not self.json or not ast.literal_eval(self.json).has_key('data'):
+            print 'Error: not find json or json["data"]'
+            return
+        
+        addd = ast.literal_eval(self.json)['data']['json']
+        k = 0
+        if addd.has_key('operator'):
+            k += 1
+
+        if k > 1:
+            assert False
+
+        if addd.has_key('operator'):
+            add = addd['operator']
+        else:
+            add = ''
+        return add
+
+    def get_recomended_showcases_category(self):
+        if ShowcasesCategory.objects.count():
+            return ShowcasesCategory.objects.get(id=1)
+        else:
+            return ShowcasesCategory(title='Time test', id=1)
+
     def get_shop_short_info_string(self):
         if self.get_user():
             return self.get_user()
         elif self.get_address():
             return self.get_address()
         elif self.get_user_inn():
+            #return 'ИНН ' + self.get_user_inn() + ' ' + self.get_operator()
             return self.get_user_inn()
         else:
             return
