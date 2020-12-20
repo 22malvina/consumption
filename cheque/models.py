@@ -63,9 +63,10 @@ class ShowcasesCategory(models.Model):
     Гипермаркет, Финансовые операции, Кафе и рестораны, Мобильная связь, Общественный транспорт, Одежда и обувь, Отпуск и путешествия, Медицина и аптеки, Красота и здоровье
     """
     title = models.CharField(blank=True, max_length=254)
+    telegram_emoji = models.CharField(blank=True, max_length=254)
 
     def __unicode__(self):
-        return self.title
+        return u"%s %s" % (self.title, self.telegram_emoji)
 
 class FNSCheque(models.Model):
     json = models.TextField(blank=True, )
