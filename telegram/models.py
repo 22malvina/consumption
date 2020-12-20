@@ -720,24 +720,91 @@ class Telegram(object):
                 #print d
                 return str(d.year) + '.' + ('0' if d.month <10 else '') + str(d.month)
 
-            #for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime').values():
-            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):
+            ##for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime').values():
+            #for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):
+            #    #TODO нужно работать и с ручными чеками тоже 
+            #    if cheque.is_manual:
+            #        print 'Alert: Need fix'
+            #        continue
+            #    print cheque
+            #    year_month = __get_year_month(cheque.fns_dateTime)
+            #    if not cheques.has_key(year_month):
+            #        cheques[year_month] = 0 
+            #    cheques[year_month] += int(cheque.fns_totalSum)
+            #l = map(lambda x : x + ': ' + str(cheques[x]), sorted(cheques.keys()) )
+            #t = '\r\n'.join(l)
+
+
+
+            cheques = []
+            current_year_month = ''
+            current_category_title = None
+            current_sum = 0
+
+            def __get_cat_title(cheque):
+                if cheque.showcases_category:
+                    return cheque.showcases_category.title
+                return u'Другое'
+                
+            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
                 #TODO нужно работать и с ручными чеками тоже 
                 if cheque.is_manual:
                     print 'Alert: Need fix'
                     continue
+
                 print cheque
                 year_month = __get_year_month(cheque.fns_dateTime)
-                if not cheques.has_key(year_month):
-                    cheques[year_month] = 0 
-                cheques[year_month] += int(cheque.fns_totalSum)
-            l = map(lambda x : x + ': ' + str(cheques[x]), sorted(cheques.keys()) )
-            t = '\r\n'.join(l)
+
+                if current_year_month != year_month:
+                    if current_sum:
+                        cheques.append('  ' + str(float(int(current_sum))/100))
+                    current_sum = 0
+
+                    current_category_title = None
+
+                    cheques.append(u'\r')
+                    cheques.append(year_month)
+                    if current_category_title != __get_cat_title(cheque):
+                        cheques.append(' ' + __get_cat_title(cheque))
+
+                else:
+                    if current_category_title != __get_cat_title(cheque):
+
+                        if current_sum:
+                            cheques.append('  ' + str(float(int(current_sum))/100))
+                        current_sum = 0
+
+                        cheques.append(' ' + __get_cat_title(cheque))
+                
+                current_year_month = year_month
+                #current_category_title = cheque.showcases_category.title if cheque.showcases_category else None
+                current_category_title = __get_cat_title(cheque)
+
+                current_sum += float(cheque.fns_totalSum)
+                    
+                #if current_year_month != year_month:
+                #    if current_sum:
+                #        cheques.append('  ' + str(current_sum))
+
+                #    cheques.append(u'\r')
+                #    cheques.append(year_month)
+                #    current_year_month = year_month
+                #    current_category_title = None
+                #    current_sum = 0
+                #if cheque.showcases_category and current_category_title != cheque.showcases_category.title:
+                #    if current_sum:
+                #        cheques.append('  ' + str(current_sum))
+                #    cheques.append(' ' + cheque.showcases_category.title)
+                #    current_category_title = cheque.showcases_category.title
+                #    current_sum = 0
+
+                #current_sum += float(cheque.fns_totalSum)
+
+            cheques.append('  ' + str(float(int(current_sum))/100))
+
 	    new_message = {
 		u'chat_id': chat_id,
-		#u'text': cheques,
-		#u'text': l,
-		u'text': t,
+		u'text': u'\r\n'.join(cheques),
 	    }
 	    Telegram.send_message(new_message)
         elif message.find('/list_nice') >= 0 or message.find('List_nice') >= 0:
