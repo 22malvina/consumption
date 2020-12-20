@@ -672,7 +672,7 @@ class Telegram(object):
 
 Чтобы узнать что сегодня следует купить отправьте
 "/basket_today"
-"/list" список всех покупок
+"/list_nice" список всех покупок
 Если у вас возникли вопросы, ведите команду /question и ваш вопрос
 "/question Добрый день, подскажите как добавить новый элемент?"
 Для удаления чека введите команду "/delete_cheque_XXX" где XXX - ид чека.
@@ -842,6 +842,8 @@ class Telegram(object):
                 if cheque.is_manual:
                     elements.append(cheque.manual_what)
 
+
+                recomended_showcases_category = cheque.get_recomended_showcases_category()
                 new_message = {
                     u'chat_id': chat_id,
                     #u'text': {
@@ -854,7 +856,7 @@ class Telegram(object):
                     #},
                     u'text': u'Общая сумма: ' + str(float(cheque.fns_totalSum) / 100) + '\n' + 
                         u'Дата покупки: ' + str(cheque.fns_dateTime) + '\n' + 
-                        ((u'Категория магазина: ' + cheque.showcases_category.title + '\n') if cheque.showcases_category else '') + 
+                        ((u'Категория магазина: ' + cheque.showcases_category.title + '\n') if cheque.showcases_category else ('Если хотите установить категорию "' + recomended_showcases_category.title + '" отправьте команду /cscat_' + str(cheque.id) + '_' + str(recomended_showcases_category.id) + '\n')) + 
                         u'Приобретено в: ' + cheque.get_shop_short_info_string() + '\n' + 
                         u'Всего позиций в чек: ' + str(len(elements)) + '\n' + 
                         u'Ваши покупки:\r\n' +  '\r\n'.join(element_strs) + '\n' + 

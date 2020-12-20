@@ -266,10 +266,19 @@ class FNSCheque(models.Model):
             if c.showcases_category:
                 if not scs.has_key(c.showcases_category):
                     scs[c.showcases_category] = 0
-                scs[c.showcases_category] += 1
+                scs[c.showcases_category] += 20
+
+        for company in Company.objects.filter(employees__in=self.company.employees.all()): 
+            inn_cheques = FNSCheque.find_cheques_in_company_with_inn(company, self.get_user_inn())
+            user_cheques = FNSCheque.find_cheques_in_company_with_user(company, self.get_user())
+            for c in inn_cheques + user_cheques:
+                if c.showcases_category:
+                    if not scs.has_key(c.showcases_category):
+                        scs[c.showcases_category] = 0
+                    scs[c.showcases_category] += 1
 
         if len(scs.keys()) == 0:
-            if ShowcasesCategory.objects.count():
+            if ShowcasesCategory.objects.count() > 0 and ShowcasesCategory.objects.filter(id=1).count() > 0:
                 return ShowcasesCategory.objects.get(id=1)
             else:
                 print 'Alert: Only for test!'
