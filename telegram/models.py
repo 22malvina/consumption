@@ -12,6 +12,7 @@ from company.models import Employee, Company
 
 from datetime import datetime
 import re
+import time
 
 class ProcessedMessage(models.Model):
     json = models.TextField(blank=True, )
@@ -873,13 +874,13 @@ class Telegram(object):
             cheques = FNSCheque.objects.filter(company=company, showcases_category__in=showcases_categories).order_by('fns_dateTime','showcases_category')
             #for cheque in FNSCheque.objects.filter(company=company, showcases_category__in=showcases_categories).order_by('fns_dateTime','showcases_category'):
 
-            cls.__send_prepared_message(chat_id, cheques)
+            cls.__send_many_prepared_message(chat_id, cheques)
 
         elif message.find('/list_nice') >= 0 or message.find('List_nice') >= 0:
             cheques = FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category')
             #for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
 
-            cls.__send_prepared_message(chat_id, cheques)
+            cls.__send_many_prepared_message(chat_id, cheques)
 
             #def __get_year_month_day(date_time):
             #    #print '----'
@@ -1125,6 +1126,57 @@ class Telegram(object):
 #	print data_r
 
     @classmethod
+    def __send_many_prepared_message(cls, chat_id, cheques):
+        d = {}
+        for cheque in cheques:
+            #TODO нужно работать и с ручными чеками тоже 
+            if cheque.is_manual:
+                print 'Alert: Need fix'
+                continue
+
+            year_month_day = cls.__get_year_month_day(cheque.fns_dateTime)
+            category_title = cls.__get_cat_title(cheque)
+
+            if not d.has_key(year_month_day):
+                d[year_month_day] = {}
+            if not d[year_month_day].has_key(category_title):
+                d[year_month_day][category_title] = []
+
+            d[year_month_day][category_title].append(cheque)
+
+        responces = []
+        count = 0
+        max_count_in_one_message = 20
+        responce = []
+        for k in sorted(d.keys()):
+            date = k
+            responce.append(u'\U0001f5d3 ' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
+            for l in sorted(d[k].keys()):
+                responce.append('' + l + ':')
+                for cheque in d[k][l]:
+                    responce.append('  ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd {' + cheque.get_shop_short_info_string() + '} /cheque_' + str(cheque.id))
+                    count += 1
+                    if count > max_count_in_one_message:
+                        responces.append(responce)
+                        print '++++'
+                        print responces
+                        responce = []
+                        print responces
+                        print '===='
+                        count = 0
+
+
+            responce.append(u'\r')
+        responces.append(responce)
+
+        for responce in responces:
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': u'\r\n'.join(responce),
+            }
+            Telegram.send_message(new_message)
+	    time.sleep(3)
+
     def __send_prepared_message(cls, chat_id, cheques):
         d = {}
         for cheque in cheques:
