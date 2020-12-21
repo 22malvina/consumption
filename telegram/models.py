@@ -412,6 +412,9 @@ class Telegram(object):
 
             text = full_message['message'].get('text')
 
+            if text:
+                text = text.replace('@' + getattr(settings, "TELEGRAM_BOT_TITLE", None), '')
+
             telegram_user_id = full_message['message']['from']['id']
             username = full_message['message']['from'].get('username', '')
             first_name = full_message['message']['from'].get('first_name', '')
@@ -753,7 +756,7 @@ class Telegram(object):
                     print 'Alert: Need fix'
                     continue
 
-                print cheque
+                #print cheque
                 year_month = __get_year_month(cheque.fns_dateTime)
 
                 if current_year_month != year_month:
@@ -820,7 +823,7 @@ class Telegram(object):
             cheques = []
             current_date = ''
             current_category_title = ''
-            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):
+            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
                 if cheque.is_manual:
                     print 'Alert: Need fix'
                     continue
@@ -831,11 +834,13 @@ class Telegram(object):
                     cheques.append(date)
                     current_date = date
                     current_category_title = ''
-                if cheque.showcases_category and current_category_title != cheque.showcases_category.title:
-                    cheques.append(cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title)
-                    current_category_title = cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
+                if cheque.showcases_category:
+                    showcases_category_str = cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
+                if cheque.showcases_category and current_category_title != showcases_category_str:
+                    cheques.append(showcases_category_str)
+                    current_category_title = showcases_category_str
                 cheques.append(' ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd - ' + cheque.get_shop_short_info_string() + ' /cheque_' + str(cheque.id))
-            cheques.append(u'Всего покупок: ' + str(len(cheques)))
+            #cheques.append(u'Всего покупок: ' + str(len(cheques)))
 	    new_message = {
 		u'chat_id': chat_id,
 		u'text': '\r\n'.join(cheques),
