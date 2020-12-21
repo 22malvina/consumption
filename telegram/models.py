@@ -738,114 +738,195 @@ class Telegram(object):
             #l = map(lambda x : x + ': ' + str(cheques[x]), sorted(cheques.keys()) )
             #t = '\r\n'.join(l)
 
-
-
-            cheques = []
-            current_year_month = ''
-            current_category_title = None
-            current_sum = 0
-
             def __get_cat_title(cheque):
                 if cheque.showcases_category:
                     return cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
-                return u'Другое'
-                
+                return u'\u2754 Другое'
+
+            d = {}
             for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
                 #TODO нужно работать и с ручными чеками тоже 
                 if cheque.is_manual:
                     print 'Alert: Need fix'
                     continue
 
-                #print cheque
                 year_month = __get_year_month(cheque.fns_dateTime)
+                category_title = __get_cat_title(cheque)
 
-                if current_year_month != year_month:
-                    if current_sum:
-                        cheques.append('  ' + str(float(int(current_sum))/100))
-                    current_sum = 0
+                if not d.has_key(year_month):
+                    d[year_month] = {}
+                if not d[year_month].has_key(category_title):
+                    d[year_month][category_title] = []
 
-                    current_category_title = None
+                d[year_month][category_title].append(cheque)
 
-                    cheques.append(u'\r')
-                    cheques.append(year_month)
-                    if current_category_title != __get_cat_title(cheque):
-                        cheques.append(' ' + __get_cat_title(cheque))
-
-                else:
-                    if current_category_title != __get_cat_title(cheque):
-
-                        if current_sum:
-                            cheques.append('  ' + str(float(int(current_sum))/100))
-                        current_sum = 0
-
-                        cheques.append(' ' + __get_cat_title(cheque))
-                
-                current_year_month = year_month
-                #current_category_title = cheque.showcases_category.title if cheque.showcases_category else None
-                current_category_title = __get_cat_title(cheque)
-
-                current_sum += float(cheque.fns_totalSum)
-                    
-                #if current_year_month != year_month:
-                #    if current_sum:
-                #        cheques.append('  ' + str(current_sum))
-
-                #    cheques.append(u'\r')
-                #    cheques.append(year_month)
-                #    current_year_month = year_month
-                #    current_category_title = None
-                #    current_sum = 0
-                #if cheque.showcases_category and current_category_title != cheque.showcases_category.title:
-                #    if current_sum:
-                #        cheques.append('  ' + str(current_sum))
-                #    cheques.append(' ' + cheque.showcases_category.title)
-                #    current_category_title = cheque.showcases_category.title
-                #    current_sum = 0
-
-                #current_sum += float(cheque.fns_totalSum)
-
-            cheques.append('  ' + str(float(int(current_sum))/100))
+            responce = []
+            for k in sorted(d.keys()):
+                responce.append(u'\U0001f5d3 ' + k)
+                for l in sorted(d[k].keys()):
+                    total_sum = 0
+                    for cheque in  d[k][l]:
+                        total_sum += float(cheque.fns_totalSum)
+                    #responce.append(' '  + str(float(int(total_sum))/100) + u' \u20bd ' + l)
+                    responce.append(l + ': ' + str(float(int(total_sum))/100) + u' \u20bd')
+                responce.append(u'\r')
 
 	    new_message = {
 		u'chat_id': chat_id,
-		u'text': u'\r\n'.join(cheques),
+		u'text': u'\r\n'.join(responce),
 	    }
 	    Telegram.send_message(new_message)
-        elif message.find('/list_nice') >= 0 or message.find('List_nice') >= 0:
-            def __get_year_month_day(date_time):
-                #print '----'
-                #print date_time
-                d = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S').date()
-                #print d
-                #return str(d.year) + '.' + ('0' if d.month <10 else '') + str(d.month) + '.' + ('0' if d.day <10 else '') + str(d.day)
-                return ('0' if d.day <10 else '') + str(d.day) + '.' + ('0' if d.month <10 else '') + str(d.month) + '.' + str(d.year) 
 
-            cheques = []
-            current_date = ''
-            current_category_title = ''
+            #cheques = []
+            #current_year_month = ''
+            #current_category_title = None
+            #current_sum = 0
+
+            #for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
+            #    #TODO нужно работать и с ручными чеками тоже 
+            #    if cheque.is_manual:
+            #        print 'Alert: Need fix'
+            #        continue
+
+            #    #print cheque
+            #    year_month = __get_year_month(cheque.fns_dateTime)
+
+            #    if current_year_month != year_month:
+            #        if current_sum:
+            #            cheques.append('  ' + str(float(int(current_sum))/100))
+            #        current_sum = 0
+
+            #        current_category_title = None
+
+            #        cheques.append(u'\r')
+            #        cheques.append(year_month)
+            #        if current_category_title != __get_cat_title(cheque):
+            #            cheques.append(' ' + __get_cat_title(cheque))
+
+            #    else:
+            #        if current_category_title != __get_cat_title(cheque):
+
+            #            if current_sum:
+            #                cheques.append('  ' + str(float(int(current_sum))/100))
+            #            current_sum = 0
+
+            #            cheques.append(' ' + __get_cat_title(cheque))
+            #    
+            #    current_year_month = year_month
+            #    #current_category_title = cheque.showcases_category.title if cheque.showcases_category else None
+            #    current_category_title = __get_cat_title(cheque)
+
+            #    current_sum += float(cheque.fns_totalSum)
+            #        
+            #    #if current_year_month != year_month:
+            #    #    if current_sum:
+            #    #        cheques.append('  ' + str(current_sum))
+
+            #    #    cheques.append(u'\r')
+            #    #    cheques.append(year_month)
+            #    #    current_year_month = year_month
+            #    #    current_category_title = None
+            #    #    current_sum = 0
+            #    #if cheque.showcases_category and current_category_title != cheque.showcases_category.title:
+            #    #    if current_sum:
+            #    #        cheques.append('  ' + str(current_sum))
+            #    #    cheques.append(' ' + cheque.showcases_category.title)
+            #    #    current_category_title = cheque.showcases_category.title
+            #    #    current_sum = 0
+
+            #    #current_sum += float(cheque.fns_totalSum)
+
+            #cheques.append('  ' + str(float(int(current_sum))/100))
+
+	    #new_message = {
+	    #    u'chat_id': chat_id,
+	    #    u'text': u'\r\n'.join(cheques),
+	    #}
+	    #Telegram.send_message(new_message)
+        elif message.find('/list_nice') >= 0 or message.find('List_nice') >= 0:
+
+
+
+
+            def __get_year_month_day(date_time):
+                d = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S').date()
+                return d
+                #return ('0' if d.day <10 else '') + str(d.day) + '.' + ('0' if d.month <10 else '') + str(d.month) + '.' + str(d.year) 
+
+            def __get_cat_title(cheque):
+                if cheque.showcases_category:
+                    return cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
+                return u'\u2754 Другое'
+
+            d = {}
             for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
+                #TODO нужно работать и с ручными чеками тоже 
                 if cheque.is_manual:
                     print 'Alert: Need fix'
                     continue
-                #cheques.append(__get_year_month_day(cheque.fns_dateTime) + ' ' + cheque.get_shop_short_info_string() + ' ' + str(cheque.fns_totalSum))
-                date = __get_year_month_day(cheque.fns_dateTime)
-                if current_date != date:
-                    cheques.append('\r')
-                    cheques.append(date)
-                    current_date = date
-                    current_category_title = ''
-                if cheque.showcases_category:
-                    showcases_category_str = cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
-                if cheque.showcases_category and current_category_title != showcases_category_str:
-                    cheques.append(showcases_category_str)
-                    current_category_title = showcases_category_str
-                cheques.append(' ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd - ' + cheque.get_shop_short_info_string() + ' /cheque_' + str(cheque.id))
-            #cheques.append(u'Всего покупок: ' + str(len(cheques)))
+
+                year_month_day = __get_year_month_day(cheque.fns_dateTime)
+                category_title = __get_cat_title(cheque)
+
+                if not d.has_key(year_month_day):
+                    d[year_month_day] = {}
+                if not d[year_month_day].has_key(category_title):
+                    d[year_month_day][category_title] = []
+
+                d[year_month_day][category_title].append(cheque)
+
+            responce = []
+            for k in sorted(d.keys()):
+                #responce.append(k)
+                date = k
+                #responce.append(u'\U0001f5d3 ' + ('0' if date.day <10 else '') + str(date.day) + '.' + ('0' if date.month <10 else '') + str(date.month) + '.' + str(date.year))
+                responce.append(u'\U0001f5d3 ' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
+                for l in sorted(d[k].keys()):
+                    responce.append('' + l + ':')
+                    for cheque in d[k][l]:
+                        responce.append('  ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd {' + cheque.get_shop_short_info_string() + '} /cheque_' + str(cheque.id))
+                responce.append(u'\r')
+
 	    new_message = {
 		u'chat_id': chat_id,
-		u'text': '\r\n'.join(cheques),
+		u'text': u'\r\n'.join(responce),
 	    }
 	    Telegram.send_message(new_message)
+
+            #def __get_year_month_day(date_time):
+            #    #print '----'
+            #    #print date_time
+            #    d = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S').date()
+            #    #print d
+            #    #return str(d.year) + '.' + ('0' if d.month <10 else '') + str(d.month) + '.' + ('0' if d.day <10 else '') + str(d.day)
+            #    return ('0' if d.day <10 else '') + str(d.day) + '.' + ('0' if d.month <10 else '') + str(d.month) + '.' + str(d.year) 
+
+            #cheques = []
+            #current_date = ''
+            #current_category_title = ''
+            #for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
+            #    if cheque.is_manual:
+            #        print 'Alert: Need fix'
+            #        continue
+            #    #cheques.append(__get_year_month_day(cheque.fns_dateTime) + ' ' + cheque.get_shop_short_info_string() + ' ' + str(cheque.fns_totalSum))
+            #    date = __get_year_month_day(cheque.fns_dateTime)
+            #    if current_date != date:
+            #        cheques.append('\r')
+            #        cheques.append(date)
+            #        current_date = date
+            #        current_category_title = ''
+            #    if cheque.showcases_category:
+            #        showcases_category_str = cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
+            #    if cheque.showcases_category and current_category_title != showcases_category_str:
+            #        cheques.append(showcases_category_str)
+            #        current_category_title = showcases_category_str
+            #    cheques.append(' ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd - ' + cheque.get_shop_short_info_string() + ' /cheque_' + str(cheque.id))
+            ##cheques.append(u'Всего покупок: ' + str(len(cheques)))
+	    #new_message = {
+	    #    u'chat_id': chat_id,
+	    #    u'text': '\r\n'.join(cheques),
+	    #}
+	    #Telegram.send_message(new_message)
         elif message.find('/list') >= 0 or message.find('List') >= 0:
             cheques = []
             for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime'):
