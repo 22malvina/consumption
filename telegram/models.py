@@ -869,73 +869,17 @@ class Telegram(object):
             else:
                 showcases_categories = ShowcasesCategory.objects.filter(id__in=category_ids)
                 
-            d = {}
-            for cheque in FNSCheque.objects.filter(company=company, showcases_category__in=showcases_categories).order_by('fns_dateTime','showcases_category'):
-                #TODO нужно работать и с ручными чеками тоже 
-                if cheque.is_manual:
-                    print 'Alert: Need fix'
-                    continue
 
-                year_month_day = cls.__get_year_month_day(cheque.fns_dateTime)
-                category_title = cls.__get_cat_title(cheque)
+            cheques = FNSCheque.objects.filter(company=company, showcases_category__in=showcases_categories).order_by('fns_dateTime','showcases_category')
+            #for cheque in FNSCheque.objects.filter(company=company, showcases_category__in=showcases_categories).order_by('fns_dateTime','showcases_category'):
 
-                if not d.has_key(year_month_day):
-                    d[year_month_day] = {}
-                if not d[year_month_day].has_key(category_title):
-                    d[year_month_day][category_title] = []
-
-                d[year_month_day][category_title].append(cheque)
-
-            responce = []
-            for k in sorted(d.keys()):
-                date = k
-                responce.append(u'\U0001f5d3 ' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
-                for l in sorted(d[k].keys()):
-                    responce.append('' + l + ':')
-                    for cheque in d[k][l]:
-                        responce.append('  ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd {' + cheque.get_shop_short_info_string() + '} /cheque_' + str(cheque.id))
-                responce.append(u'\r')
-
-	    new_message = {
-		u'chat_id': chat_id,
-		u'text': u'\r\n'.join(responce),
-	    }
-	    Telegram.send_message(new_message)
+            cls.__send_prepared_message(chat_id, cheques)
 
         elif message.find('/list_nice') >= 0 or message.find('List_nice') >= 0:
-            d = {}
-            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
-                #TODO нужно работать и с ручными чеками тоже 
-                if cheque.is_manual:
-                    print 'Alert: Need fix'
-                    continue
+            cheques = FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category')
+            #for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
 
-                year_month_day = cls.__get_year_month_day(cheque.fns_dateTime)
-                category_title = cls.__get_cat_title(cheque)
-
-                if not d.has_key(year_month_day):
-                    d[year_month_day] = {}
-                if not d[year_month_day].has_key(category_title):
-                    d[year_month_day][category_title] = []
-
-                d[year_month_day][category_title].append(cheque)
-
-            responce = []
-            for k in sorted(d.keys()):
-                date = k
-                #responce.append(u'\U0001f5d3 ' + ('0' if date.day <10 else '') + str(date.day) + '.' + ('0' if date.month <10 else '') + str(date.month) + '.' + str(date.year))
-                responce.append(u'\U0001f5d3 ' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
-                for l in sorted(d[k].keys()):
-                    responce.append('' + l + ':')
-                    for cheque in d[k][l]:
-                        responce.append('  ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd {' + cheque.get_shop_short_info_string() + '} /cheque_' + str(cheque.id))
-                responce.append(u'\r')
-
-	    new_message = {
-		u'chat_id': chat_id,
-		u'text': u'\r\n'.join(responce),
-	    }
-	    Telegram.send_message(new_message)
+            cls.__send_prepared_message(chat_id, cheques)
 
             #def __get_year_month_day(date_time):
             #    #print '----'
@@ -1179,6 +1123,41 @@ class Telegram(object):
 #	#print data
 #	data_r = json.load(responce)
 #	print data_r
+
+    @classmethod
+    def __send_prepared_message(cls, chat_id, cheques):
+        d = {}
+        for cheque in cheques:
+            #TODO нужно работать и с ручными чеками тоже 
+            if cheque.is_manual:
+                print 'Alert: Need fix'
+                continue
+
+            year_month_day = cls.__get_year_month_day(cheque.fns_dateTime)
+            category_title = cls.__get_cat_title(cheque)
+
+            if not d.has_key(year_month_day):
+                d[year_month_day] = {}
+            if not d[year_month_day].has_key(category_title):
+                d[year_month_day][category_title] = []
+
+            d[year_month_day][category_title].append(cheque)
+
+        responce = []
+        for k in sorted(d.keys()):
+            date = k
+            responce.append(u'\U0001f5d3 ' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
+            for l in sorted(d[k].keys()):
+                responce.append('' + l + ':')
+                for cheque in d[k][l]:
+                    responce.append('  ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd {' + cheque.get_shop_short_info_string() + '} /cheque_' + str(cheque.id))
+            responce.append(u'\r')
+
+        new_message = {
+            u'chat_id': chat_id,
+            u'text': u'\r\n'.join(responce),
+        }
+        Telegram.send_message(new_message)
 
     @classmethod
     def __was_message_processed(cls, update_id):
