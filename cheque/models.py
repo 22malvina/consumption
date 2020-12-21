@@ -260,8 +260,8 @@ class FNSCheque(models.Model):
         return add
 
     def get_recomended_showcases_category(self):
-        inn_cheques = FNSCheque.find_cheques_in_company_with_inn(self.company, self.get_user_inn())
-        user_cheques = FNSCheque.find_cheques_in_company_with_user(self.company, self.get_user())
+        inn_cheques = FNSCheque.find_cheques_in_company_with_inn(self.company, self.get_user_inn()) if self.get_user_inn() else[]
+        user_cheques = FNSCheque.find_cheques_in_company_with_user(self.company, self.get_user()) if self.get_user() else []
         scs = {}
         for c in inn_cheques + user_cheques:
             if c.showcases_category:
@@ -270,8 +270,8 @@ class FNSCheque(models.Model):
                 scs[c.showcases_category] += 20
 
         for company in Company.objects.filter(employees__in=self.company.employees.all()): 
-            inn_cheques = FNSCheque.find_cheques_in_company_with_inn(company, self.get_user_inn())
-            user_cheques = FNSCheque.find_cheques_in_company_with_user(company, self.get_user())
+            inn_cheques = FNSCheque.find_cheques_in_company_with_inn(company, self.get_user_inn()) if self.get_user_inn() else []
+            user_cheques = FNSCheque.find_cheques_in_company_with_user(company, self.get_user()) if self.get_user() else []
             for c in inn_cheques + user_cheques:
                 if c.showcases_category:
                     if not scs.has_key(c.showcases_category):
