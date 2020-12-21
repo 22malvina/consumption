@@ -615,41 +615,12 @@ class Telegram(object):
         fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
         if not fns_cheque_json or not type(fns_cheque_json) == dict:
             print 'Error: Not find json' 
-            new_message = {
-                'chat_id': chat_id,
-                'text': fns_cheque_json
-            }
-            Telegram.send_message(new_message)
-            new_message = {
-                'chat_id': chat_id,
-                'text': u'Ошибка сервера! Просим вас, отправить данное сообщение в нашу службу поддержке. Этим вы очень поможет быстрее решить проблему.',
-            }
-            Telegram.send_message(new_message)
-            new_message = {
-                'chat_id': chat_id,
-                'text': u'Также вы можете попробовать сделать более четкую фотографию чека и QR кода на нем, или ввести данные из чека ("ФП", "ФН", "ФД", сумму в рублях с копейками, дату и время. Указав параметры как написано в /help).',
-            }
-            Telegram.send_message(new_message)
+            cls.__send_error_when_load_photo_with_qr_kode(chat_id, fns_cheque_jso)
             return False
 
         if not fns_cheque_json.get('data') or not type(fns_cheque_json['data']) == dict  or not fns_cheque_json['data'].get('json'):
             print 'Error: Bad json format'
-            print fns_cheque_json
-            new_message = {
-                'chat_id': chat_id,
-                'text': fns_cheque_json
-            }
-            Telegram.send_message(new_message)
-            new_message = {
-                'chat_id': chat_id,
-                'text': u'Ошибка сервера! Просим вас, отправить данное сообщение в нашу службу поддержке. Этим вы очень поможет быстрее решить проблему.',
-            }
-            Telegram.send_message(new_message)
-            new_message = {
-                'chat_id': chat_id,
-                'text': u'Также вы может попробовать сделать более четкую фотографию чека и QR кода на нем, или ввести данные из чека ("ФП", "ФН", "ФД", сумму в рублях с копейками, дату и время. Указав параметры как написано в /help).',
-            }
-            Telegram.send_message(new_message)
+            cls.__send_error_when_load_photo_with_qr_kode(chat_id, fns_cheque_json)
             return False
 
         #print fns_cheque_json
@@ -1112,6 +1083,26 @@ class Telegram(object):
                 u'text': u'Ваш чек от ' + str(cheque.get_datetime()) + u' на сумму ' + cheque.fns_totalSum + u' \u20bd приобретенный в "' + cheque.manual_where  + '" сохранен. Расширенная информация по чеку доступна по команде /cheque_' + str(cheque.id)
             }
             Telegram.send_message(new_message)
+
+    @classmethod
+    def __send_error_when_load_photo_with_qr_kode(cls, chat_id, fns_cheque_json):
+        print 'Error: ...'
+        print fns_cheque_json
+        new_message = {
+            'chat_id': chat_id,
+            'text': fns_cheque_json
+        }
+        Telegram.send_message(new_message)
+        new_message = {
+            'chat_id': chat_id,
+            'text': u'Ошибка сервера! Просим вас, отправить данное сообщение в нашу службу поддержке. Этим вы очень поможет быстрее решить проблему.',
+        }
+        Telegram.send_message(new_message)
+        new_message = {
+            'chat_id': chat_id,
+            'text': u'Возможно на чеке есть дургой QR код? Бывает продавец печатает несколько QR кодов. \nТакже вы можете попробовать сделать более четкую фотографию чека и QR кода на нем, или ввести данные из чека ("ФП", "ФН", "ФД", сумму в рублях с копейками, дату и время. Указав параметры как написано в /help).',
+        }
+        Telegram.send_message(new_message)
 
     @classmethod
     def send_message(cls, message):
