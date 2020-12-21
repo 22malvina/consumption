@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from cheque.models import QRCodeReader, FNSCheque, ImportProverkachekaComFormatLikeFNS, FNSChequeElement
+from cheque.models import QRCodeReader, FNSCheque, ImportProverkachekaComFormatLikeFNS, FNSChequeElement, ShowcasesCategory
 import json
 import urllib
 import urllib2
@@ -586,6 +586,18 @@ class Telegram(object):
 ##	responce = json.load(responce)
 
     @classmethod
+    def __get_cat_title(cls, cheque):
+        if cheque.showcases_category:
+            return cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
+        return u'\u2754 Другое'
+
+    @classmethod
+    def __get_year_month_day(cls, date_time):
+        d = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S').date()
+        return d
+        #return ('0' if d.day <10 else '') + str(d.day) + '.' + ('0' if d.month <10 else '') + str(d.month) + '.' + str(d.year) 
+
+    @classmethod
     def process_file(cls, company, chat_id, file_id):
 
         file_info = cls.get_file_info(file_id)
@@ -675,6 +687,7 @@ class Telegram(object):
 
 Чтобы узнать что сегодня следует купить отправьте
 "/basket_today"
+"/list_nice_categories_X" или "/list_nice_categories_K_L" где X, K, L - ид категорий в данной группе.
 "/list_nice" список всех покупок
 "/list_by_month" стристика покупок по месяцам в разреезе категорий
 Если у вас возникли вопросы, ведите команду /question и ваш вопрос
@@ -843,30 +856,28 @@ class Telegram(object):
 	    #    u'text': u'\r\n'.join(cheques),
 	    #}
 	    #Telegram.send_message(new_message)
-        elif message.find('/list_nice') >= 0 or message.find('List_nice') >= 0:
-
-
-
-
-            def __get_year_month_day(date_time):
-                d = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S').date()
-                return d
-                #return ('0' if d.day <10 else '') + str(d.day) + '.' + ('0' if d.month <10 else '') + str(d.month) + '.' + str(d.year) 
-
-            def __get_cat_title(cheque):
-                if cheque.showcases_category:
-                    return cheque.showcases_category.telegram_emoji + ' ' + cheque.showcases_category.title
-                return u'\u2754 Другое'
-
+        elif message.find('/list_nice_categories_') >= 0 or message.find('List_nice_categories_') >= 0:
+            ms = message.split('_')
+            category_ids = ms[3:]
+            if ShowcasesCategory.objects.filter(id__in=category_ids).count() != len(category_ids):
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Провеврь коректность указанных категорий, нашили только часть из %s' % (len(category_ids)),
+                }
+                Telegram.send_message(new_message)
+                return 
+            else:
+                showcases_categories = ShowcasesCategory.objects.filter(id__in=category_ids)
+                
             d = {}
-            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
+            for cheque in FNSCheque.objects.filter(company=company, showcases_category__in=showcases_categories).order_by('fns_dateTime','showcases_category'):
                 #TODO нужно работать и с ручными чеками тоже 
                 if cheque.is_manual:
                     print 'Alert: Need fix'
                     continue
 
-                year_month_day = __get_year_month_day(cheque.fns_dateTime)
-                category_title = __get_cat_title(cheque)
+                year_month_day = cls.__get_year_month_day(cheque.fns_dateTime)
+                category_title = cls.__get_cat_title(cheque)
 
                 if not d.has_key(year_month_day):
                     d[year_month_day] = {}
@@ -877,7 +888,40 @@ class Telegram(object):
 
             responce = []
             for k in sorted(d.keys()):
-                #responce.append(k)
+                date = k
+                responce.append(u'\U0001f5d3 ' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
+                for l in sorted(d[k].keys()):
+                    responce.append('' + l + ':')
+                    for cheque in d[k][l]:
+                        responce.append('  ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd {' + cheque.get_shop_short_info_string() + '} /cheque_' + str(cheque.id))
+                responce.append(u'\r')
+
+	    new_message = {
+		u'chat_id': chat_id,
+		u'text': u'\r\n'.join(responce),
+	    }
+	    Telegram.send_message(new_message)
+
+        elif message.find('/list_nice') >= 0 or message.find('List_nice') >= 0:
+            d = {}
+            for cheque in FNSCheque.objects.filter(company=company).order_by('fns_dateTime','showcases_category'):
+                #TODO нужно работать и с ручными чеками тоже 
+                if cheque.is_manual:
+                    print 'Alert: Need fix'
+                    continue
+
+                year_month_day = cls.__get_year_month_day(cheque.fns_dateTime)
+                category_title = cls.__get_cat_title(cheque)
+
+                if not d.has_key(year_month_day):
+                    d[year_month_day] = {}
+                if not d[year_month_day].has_key(category_title):
+                    d[year_month_day][category_title] = []
+
+                d[year_month_day][category_title].append(cheque)
+
+            responce = []
+            for k in sorted(d.keys()):
                 date = k
                 #responce.append(u'\U0001f5d3 ' + ('0' if date.day <10 else '') + str(date.day) + '.' + ('0' if date.month <10 else '') + str(date.month) + '.' + str(date.year))
                 responce.append(u'\U0001f5d3 ' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
