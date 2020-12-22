@@ -560,7 +560,7 @@ class FNSChequeElement(models.Model):
         return self.sum
 
     def get_price_per_one_gram(self):
-        if int(self.price * self.quantity) != int(self.sum):
+        if int(self.price * self.quantity) != int(self.sum) and (int(self.price * self.quantity) + 1) != int(self.sum):
             print 'Error: price * quantity != sum.',self.price * float(self.quantity), '!=', self.sum
         if not self.get_weight():
             return None
@@ -581,7 +581,7 @@ class FNSChequeElement(models.Model):
         elif self.volume:
             return float(self.volume * self.quantity)
         else:
-            print 'Error: Not have weight!'
+#            print 'Error: Not have weight!'
             return None
             assert False
             return float(self.quantity)
@@ -610,6 +610,57 @@ class FNSChequeElement(models.Model):
     def __has_weight_from_title(self):
         #return False if IsPackedAndWeight.weight_from_cheque_title(self.name) == 0 else True
         return IsPackedAndWeight.has_weight_from_cheque_title(self.name)
+
+    def list_string_for_search(self):
+        title = self.name
+
+        result = set()
+        result.add((100, title))
+
+        #TODO рассмотрим несколько случаев 
+        #Когда первое слово цифра(небольшое число) - номер позиции в чеке
+        #среденее число или число со зведочной (3452541 или *3452541) серийный номер в данной компании
+        #большое чилсло - штрих код или в компании или общий
+        #слово - чаще одно но иногода и 2 идущие подрят именно в такой последовательности - так принято в индустриии
+    
+        list_int = re.findall(u'^\*?(\d+) (\d+)', title)
+        if len(list_int) and len(list_int[0]) > 1:
+            title = ' '.join(title.split(' ')[2:])
+            if len(list_int[0][0]) > 5 and len(list_int[0][1]) > 5:
+                string = list_int[0][0] + ' ' + list_int[0][1]
+                result.add((95, string))
+            elif len(list_int[0][0]) < 5 and len(list_int[0][1]) > 5:
+                string = list_int[0][1]
+                result.add((93, string))
+
+        list_int = re.findall(u'^\*?(\d+)', title)
+        if len(list_int):
+            title = ' '.join(title.split(' ')[1:])
+            if len(list_int[0][0]) > 5:
+                string =  list_int[0][0]
+                result.add((92, string))
+
+        #100 балов если сопала вся строка
+        #90 балов если совпали 3 первых слова
+        #80 балов если совпало 2 первых слова
+        #70 - порог до которго показываем
+        #60 балов если совпало первое слов
+
+        words = title.split(' ')
+        if len(words) > 2:
+            string = words[0] + ' ' + words[1] + ' ' + words[2]
+            result.add((90, string))
+
+        if len(words) > 1:
+            string = words[0] + ' ' + words[1]
+            result.add((80, string))
+
+        #if len(words) > 0:
+        #    string = words[0]
+        #    result.add((60, string))
+
+        return result
+
 
     def offer_element_params(self):
         #print self.get_title().encode('utf8'), self.fns_cheque.get_datetime(), self.sum, self.volume, self.quantity
