@@ -181,45 +181,42 @@ class Telegram(object):
             }
             Telegram.send_message(new_message)
 
-
             offers = {}
             offers_element = {}
             for e in FNSChequeElement.objects.filter(fns_cheque=cheque):
                 title = e.name
                 offers_element[e.name] = []
-                print '.', e
-
 
                 string = title
-                print string.encode('utf8')
                 for o in ChequeOffer.find(string):
-                    print '+100'
                     offers_element[e.name].append([100, o, o["price"]["per_one_gram"], o["price"]["one"]])
 
-
-                #words = e.name.split(' ')
-                #words = words[:4]
-                
                 #TODO рассмотрим несколько случаев 
                 #Когда первое слово цифра(небольшое число) - номер позиции в чеке
                 #среденее число или число со зведочной (3452541 или *3452541) серийный номер в данной компании
                 #большое чилсло - штрих код или в компании или общий
                 #слово - чаще одно но иногода и 2 идущие подрят именно в такой последовательности - так принято в индустриии
             
-                list_int = re.findall(u'^(\*?\d+) (\d+)', title)
+                list_int = re.findall(u'^\*?(\d+) (\d+)', title)
                 if len(list_int) and len(list_int[0]) > 1:
-                    print '=1='
-                    print list_int
-                    #continue 
                     title = ' '.join(title.split(' ')[2:])
+                    if len(list_int[0][0]) > 5 and len(list_int[0][1]) > 5:
+                        string = list_int[0][0] + ' ' + list_int[0][1]
+                        for o in ChequeOffer.find(string):
+                            offers_element[e.name].append([95, o, o["price"]["per_one_gram"], o["price"]["one"]])
+                    elif len(list_int[0][0]) < 5 and len(list_int[0][1]) > 5:
+                        string = list_int[0][1]
+                        for o in ChequeOffer.find(string):
+                            offers_element[e.name].append([93, o, o["price"]["per_one_gram"], o["price"]["one"]])
 
-                list_int = re.findall(u'^(\*?\d+)', title)
+                list_int = re.findall(u'^\*?(\d+)', title)
                 if len(list_int):
-                    print '=2='
-                    print list_int
-                    #continue 
                     title = ' '.join(title.split(' ')[1:])
-                
+                    if len(list_int[0][0]) > 5:
+                        string =  list_int[0][0]
+                        for o in ChequeOffer.find(string):
+                            offers_element[e.name].append([95, o, o["price"]["per_one_gram"], o["price"]["one"]])
+ 
                 #100 балов если сопала вся строка
                 #90 балов если совпали 3 первых слова
                 #80 балов если совпало 2 первых слова
@@ -227,27 +224,14 @@ class Telegram(object):
                 #60 балов если совпало первое слов
 
                 words = title.split(' ')
-                print '======================'
-                print words
-
-                #string = title
-                #print string.encode('utf8')
-                #for o in ChequeOffer.find(string):
-                #    print '+100'
-                #    offers_element[title].append([100, o, o["price"]["per_one_gram"], o["price"]["one"]])
-
                 if len(words) > 2:
                     string = words[0] + ' ' + words[1] + ' ' + words[2]
-                    print '=', string.encode('utf8')
                     for o in ChequeOffer.find(string):
-                        print '+90'
                         offers_element[e.name].append([90, o, o["price"]["per_one_gram"], o["price"]["one"]])
 
                 if len(words) > 1:
                     string = words[0] + ' ' + words[1]
-                    print '=', string.encode('utf8')
                     for o in ChequeOffer.find(string):
-                        print '+80'
                         offers_element[e.name].append([80, o, o["price"]["per_one_gram"], o["price"]["one"]])
 
                 #if len(words) > 0:
@@ -257,82 +241,39 @@ class Telegram(object):
                 #        print '+60'
                 #        offers_element[e.name].append([60, o, o["price"]["per_one_gram"], o["price"]["one"]])
             
-            r = []
-            for k in offers_element.keys():
-                offers_element[k].sort(key = lambda x : x[2] if x[2] else x[3])
-                #r.append(str(float(offers_element[k][0][2])/100 if offers_element[k][0][2] else str(float(offers_element[k][0][3])/100)) + ' R. ' + offers_element[k][0][1]['product']["title"])
-                #r.append(str(float(offers_element[k][1][2])/100 if offers_element[k][1][2] else str(float(offers_element[k][1][3])/100)) + ' R. ' + offers_element[k][1][1]['product']["title"])
-                r.append((str(float(offers_element[k][0][2])/100) if offers_element[k][0][2] else '--') + ' R. ' + (str(float(offers_element[k][0][3])/100) if offers_element[k][0][3] else '==') + ' R. ' + offers_element[k][0][1]['product']["title"])
-
-            if not r:
-                return
-
-            new_message = {
-                u'chat_id': chat_id,
-                'text': '\n'.join(r),
-            }
-            Telegram.send_message(new_message)
-
-
             summ = 0
             for k in offers_element.keys():
                 offers_element[k].sort(key = lambda x : x[2] if x[2] else x[3])
-                print summ
-                print offers_element[k][0][2]
                 summ += float(offers_element[k][0][2])/100 if offers_element[k][0][2] else float(offers_element[k][0][3])/100
 
-            print '_________'
-            print summ
-            print float(cheque.fns_totalSum)
+            def __difference_percent_total(cheque, summ):
+                return(
+                    (float(cheque.fns_totalSum)/100 - summ),
+                    (int((((float(cheque.fns_totalSum)/100) - summ) / (float(cheque.fns_totalSum)/100))*100)),
+                    (float(cheque.fns_totalSum)/100)
+                )
+            dpt = __difference_percent_total(cheque, summ)
 
-            new_message = {
-                u'chat_id': chat_id,
-                #u'text': u'Составленная корзина на %s дешевле, это %s % от базовой %s' % ((float(cheque.fns_totalSum) - summ), ((float(cheque.fns_totalSum) - summ)/100), float(cheque.fns_totalSum)),
-                u'text': str(float(cheque.fns_totalSum)/100 - summ) + ' стольво вы моголи сберечь, это ' + str(int((((float(cheque.fns_totalSum)/100) - summ) / (float(cheque.fns_totalSum)/100))*100)) + u'% от первоначальной ' + str(float(cheque.fns_totalSum)/100),
-            }
-            Telegram.send_message(new_message)
+            if int(dpt[1]) > 3 or int(dpt[0]) > 50:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': str(dpt[0]) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
+                }
+                Telegram.send_message(new_message)
 
-
-
-
-
-
-
-            #offers = {}
-            #offers_element = {}
-            #for e in FNSChequeElement.objects.filter(fns_cheque=cheque):
-            #    print '.', e
-            #    words = e.name.split(' ')
- 
-            #    for i in range(0, 3 if len(words)>3 else len(words)):
-            #        word = words[i]
-            #        print '..', word.encode('utf8')
-            #        if len(word) < 3:
-            #            continue
-            #        for o in ChequeOffer.find(word):
-            #            print '...', o
-            #            if not offers.has_key(word):
-            #                offers[word] = []
-            #            offers[word].append(o)
-            ##offers = offers[:10]
-            #r = []
-            #for k in offers.keys():
-            #    res = set()
-            #    for o in offers[k]:
-            #        res.add((o['product']["title"], o["price"]["per_one_gram"],  o["price"]["one"]))
-            #    res = list(res)
-            #    res.sort(key=lambda x: x[2])
-            #    r.append({k: res[:1]})
-
-            #new_message = {
-            #    u'chat_id': chat_id,
-            #    #'text': offers,
-            #    'text': list(r),
-            #}
-            #Telegram.send_message(new_message)
-
-
+                r = []
+                for k in offers_element.keys():
+                    offers_element[k].sort(key = lambda x : x[2] if x[2] else x[3])
+                    r.append((str(float(offers_element[k][0][2])/100) if offers_element[k][0][2] else '--') + ' R. ' + (str(float(offers_element[k][0][3])/100) if offers_element[k][0][3] else '==') + ' R. ' + offers_element[k][0][1]['product']["title"])
+                if not r:
+                    return
+                new_message = {
+                    u'chat_id': chat_id,
+                    'text': '\n'.join(r),
+                }
+                Telegram.send_message(new_message)
             return
+
         else:
             fns_cheque = FNSCheque.create_save_update_fns_cheque_from_proverkacheka_com(qr_text, company)
 
@@ -352,7 +293,6 @@ class Telegram(object):
             Telegram.send_message(new_message)
 
             #TODO показать все похоэие предложения
-            
 
         else:
             new_message = {
