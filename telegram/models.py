@@ -1254,8 +1254,8 @@ class Telegram(object):
 
         def __difference_percent_total(cheque, summ):
             return(
-                (float(cheque.fns_totalSum)/100 - summ),
-                (int((((float(cheque.fns_totalSum)/100) - summ) / (float(cheque.fns_totalSum)/100))*100)),
+                (float(cheque.fns_totalSum)/100 - float(summ)),
+                (int((((float(cheque.fns_totalSum)/100) - float(summ)) / (float(cheque.fns_totalSum)/100))*100)),
                 (float(cheque.fns_totalSum)/100)
             )
         dpt = __difference_percent_total(cheque, summ)
@@ -1272,9 +1272,12 @@ class Telegram(object):
         if int(dpt[1]) > 3 or int(dpt[0]) > 50 or True:
             new_message = {
                 u'chat_id': chat_id,
-                u'text': str(dpt[0]) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
+                #u'text': str("{0:.2f}".format(dpt[0])) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
+                u'text': str(int(dpt[0])) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
             }
             Telegram.send_message(new_message)
+
+            summ = 0
 
             r = []
             #for k in element_2_offers.keys():
@@ -1328,7 +1331,6 @@ class Telegram(object):
                         #r.append('21) ' + '?q ' + str(has_not_weight[0][1]["price"]["one"] / 100 * float(k.get_quantity())) + ' R. ' + has_not_weight[0][1]['product']["title"])
                         r.append(__transfer_from_cheque_element_to_message_text('21) ?', has_not_weight[0]))
 
-
                     #r.append('22) ' + '-  ' + str(k.get_price_per_one_gram() / 100) + ' R. ' + k.get_title())
                     #if len(has_weight):
                     #    r.append('22) ' + '+  ' + str(has_weight[0][1]["price"]["per_one_gram"] / 100) + ' R. ' + has_weight[0][1]['product']["title"])
@@ -1352,7 +1354,6 @@ class Telegram(object):
                     has_weight.sort(key = lambda o : o.get_price_per_one_gram())
                     #has_not_weight.sort(key = lambda o : o[1]["price"]["one"])
                     has_not_weight.sort(key = lambda o : o.get_price())
-
                     
                     #r.append('31) ' + '-q ' + str(k.get_price() / 100 * k.get_quantity()) + ' R. ' + k.get_title())
                     if len(has_weight):
@@ -1364,17 +1365,11 @@ class Telegram(object):
                         #r.append('31) ' + '?q ' + str(has_not_weight[0][1]["price"]["one"] / 100 * float(k.get_quantity())) + ' R. ' + has_not_weight[0][1]['product']["title"])
                         r.append(__transfer_from_cheque_element_to_message_text('31) ?', has_not_weight[0]))
 
-
                     #r.append('32) ' + '-  ' + str((k.get_price()) / 100) + ' R. ' + k.get_title())
                     #if len(has_weight):
                     #    r.append('32) ' + '+  ' + str(has_weight[0][1]["price"]["per_one_gram"] / 100) + ' R. ' + has_weight[0][1]['product']["title"])
                     #if len(has_not_weight):
                     #    r.append('32) ' + '?  ' + str(has_not_weight[0][1]["price"]["one"] / 100) + ' R. ' + has_not_weight[0][1]['product']["title"])
-
-
-
-
-
 
                 ##element_2_offers[k].sort(key = lambda x : x[2] if x[2] else x[3])
                 #element_2_offers[k].sort(key = lambda o : __get_filnal_price(o[1]))
@@ -1382,22 +1377,30 @@ class Telegram(object):
 
                 #r.append('4)    ' + str(__get_filnal_price(element_2_offers[k][0][1])) + ' R. ' + element_2_offers[k][0][1]['product']["title"])
 
-
-
-
                 element_2_elements[k].sort(key = lambda o : o.get_price())
                 r.append(__transfer_from_cheque_element_to_message_text('40) +', element_2_elements[k][0]))
 
                 for e in element_2_elements[k]:
-                    print k.get_price() / 5, ' <= ',  e.get_price(), ' <= ', k.get_price()
+                    #print k.get_price() / 5, ' <= ',  e.get_price(), ' <= ', k.get_price()
                     if k.get_price() / 5 <= e.get_price() <= k.get_price():
-                        print '++++++++'
                         r.append(__transfer_from_cheque_element_to_message_text('50) +', element_2_elements[k][0]))
+                        #print '* = ', k.get_quantity(), ' * ', e.get_price()
+                        summ += k.get_quantity() * e.get_price()
                         break
-
+                else:
+                    #print '. = ', k.get_quantity(), ' * ', k.get_price()
+                    summ += k.get_quantity() * k.get_price()
+            dpt = __difference_percent_total(cheque, summ/100)
+            new_message = {
+                u'chat_id': chat_id,
+                u'text': str(int(dpt[0])) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
+            }
+            Telegram.send_message(new_message)
 
             if not r:
                 return
+            #if len(r)>30:
+            #    r = r[:30]
             new_message = {
                 u'chat_id': chat_id,
                 'text': '\n'.join(r),
@@ -1431,7 +1434,6 @@ class Telegram(object):
                 for cheque in d[k][l]:
                     responce.append('  ' + str(float(cheque.fns_totalSum) / 100) + u' \u20bd {' + cheque.get_shop_short_info_string() + '} /cheque_' + str(cheque.id))
             responce.append(u'\r')
-
         new_message = {
             u'chat_id': chat_id,
             u'text': u'\r\n'.join(responce),
