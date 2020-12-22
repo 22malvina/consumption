@@ -18,7 +18,12 @@ class FNSChequeAdmin(admin.ModelAdmin):
 @admin.register(FNSChequeElement)
 class FNSChequeElementAdmin(admin.ModelAdmin):
     search_fields = ['name', 'price', 'sum', 'quantity']
-    readonly_fields = ['fns_cheque']
+    readonly_fields = ['fns_cheque', 'link_to_admin_cheque']
 
+    def link_to_admin_cheque(self, instance):
+        if instance.id and instance.fns_cheque:
+            #return '<a href="/admin/cheque/fnschequeelement/' + str(instance.fns_cheque.id) + '">' + str(instance.fns_cheque) + '</a>'
+            return '/admin/cheque/fnscheque/' + str(instance.fns_cheque.id)
+        return ''
 
 admin.site.register(ShowcasesCategory)

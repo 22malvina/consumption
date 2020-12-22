@@ -826,6 +826,12 @@ class IsPackedAndWeight(object):
         #assert False
         #print 'result =', result
         if len(result) > 1:
+            print title.encode('utf8')
+            print result
+            #TODO обнаружили такую запись в позиции чека
+            #Пакетный тур, Турция, Сиде, IRON AMBASSADOR SIDE BEACH, 14.07.2019 - 23.07.2019
+            #[u'14.07', u'23.07']
+            return []
             assert False
         elif len(result) == 1:
             result_update = result[0].replace('.',',')
@@ -947,16 +953,16 @@ class IsPackedAndWeight(object):
     @classmethod
     def __prepare_date_for_match_weight_in_kilogram(cls, word):
         #result_kg = re.findall(u'^(\d*.&\d+)кг$', word)
-        result_kg = re.findall(u'^(\d*.?\d+)кг$', word)
-        result_kgkg = re.findall(u'^(\d*.?\d+)КГ$', word)
+        result_kg = re.findall(u'^(\d*\.?\d+)кг$', word)
+        result_kgkg = re.findall(u'^(\d*\.?\d+)КГ$', word)
         return result_kg + result_kgkg
 
     @classmethod
     def __prepare_date_for_match_weight_in_litr(cls, word):
-        result_l = re.findall(u'^(\d*.?\d+)л$', word)
-        result_ll = re.findall(u'^(\d*.?\d+)Л$', word)
-        result_lll = re.findall(u'^(\d*.?\d+)L$', word)
-        result_llll = re.findall(u'^(\d*.?\d+)l$', word)
+        result_l = re.findall(u'^(\d*\.?\d+)л$', word)
+        result_ll = re.findall(u'^(\d*\.?\d+)Л$', word)
+        result_lll = re.findall(u'^(\d*\.?\d+)L$', word)
+        result_llll = re.findall(u'^(\d*\.?\d+)l$', word)
         #print 'word =',word.encode('utf8')
         #print result_l + result_ll + result_lll + result_llll
         return result_l + result_ll + result_lll + result_llll
