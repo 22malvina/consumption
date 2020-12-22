@@ -623,7 +623,7 @@ class Telegram(object):
         fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
         if not fns_cheque_json or not type(fns_cheque_json) == dict:
             print 'Error: Not find json' 
-            cls.__send_error_when_load_photo_with_qr_kode(chat_id, fns_cheque_jso)
+            cls.__send_error_when_load_photo_with_qr_kode(chat_id, fns_cheque_json)
             return False
 
         if not fns_cheque_json.get('data') or not type(fns_cheque_json['data']) == dict  or not fns_cheque_json['data'].get('json'):
@@ -1215,22 +1215,42 @@ class Telegram(object):
 
     @classmethod
     def __send_message_include_offer_with_best_recomended_price(cls, chat_id, cheque):
-        element_2_offers = {}
-        for e in FNSChequeElement.objects.filter(fns_cheque=cheque):
-            title = e.name
-            element_2_offers[e] = []
-            result_strings = e.list_string_for_search()
-            for result_string in result_strings:
-                for o in ChequeOffer.find(result_string[1]): #TODO не хватет посика по расстоянию(местам) и времени доспности предложения
-                    element_2_offers[e].append([result_string[0], o, o["price"]["per_one_gram"], o["price"]["one"]])
+        #element_2_offers = {}
+        #for e in FNSChequeElement.objects.filter(fns_cheque=cheque):
+        #    title = e.name
+        #    element_2_offers[e] = []
+        #    result_strings = e.list_string_for_search()
+        #    for result_string in result_strings:
+        #        for o in ChequeOffer.find(result_string[1]): #TODO не хватет посика по расстоянию(местам) и времени доспности предложения
+        #            element_2_offers[e].append([result_string[0], o, o["price"]["per_one_gram"], o["price"]["one"]])
 
-        def __calc_sum_for_cheque_with_new_offer(cheque, element_2_offers):
+        element_2_elements = {}
+        for element in FNSChequeElement.objects.filter(fns_cheque=cheque):
+            title = element.name
+            element_2_elements[element] = []
+            result_strings = element.list_string_for_search()
+            for result_string in result_strings:
+                for e in FNSChequeElement.objects.filter(name__contains=result_string[1]).exclude(sum=0): #TODO не хватет посика по расстоянию(местам) и времени доспности предложения
+                    #element_2_elements[element].append(result_string[0], e)
+                    element_2_elements[element].append(e)
+
+        #def __calc_sum_for_cheque_with_new_offer(cheque, element_2_offers):
+        #    summ = 0
+        #    for k in element_2_offers.keys():
+        #        element_2_offers[k].sort(key = lambda x : x[2] if x[2] else x[3])
+        #        summ += float(element_2_offers[k][0][2])/100 if element_2_offers[k][0][2] else float(element_2_offers[k][0][3])/100
+        #    return summ
+        def __calc_sum_for_cheque_with_new_offer(cheque, element_2_elements):
             summ = 0
-            for k in element_2_offers.keys():
-                element_2_offers[k].sort(key = lambda x : x[2] if x[2] else x[3])
-                summ += float(element_2_offers[k][0][2])/100 if element_2_offers[k][0][2] else float(element_2_offers[k][0][3])/100
+            for k in element_2_elements.keys():
+                element_2_elements[k].sort(key = lambda x : x.get_price_per_one_gram() if x.get_price_per_one_gram() else x.get_price())
+                #TODO не верно работает
+                #summ += float(element_2_elements[k][0].get_price_per_one_gram())/100 if element_2_elements[k][0].get_price_per_one_gram() else float(element_2_elements[k][0].get_price())/100
+                if len(element_2_elements[k]):
+                    summ += float(element_2_elements[k][0].get_price())/100 * float(k.get_quantity())
             return summ
-        summ = __calc_sum_for_cheque_with_new_offer(cheque, element_2_offers)
+        #summ = __calc_sum_for_cheque_with_new_offer(cheque, element_2_offers)
+        summ = __calc_sum_for_cheque_with_new_offer(cheque, element_2_elements)
 
         def __difference_percent_total(cheque, summ):
             return(
@@ -1240,7 +1260,16 @@ class Telegram(object):
             )
         dpt = __difference_percent_total(cheque, summ)
 
-        if int(dpt[1]) > 3 or int(dpt[0]) > 50:
+        def __get_filnal_price(o):
+            #float(o["price"]["per_one_gram"])/100 if o["price"]["per_one_gram"] else '--') + ' R. ' + (str(float(element_2_offers[k][0][3])/100) if element_2_offers[k][0][3] else '==') + ' R. ' + element_2_offers[k][0][1]['product']["title"])
+            return (float(o["price"]["per_one_gram"])/100 if o["price"]["per_one_gram"] else float(o["price"]["one"])/100)
+
+        def __transfer_from_cheque_element_to_message_text(sufix, e):
+            k = e
+            return sufix + ' all price_KG: ' + (str(k.get_price_per_one_gram() / 100 * float(k.get_quantity()) * k.get_weight()) if k.get_price_per_one_gram() else '*') + ' R. one_KG: ' + (str(k.get_price_per_one_gram() / 100) if  k.get_price_per_one_gram() else '*') + ' R. price: ' + str(k.get_price() / 100) + ' R. sum: ' +  str(k.get_sum() / 100) + ' R. ' + ' qty: ' +str( k.get_quantity()) + ' title: ' + k.get_title()
+
+
+        if int(dpt[1]) > 3 or int(dpt[0]) > 50 or True:
             new_message = {
                 u'chat_id': chat_id,
                 u'text': str(dpt[0]) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
@@ -1248,9 +1277,125 @@ class Telegram(object):
             Telegram.send_message(new_message)
 
             r = []
-            for k in element_2_offers.keys():
-                element_2_offers[k].sort(key = lambda x : x[2] if x[2] else x[3])
-                r.append((str(float(element_2_offers[k][0][2])/100) if element_2_offers[k][0][2] else '--') + ' R. ' + (str(float(element_2_offers[k][0][3])/100) if element_2_offers[k][0][3] else '==') + ' R. ' + element_2_offers[k][0][1]['product']["title"])
+            #for k in element_2_offers.keys():
+            for k in element_2_elements.keys():
+                if not len(element_2_elements[k]):
+                    print '!!!!!!!!! error'
+                    continue
+
+                #TODO пока работаем только с теми товарами которые идут в штуках и не имют веса - кофты курки.
+                # Еще есть товары весовые и товары е весове но у которых не не проставили или не смоглди автоматом определить вес.
+
+                # Если торвары разные а цена у предоженного ниже то выводим.
+            
+                #r.append('10) -q all price_KG: ' + (str(k.get_price_per_one_gram() / 100 * float(k.get_quantity()) * k.get_weight()) if k.get_price_per_one_gram() else '*') + ' R. one_KG: ' + (str(k.get_price_per_one_gram() / 100) if  k.get_price_per_one_gram() else '*') + ' R. price: ' + str(k.get_price() / 100) + ' R. sum: ' +  str(k.get_sum() / 100) + ' R. ' + ' qty: ' +str( k.get_quantity()) + ' title: ' + k.get_title())
+                r.append(__transfer_from_cheque_element_to_message_text('00) -', k))
+                
+                if k.is_element_piece():
+                    #element_2_offers[k].sort(key = lambda o : o[1]["price"]["one"])
+                    element_2_elements[k].sort(key = lambda o : o.get_price())
+                    #r.append('1) ' + '-q ' + str(k.get_price() / 100 * float(k.get_quantity())) + ' R. ' + k.get_title())
+                    #r.append('1) ' + '+q ' + str(element_2_offers[k][0][1]["price"]["one"]/100 * k.get_quantity()) + ' R. ' + element_2_offers[k][0][1]['product']["title"])
+
+                    #r.append('1) ' + '-q all: ' + str(k.get_price_per_one_gram() / 100 * float(k.get_quantity())) + ' R. kg/R: ' + str(k.get_price_per_one_gram() / 100) + ' R. price: ' + str(k.get_price() / 100) + ' R. sum:' +  str(k.get_sum() / 100) + ' R. ' + ' qty: ' +str( k.get_quantity()) + ' ' + k.get_title())
+
+                    #r.append(__transfer_from_cheque_element_to_message_text('10) +', element_2_offers[k][0]))
+                    r.append(__transfer_from_cheque_element_to_message_text('10) +', element_2_elements[k][0]))
+
+                elif k.has_weight():
+                    has_weight = []
+                    has_not_weight = []
+                    #for o in element_2_offers[k]:
+                    for o in element_2_elements[k]:
+                        #has_weight.append(o)
+                        #if o[1].has_weight():
+                        #if o[1]["price"]["per_one_gram"]:
+                        if o.get_price_per_one_gram():
+                            has_weight.append(o)
+                        else:
+                            has_not_weight.append(o)
+
+                    #has_weight.sort(key = lambda o : o[1]["price"]["per_one_gram"])
+                    has_weight.sort(key = lambda o : o.get_price_per_one_gram())
+                    #has_not_weight.sort(key = lambda o : o[1]["price"]["one"])
+                    has_not_weight.sort(key = lambda o : o.get_price())
+
+                    #r.append('21) ' + '-q all: ' + str(k.get_price_per_one_gram() / 100 * float(k.get_quantity())) + ' R. kg/R: ' + str(k.get_price_per_one_gram() / 100) + ' R. price: ' + str(k.get_price() / 100) + ' R. sum:' +  str(k.get_sum() / 100) + ' R. ' + ' qty: ' +str(k.get_quantity()) + ' ' + k.get_title())
+                    if len(has_weight):
+                        #r.append('21) ' + '+q ' +  str(has_weight[0][1]["price"]["per_one_gram"] / 100 * float(k.get_quantity())) + ' R. ' + has_weight[0][1]['product']["title"])
+                        r.append(__transfer_from_cheque_element_to_message_text('21) +', has_weight[0]))
+                    if len(has_not_weight):
+                        #r.append('21) ' + '?q ' + str(has_not_weight[0][1]["price"]["one"] / 100 * float(k.get_quantity())) + ' R. ' + has_not_weight[0][1]['product']["title"])
+                        r.append(__transfer_from_cheque_element_to_message_text('21) ?', has_not_weight[0]))
+
+
+                    #r.append('22) ' + '-  ' + str(k.get_price_per_one_gram() / 100) + ' R. ' + k.get_title())
+                    #if len(has_weight):
+                    #    r.append('22) ' + '+  ' + str(has_weight[0][1]["price"]["per_one_gram"] / 100) + ' R. ' + has_weight[0][1]['product']["title"])
+                    #if len(has_not_weight):
+                    #    r.append('22) ' + '?  ' + str(has_not_weight[0][1]["price"]["one"] / 100) + ' R. ' + has_not_weight[0][1]['product']["title"])
+
+                else:
+                    has_weight = []
+                    has_not_weight = []
+                    #for o in element_2_offers[k]:
+                    for o in element_2_elements[k]:
+                        #has_weight.append(o)
+                        #if o[1].has_weight():
+                        #if o[1]["price"]["per_one_gram"]:
+                        if o.get_price_per_one_gram():
+                            has_weight.append(o)
+                        else:
+                            has_not_weight.append(o)
+
+                    #has_weight.sort(key = lambda o : o[1]["price"]["per_one_gram"])
+                    has_weight.sort(key = lambda o : o.get_price_per_one_gram())
+                    #has_not_weight.sort(key = lambda o : o[1]["price"]["one"])
+                    has_not_weight.sort(key = lambda o : o.get_price())
+
+                    
+                    #r.append('31) ' + '-q ' + str(k.get_price() / 100 * k.get_quantity()) + ' R. ' + k.get_title())
+                    if len(has_weight):
+                        #print has_weight[0][1]["price"]["per_one_gram"], ' / ', k.get_quantity()
+                        #r.append('31) ' + '+q ' + str(has_weight[0][1]["price"]["per_one_gram"] / 100 * float(k.get_quantity())) + ' R. ' + has_weight[0][1]['product']["title"])
+                        r.append(__transfer_from_cheque_element_to_message_text('31) +', has_weight[0]))
+                    if len(has_not_weight):
+                        #print has_not_weight[0][1]["price"]["one"], ' / ', k.get_quantity()
+                        #r.append('31) ' + '?q ' + str(has_not_weight[0][1]["price"]["one"] / 100 * float(k.get_quantity())) + ' R. ' + has_not_weight[0][1]['product']["title"])
+                        r.append(__transfer_from_cheque_element_to_message_text('31) ?', has_not_weight[0]))
+
+
+                    #r.append('32) ' + '-  ' + str((k.get_price()) / 100) + ' R. ' + k.get_title())
+                    #if len(has_weight):
+                    #    r.append('32) ' + '+  ' + str(has_weight[0][1]["price"]["per_one_gram"] / 100) + ' R. ' + has_weight[0][1]['product']["title"])
+                    #if len(has_not_weight):
+                    #    r.append('32) ' + '?  ' + str(has_not_weight[0][1]["price"]["one"] / 100) + ' R. ' + has_not_weight[0][1]['product']["title"])
+
+
+
+
+
+
+                ##element_2_offers[k].sort(key = lambda x : x[2] if x[2] else x[3])
+                #element_2_offers[k].sort(key = lambda o : __get_filnal_price(o[1]))
+                ##r.append((str(float(element_2_offers[k][0][2])/100) if element_2_offers[k][0][2] else '--') + ' R. ' + (str(float(element_2_offers[k][0][3])/100) if element_2_offers[k][0][3] else '==') + ' R. ' + element_2_offers[k][0][1]['product']["title"])
+
+                #r.append('4)    ' + str(__get_filnal_price(element_2_offers[k][0][1])) + ' R. ' + element_2_offers[k][0][1]['product']["title"])
+
+
+
+
+                element_2_elements[k].sort(key = lambda o : o.get_price())
+                r.append(__transfer_from_cheque_element_to_message_text('40) +', element_2_elements[k][0]))
+
+                for e in element_2_elements[k]:
+                    print k.get_price() / 5, ' <= ',  e.get_price(), ' <= ', k.get_price()
+                    if k.get_price() / 5 <= e.get_price() <= k.get_price():
+                        print '++++++++'
+                        r.append(__transfer_from_cheque_element_to_message_text('50) +', element_2_elements[k][0]))
+                        break
+
+
             if not r:
                 return
             new_message = {

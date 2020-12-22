@@ -561,7 +561,8 @@ class FNSChequeElement(models.Model):
 
     def get_price_per_one_gram(self):
         if int(self.price * self.quantity) != int(self.sum) and (int(self.price * self.quantity) + 1) != int(self.sum):
-            print 'Error: price * quantity != sum.',self.price * float(self.quantity), '!=', self.sum
+            print 'Error: price * quantity != sum.', (int(self.price * self.quantity) + 1), '!=', int(self.sum)
+            print 'Error: price * quantity != sum.', self.price * float(self.quantity), '!=', self.sum
         if not self.get_weight():
             return None
         return float("{0:.2f}".format(self.price * float(self.quantity) / self.get_weight()))
@@ -599,6 +600,22 @@ class FNSChequeElement(models.Model):
         #LAYS Из печи Чипсы карт нежн сыр с 2.000 None
         #Чипсы LAY'S Sticks Сыр чеддер 125г 1.000 None
         return float("{0:.3f}".format(IsPackedAndWeight.weight_from_cheque_title(self.name) / 1000))
+
+    def is_element_piece(self):
+        print 'TODO need fix'
+        q = self.get_quantity()
+        if float(q) == float(int(q)) and not self.__has_weight_from_title:
+            return True
+        return False
+        #return self.__has_weight_from_title()
+        #return True
+
+    def has_weight(self):
+        """
+        только для тестов
+        """
+        print 'Alert: only in test!'
+        return self.__has_weight_from_title()
 
     def has_weight_from_title(self):
         """
