@@ -1334,8 +1334,32 @@ class Telegram(object):
             #TODO пока работаем только с теми товарами которые идут в штуках и не имют веса - кофты курки.
             # Еще есть товары весовые и товары е весове но у которых не не проставили или не смоглди автоматом определить вес.
             # Если торвары разные а цена у предоженного ниже то выводим.
-            element_2_elements[k].sort(key = lambda o : o.get_price())
-            for e in element_2_elements[k]:
+
+            #element_2_elements[k].sort(key = lambda o : o.get_price())
+            #for e in element_2_elements[k]:
+            #    if k.get_price() / 5 <= e.get_price() < k.get_price():
+            #        element_2_best_element[k] = e
+            #        summ += k.get_quantity() * e.get_price()
+            #        break
+            #else:
+            #    summ += k.get_quantity() * k.get_price()
+
+
+            #сначала сгруппируем по магазинам и удалим для одного товара данные за несколько покупок
+            shop_2_elements = {}
+            for i in element_2_elements[k]:
+                uniq_key = i.fns_cheque.get_shop_info_string() + i.get_title()
+                if not shop_2_elements.get(uniq_key):
+                    shop_2_elements[uniq_key]= []
+                shop_2_elements[uniq_key].append(i)
+
+            elements = []
+            for h in shop_2_elements.keys():
+                shop_2_elements[h].sort(key = lambda o : o.get_datetime())
+                elements.append(shop_2_elements[h][-1])
+
+            elements.sort(key = lambda o : o.get_price())
+            for e in elements:
                 if k.get_price() / 5 <= e.get_price() < k.get_price():
                     element_2_best_element[k] = e
                     summ += k.get_quantity() * e.get_price()
