@@ -180,7 +180,7 @@ class Telegram(object):
                 u'text': u'Такой чек уже существует в данном чате! /cheque_' + str(cheque.id),
             }
             Telegram.send_message(new_message)
-            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(company, chat_id, cheque)
             return
         else:
             fns_cheque = FNSCheque.create_save_update_fns_cheque_from_proverkacheka_com(qr_text, company)
@@ -198,7 +198,7 @@ class Telegram(object):
                 'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
             }
             Telegram.send_message(new_message)
-            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(company, chat_id, fns_cheque)
         else:
             new_message = {
                 u'chat_id': chat_id,
@@ -657,7 +657,7 @@ class Telegram(object):
                 u'text': u'Такой чек уже существует в данном чате! /cheque_' + str(cheque.id),
             }
             Telegram.send_message(new_message)
-            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(company, chat_id, cheque)
             return False
 
         fns_cheque = FNSCheque(is_manual=False, company=company)
@@ -683,7 +683,7 @@ class Telegram(object):
             }
             Telegram.send_message(new_message)
 
-            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, fns_cheque)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(company, chat_id, fns_cheque)
         return True
 
     @classmethod
@@ -1048,7 +1048,7 @@ class Telegram(object):
                 }
                 Telegram.send_message(new_message)
 
-            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(company, chat_id, cheque)
                
         elif message.find('/delete_cheque') >= 0 or message.find('Delete_cheque') >= 0:
             request = message.split(' ')
@@ -1316,7 +1316,7 @@ class Telegram(object):
             Telegram.send_message(new_message)
 
     @classmethod
-    def __send_message_include_offer_with_best_recomended_price_v2(cls, chat_id, cheque):
+    def __send_message_include_offer_with_best_recomended_price_v2(cls, company, chat_id, cheque):
         element_2_elements = {}
         for element in FNSChequeElement.objects.filter(fns_cheque=cheque):
             title = element.name
@@ -1325,6 +1325,9 @@ class Telegram(object):
             for result_string in result_strings:
                 for e in FNSChequeElement.objects.filter(name__contains=result_string[1]).exclude(sum=0): #TODO не хватет посика по расстоянию(местам) и времени доспности предложения
                     element_2_elements[element].append(e)
+
+        city_title = FNSCheque.current_city_title(company)
+
         element_2_best_element = {}
         summ = 0
         for k in element_2_elements.keys():
@@ -1355,6 +1358,13 @@ class Telegram(object):
 
             elements = []
             for h in shop_2_elements.keys():
+	        #if not re.findall(u'осква', h):
+                #    continue
+                #print 'god h =', h.encode('utf8')
+                #for city_title in FNSCheque.current_city_title(company):
+                if not re.findall(city_title, h):
+                    continue
+
                 shop_2_elements[h].sort(key = lambda o : o.get_datetime())
                 elements.append(shop_2_elements[h][-1])
 

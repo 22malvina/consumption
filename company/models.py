@@ -23,4 +23,3 @@ class Company(models.Model):
     def __unicode__(self):
         return u"Company: %s, %s, %s" % (self.id, self.title, self.telegram_chat_id)
 
-
