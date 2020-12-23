@@ -683,7 +683,7 @@ class Telegram(object):
             }
             Telegram.send_message(new_message)
 
-            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, fns_cheque)
         return True
 
     @classmethod
@@ -1248,7 +1248,7 @@ class Telegram(object):
         if int(dpt[1]) > 3 or int(dpt[0]) > 50 or True:
             new_message = {
                 u'chat_id': chat_id,
-                u'text': str(int(dpt[0])) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
+                u'text': str(int(dpt[0])) + u' стольво вы могли сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
             }
             Telegram.send_message(new_message)
             summ = 0
