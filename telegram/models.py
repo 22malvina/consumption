@@ -191,11 +191,11 @@ class Telegram(object):
         if fns_cheque:
             fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
 
-            new_message = {
-                'chat_id': chat_id,
-                'text': u'Здесь будет в JSON чека полученный от ФНС',
-            }
-            Telegram.send_message(new_message)
+            #new_message = {
+            #    'chat_id': chat_id,
+            #    'text': u'Здесь будет в JSON чека полученный от ФНС',
+            #}
+            #Telegram.send_message(new_message)
             new_message = {
                 u'chat_id': chat_id,
                 #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' \u20bd сохранен.'
@@ -205,6 +205,7 @@ class Telegram(object):
 
             #TODO показать все похоэие предложения
 
+            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
         else:
             new_message = {
                 u'chat_id': chat_id,
@@ -675,11 +676,11 @@ class Telegram(object):
         if fns_cheque:
             fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
 
-            new_message = {
-                'chat_id': chat_id,
-                'text': u'Здесь будет в JSON чека полученный от ФНС',
-            }
-            Telegram.send_message(new_message)
+            #new_message = {
+            #    'chat_id': chat_id,
+            #    'text': u'Здесь будет в JSON чека полученный от ФНС',
+            #}
+            #Telegram.send_message(new_message)
             new_message = {
                 u'chat_id': chat_id,
                 #u'text': u'Ваш чек от ' + fns_cheque.fns_dateTime.replace('T', ' ') + u' на сумму ' + str(float(fns_cheque.fns_totalSum)/100) + u' \u20bd приобретенный в ' + fns_cheque.get_user() + ' ' + fns_cheque.get_user_inn() + ' ' + fns_cheque.get_address() + ' сохранен. Расширенная информация по чеку доступна по команде /cheque_' + str(fns_cheque.id),
@@ -687,6 +688,8 @@ class Telegram(object):
                 'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
             }
             Telegram.send_message(new_message)
+
+            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
         return True
 
     @classmethod
