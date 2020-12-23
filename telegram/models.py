@@ -1353,18 +1353,75 @@ class Telegram(object):
             u'text': str(int(dpt[0])) + u' руб. столько вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
         }
         Telegram.send_message(new_message)
+
+        #rr = []
+        #r = []
+        #count = 0
+        #max_count = 15
+        #for k in element_2_best_element.keys():
+        #    r.append(cls.__transfer_from_cheque_element_to_message_text_v1('-', k))
+        #    r.append(cls.__transfer_from_cheque_element_to_message_text_v1('+', element_2_best_element[k]))
+        #    count += 1
+        #    if count > max_count:
+        #        rr.append(r)
+        #        r = []
+        #        count = 0
+        #rr.append(r)
+        #if not rr:
+        #    return
+        #for r in rr:
+        #    new_message = {
+        #        u'chat_id': chat_id,
+        #        'text': '\n'.join(r),
+        #    }
+        #    Telegram.send_message(new_message)
+        
+        #element_2_shop_2_best_element = {}
+        #for k in element_2_elements.keys():
+        #    if not len(element_2_elements[k]):
+        #        print '!!!!!!!!! error'
+        #        continue
+        #    #TODO пока работаем только с теми товарами которые идут в штуках и не имют веса - кофты курки.
+        #    # Еще есть товары весовые и товары е весове но у которых не не проставили или не смоглди автоматом определить вес.
+        #    # Если торвары разные а цена у предоженного ниже то выводим.
+        #    element_2_elements[k].sort(key = lambda o : o.get_price())
+        #    for e in element_2_elements[k]:
+        #        if not element_2_shop_2_best_element.get(k):
+        #            element_2_shop_2_best_element[k] = {}
+        #        if not element_2_shop_2_best_element[k].get(e.get_shop_info_string()):
+        #            element_2_shop_2_best_element[k][e.get_shop_info_string()] = []
+        #        element_2_shop_2_best_element[k][e.get_shop_info_string()].append(e)
+        #    else:
+        #        summ += k.get_quantity() * k.get_price()
+        #dpt = cls.__difference_percent_total(cheque, summ/100)
+ 
+        #get_shop_info_string()
+
+        shop_2_element_2_best_element = {}
+        for k in element_2_best_element.keys():
+            if not shop_2_element_2_best_element.get(element_2_best_element[k].fns_cheque.get_shop_info_string()):
+                shop_2_element_2_best_element[element_2_best_element[k].fns_cheque.get_shop_info_string()] = {}
+            #if not shop_2_element_2_best_element[e.get_shop_info_string()].get(k):
+            #    shop_2_element_2_best_element[e.get_shop_info_string()][k] = []
+            #shop_2_element_2_best_element[e.get_shop_info_string][k].append(e)
+            shop_2_element_2_best_element[element_2_best_element[k].fns_cheque.get_shop_info_string()][k] = element_2_best_element[k]
+
         rr = []
         r = []
         count = 0
         max_count = 15
-        for k in element_2_best_element.keys():
-            r.append(cls.__transfer_from_cheque_element_to_message_text_v1('-', k))
-            r.append(cls.__transfer_from_cheque_element_to_message_text_v1('+', element_2_best_element[k]))
-            count += 1
-            if count > max_count:
-                rr.append(r)
-                r = []
-                count = 0
+        for shop in shop_2_element_2_best_element.keys():
+            r.append(u'\U0001f3db' + shop)
+            for k in shop_2_element_2_best_element[shop]:
+                #r.append(cls.__transfer_from_cheque_element_to_message_text_v2('-', k))
+                r.append(cls.__transfer_from_cheque_element_to_message_text_v2(u'\u2796', k))
+                #r.append(cls.__transfer_from_cheque_element_to_message_text_v2('+', shop_2_element_2_best_element[shop][k]))
+                r.append(cls.__transfer_from_cheque_element_to_message_text_v2(u'\u2795', shop_2_element_2_best_element[shop][k]))
+                count += 1
+                if count > max_count:
+                    rr.append(r)
+                    r = []
+                    count = 0
         rr.append(r)
         if not rr:
             return
@@ -1417,6 +1474,10 @@ class Telegram(object):
     def __transfer_from_cheque_element_to_message_text_v1(cls, sufix, k):
         #return sufix + ' ' + str(k.get_price() / 100) + ' руб. ' + k.get_title() + ' ' + k.fns_cheque.get_shop_short_info_string() + ' ' + k.fns_cheque.get_datetime()
         return sufix + ' ' + str(k.get_price() / 100) + ' руб. ' + k.get_title() + ' -> ' + k.fns_cheque.get_shop_short_info_string()
+
+    @classmethod
+    def __transfer_from_cheque_element_to_message_text_v2(cls, sufix, k):
+        return sufix + ' ' + str(k.get_price() / 100) + u' \u20bd ' + k.get_title()
 
     @classmethod
     def __was_message_processed(cls, update_id):
