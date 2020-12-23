@@ -180,17 +180,13 @@ class Telegram(object):
                 u'text': u'Такой чек уже существует в данном чате! /cheque_' + str(cheque.id),
             }
             Telegram.send_message(new_message)
-
             cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
-
             return
-
         else:
             fns_cheque = FNSCheque.create_save_update_fns_cheque_from_proverkacheka_com(qr_text, company)
 
         if fns_cheque:
             fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
-
             #new_message = {
             #    'chat_id': chat_id,
             #    'text': u'Здесь будет в JSON чека полученный от ФНС',
@@ -202,9 +198,6 @@ class Telegram(object):
                 'text': cls.__get_answer_string_when_add_cheque(fns_cheque),
             }
             Telegram.send_message(new_message)
-
-            #TODO показать все похоэие предложения
-
             cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
         else:
             new_message = {
@@ -664,6 +657,7 @@ class Telegram(object):
                 u'text': u'Такой чек уже существует в данном чате! /cheque_' + str(cheque.id),
             }
             Telegram.send_message(new_message)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
             return False
 
         fns_cheque = FNSCheque(is_manual=False, company=company)
