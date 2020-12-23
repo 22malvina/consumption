@@ -181,7 +181,7 @@ class Telegram(object):
             }
             Telegram.send_message(new_message)
 
-            cls.__send_message_include_offer_with_best_recomended_price(chat_id, cheque)
+            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
 
             return
 
@@ -212,6 +212,24 @@ class Telegram(object):
             }
             Telegram.send_message(new_message)
  
+    @classmethod
+    def __calc_sum_for_cheque_with_new_offer(cls, cheque, element_2_elements):
+        summ = 0
+        for k in element_2_elements.keys():
+            element_2_elements[k].sort(key = lambda x : x.get_price_per_one_gram() if x.get_price_per_one_gram() else x.get_price())
+            #TODO не верно работает
+            if len(element_2_elements[k]):
+                summ += float(element_2_elements[k][0].get_price())/100 * float(k.get_quantity())
+        return summ
+
+    @classmethod
+    def __difference_percent_total(cls, cheque, summ):
+        return(
+            (float(cheque.fns_totalSum)/100 - float(summ)),
+            (int((((float(cheque.fns_totalSum)/100) - float(summ)) / (float(cheque.fns_totalSum)/100))*100)),
+            (float(cheque.fns_totalSum)/100)
+        )
+
     @classmethod
     def __get_company_for_user(cls, telegram_user_id, chat_id, username, first_name, last_name, language_code, chat_title):
         employees = Employee.objects.filter(telegram_id=telegram_user_id)
@@ -347,6 +365,9 @@ class Telegram(object):
         else:
             assert False
         return messages
+
+    def __get_filnal_price(o):
+        return (float(o["price"]["per_one_gram"])/100 if o["price"]["per_one_gram"] else float(o["price"]["one"])/100)
 
     @classmethod
     #def get_messages(cls):
@@ -1029,6 +1050,8 @@ class Telegram(object):
                     u'text': u'Error: не известная ошибка',
                 }
                 Telegram.send_message(new_message)
+
+            cls.__send_message_include_offer_with_best_recomended_price_v2(chat_id, cheque)
                
         elif message.find('/delete_cheque') >= 0 or message.find('Delete_cheque') >= 0:
             request = message.split(' ')
@@ -1223,27 +1246,8 @@ class Telegram(object):
             for result_string in result_strings:
                 for e in FNSChequeElement.objects.filter(name__contains=result_string[1]).exclude(sum=0): #TODO не хватет посика по расстоянию(местам) и времени доспности предложения
                     element_2_elements[element].append(e)
-        def __calc_sum_for_cheque_with_new_offer(cheque, element_2_elements):
-            summ = 0
-            for k in element_2_elements.keys():
-                element_2_elements[k].sort(key = lambda x : x.get_price_per_one_gram() if x.get_price_per_one_gram() else x.get_price())
-                #TODO не верно работает
-                if len(element_2_elements[k]):
-                    summ += float(element_2_elements[k][0].get_price())/100 * float(k.get_quantity())
-            return summ
-        summ = __calc_sum_for_cheque_with_new_offer(cheque, element_2_elements)
-        def __difference_percent_total(cheque, summ):
-            return(
-                (float(cheque.fns_totalSum)/100 - float(summ)),
-                (int((((float(cheque.fns_totalSum)/100) - float(summ)) / (float(cheque.fns_totalSum)/100))*100)),
-                (float(cheque.fns_totalSum)/100)
-            )
-        dpt = __difference_percent_total(cheque, summ)
-        def __get_filnal_price(o):
-            return (float(o["price"]["per_one_gram"])/100 if o["price"]["per_one_gram"] else float(o["price"]["one"])/100)
-        def __transfer_from_cheque_element_to_message_text(sufix, e):
-            k = e
-            return sufix + ' all price_KG: ' + (str(k.get_price_per_one_gram() / 100 * float(k.get_quantity()) * k.get_weight()) if k.get_price_per_one_gram() else '*') + ' R. one_KG: ' + (str(k.get_price_per_one_gram() / 100) if  k.get_price_per_one_gram() else '*') + ' R. price: ' + str(k.get_price() / 100) + ' R. sum: ' +  str(k.get_sum() / 100) + ' R. ' + ' qty: ' +str( k.get_quantity()) + ' title: ' + k.get_title()
+        summ = cls.__calc_sum_for_cheque_with_new_offer(cheque, element_2_elements)
+        dpt = cls.__difference_percent_total(cheque, summ)
         if int(dpt[1]) > 3 or int(dpt[0]) > 50 or True:
             new_message = {
                 u'chat_id': chat_id,
@@ -1259,10 +1263,10 @@ class Telegram(object):
                 #TODO пока работаем только с теми товарами которые идут в штуках и не имют веса - кофты курки.
                 # Еще есть товары весовые и товары е весове но у которых не не проставили или не смоглди автоматом определить вес.
                 # Если торвары разные а цена у предоженного ниже то выводим.
-                r.append(__transfer_from_cheque_element_to_message_text('00) -', k))
+                r.append(cls.__transfer_from_cheque_element_to_message_text('00) -', k))
                 if k.is_element_piece():
                     element_2_elements[k].sort(key = lambda o : o.get_price())
-                    r.append(__transfer_from_cheque_element_to_message_text('10) +', element_2_elements[k][0]))
+                    r.append(cls.__transfer_from_cheque_element_to_message_text('10) +', element_2_elements[k][0]))
                 elif k.has_weight():
                     has_weight = []
                     has_not_weight = []
@@ -1274,9 +1278,9 @@ class Telegram(object):
                     has_weight.sort(key = lambda o : o.get_price_per_one_gram())
                     has_not_weight.sort(key = lambda o : o.get_price())
                     if len(has_weight):
-                        r.append(__transfer_from_cheque_element_to_message_text('21) +', has_weight[0]))
+                        r.append(cls.__transfer_from_cheque_element_to_message_text('21) +', has_weight[0]))
                     if len(has_not_weight):
-                        r.append(__transfer_from_cheque_element_to_message_text('21) ?', has_not_weight[0]))
+                        r.append(cls.__transfer_from_cheque_element_to_message_text('21) ?', has_not_weight[0]))
                 else:
                     has_weight = []
                     has_not_weight = []
@@ -1288,19 +1292,19 @@ class Telegram(object):
                     has_weight.sort(key = lambda o : o.get_price_per_one_gram())
                     has_not_weight.sort(key = lambda o : o.get_price())
                     if len(has_weight):
-                        r.append(__transfer_from_cheque_element_to_message_text('31) +', has_weight[0]))
+                        r.append(cls.__transfer_from_cheque_element_to_message_text('31) +', has_weight[0]))
                     if len(has_not_weight):
-                        r.append(__transfer_from_cheque_element_to_message_text('31) ?', has_not_weight[0]))
+                        r.append(cls.__transfer_from_cheque_element_to_message_text('31) ?', has_not_weight[0]))
                 element_2_elements[k].sort(key = lambda o : o.get_price())
-                r.append(__transfer_from_cheque_element_to_message_text('40) +', element_2_elements[k][0]))
+                r.append(cls.__transfer_from_cheque_element_to_message_text('40) +', element_2_elements[k][0]))
                 for e in element_2_elements[k]:
                     if k.get_price() / 5 <= e.get_price() <= k.get_price():
-                        r.append(__transfer_from_cheque_element_to_message_text('50) +', element_2_elements[k][0]))
+                        r.append(cls.__transfer_from_cheque_element_to_message_text('50) +', element_2_elements[k][0]))
                         summ += k.get_quantity() * e.get_price()
                         break
                 else:
                     summ += k.get_quantity() * k.get_price()
-            dpt = __difference_percent_total(cheque, summ/100)
+            dpt = cls.__difference_percent_total(cheque, summ/100)
             new_message = {
                 u'chat_id': chat_id,
                 u'text': str(int(dpt[0])) + u' стольво вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
@@ -1308,6 +1312,66 @@ class Telegram(object):
             Telegram.send_message(new_message)
             if not r:
                 return
+            new_message = {
+                u'chat_id': chat_id,
+                'text': '\n'.join(r),
+            }
+            Telegram.send_message(new_message)
+
+    @classmethod
+    def __send_message_include_offer_with_best_recomended_price_v2(cls, chat_id, cheque):
+        element_2_elements = {}
+        for element in FNSChequeElement.objects.filter(fns_cheque=cheque):
+            title = element.name
+            element_2_elements[element] = []
+            result_strings = element.list_string_for_search()
+            for result_string in result_strings:
+                for e in FNSChequeElement.objects.filter(name__contains=result_string[1]).exclude(sum=0): #TODO не хватет посика по расстоянию(местам) и времени доспности предложения
+                    element_2_elements[element].append(e)
+        element_2_best_element = {}
+        summ = 0
+        for k in element_2_elements.keys():
+            if not len(element_2_elements[k]):
+                print '!!!!!!!!! error'
+                continue
+            #TODO пока работаем только с теми товарами которые идут в штуках и не имют веса - кофты курки.
+            # Еще есть товары весовые и товары е весове но у которых не не проставили или не смоглди автоматом определить вес.
+            # Если торвары разные а цена у предоженного ниже то выводим.
+            element_2_elements[k].sort(key = lambda o : o.get_price())
+            for e in element_2_elements[k]:
+                if k.get_price() / 5 <= e.get_price() < k.get_price():
+                    element_2_best_element[k] = e
+                    summ += k.get_quantity() * e.get_price()
+                    break
+            else:
+                summ += k.get_quantity() * k.get_price()
+        dpt = cls.__difference_percent_total(cheque, summ/100)
+        if int(dpt[1]) > 3 or int(dpt[0]) > 50:
+            pass
+        else:
+            return
+
+        new_message = {
+            u'chat_id': chat_id,
+            u'text': str(int(dpt[0])) + u' руб. столько вы моголи сберечь, это ' + str(dpt[1]) + u'% от уплаченной суммы ' + str(dpt[2]),
+        }
+        Telegram.send_message(new_message)
+        rr = []
+        r = []
+        count = 0
+        max_count = 15
+        for k in element_2_best_element.keys():
+            r.append(cls.__transfer_from_cheque_element_to_message_text_v1('-', k))
+            r.append(cls.__transfer_from_cheque_element_to_message_text_v1('+', element_2_best_element[k]))
+            count += 1
+            if count > max_count:
+                rr.append(r)
+                r = []
+                count = 0
+        rr.append(r)
+        if not rr:
+            return
+        for r in rr:
             new_message = {
                 u'chat_id': chat_id,
                 'text': '\n'.join(r),
@@ -1346,6 +1410,16 @@ class Telegram(object):
             u'text': u'\r\n'.join(responce),
         }
         Telegram.send_message(new_message)
+
+    @classmethod
+    def __transfer_from_cheque_element_to_message_text(cls, sufix, e):
+        k = e
+        return sufix + ' all price_KG: ' + (str(k.get_price_per_one_gram() / 100 * float(k.get_quantity()) * k.get_weight()) if k.get_price_per_one_gram() else '*') + ' R. one_KG: ' + (str(k.get_price_per_one_gram() / 100) if  k.get_price_per_one_gram() else '*') + ' R. price: ' + str(k.get_price() / 100) + ' R. sum: ' +  str(k.get_sum() / 100) + ' R. ' + ' qty: ' +str( k.get_quantity()) + ' title: ' + k.get_title()
+
+    @classmethod
+    def __transfer_from_cheque_element_to_message_text_v1(cls, sufix, k):
+        #return sufix + ' ' + str(k.get_price() / 100) + ' руб. ' + k.get_title() + ' ' + k.fns_cheque.get_shop_short_info_string() + ' ' + k.fns_cheque.get_datetime()
+        return sufix + ' ' + str(k.get_price() / 100) + ' руб. ' + k.get_title() + ' -> ' + k.fns_cheque.get_shop_short_info_string()
 
     @classmethod
     def __was_message_processed(cls, update_id):
