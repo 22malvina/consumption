@@ -13,6 +13,8 @@ import re
 
 import ast # нужен для того чтобы из сохраненного как бы джисона достать данные
 
+from datetime import datetime
+
 """
 json чека ипортированного из ФНС России
 место хранения
@@ -130,6 +132,7 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
         fns_cheque_json = ImportProverkachekaComFormatLikeFNS.get_fns_cheque_by_qr_params('', qr_text)
 	#FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
 	fns_cheque.update_cheque_from_json(fns_cheque_json)
+        fns_cheque.set_best_category_if_high_rating()
         return fns_cheque
 
     @classmethod
@@ -159,6 +162,9 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
     def format_date_qr_srt(self):
         #return str(self.fns_dateTime[0:4]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[8:10]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
         return str(self.fns_dateTime[8:10]) + str(self.fns_dateTime[5:7]) + str(self.fns_dateTime[0:4]) + 'T' + str(self.fns_dateTime[11:13]) + str(self.fns_dateTime[14:16]) 
+
+    def format_fns_dateTime_2_DateTime(self):
+        return  datetime.strptime(self.fns_dateTime, '%Y-%m-%dT%H:%M:%S')
 
     def format_sum_qr_srt(self):
         return str(self.fns_totalSum[0:-2]) + '.' + str(self.fns_totalSum[-2:])
@@ -277,24 +283,51 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
             add = ''
         return add
 
-    def get_recomended_showcases_category(self):
-        inn_cheques = FNSCheque.find_cheques_in_company_with_inn(self.company, self.get_user_inn()) if self.get_user_inn() else[]
-        user_cheques = FNSCheque.find_cheques_in_company_with_user(self.company, self.get_user()) if self.get_user() else []
+    @classmethod
+    def get_recomended_showcases_category_2_rating(cls, company, fns_cheque, increment):
         scs = {}
+        inn_cheques = FNSCheque.find_cheques_in_company_with_inn(company, fns_cheque.get_user_inn()) if fns_cheque.get_user_inn() else[]
+        user_cheques = FNSCheque.find_cheques_in_company_with_user(company, fns_cheque.get_user()) if fns_cheque.get_user() else []
         for c in inn_cheques + user_cheques:
             if c.showcases_category:
                 if not scs.has_key(c.showcases_category):
                     scs[c.showcases_category] = 0
-                scs[c.showcases_category] += 20
+                scs[c.showcases_category] += increment
+        return scs
 
+    def get_recomended_showcases_category(self):
+        scs = {}
+        #inn_cheques = FNSCheque.find_cheques_in_company_with_inn(self.company, self.get_user_inn()) if self.get_user_inn() else[]
+        #user_cheques = FNSCheque.find_cheques_in_company_with_user(self.company, self.get_user()) if self.get_user() else []
+        #for c in inn_cheques + user_cheques:
+        #    if c.showcases_category:
+        #        if not scs.has_key(c.showcases_category):
+        #            scs[c.showcases_category] = 0
+        #        scs[c.showcases_category] += 20
+
+        increment = 20
+        showcases_category_2_rating = FNSCheque.get_recomended_showcases_category_2_rating(self.company, self, increment)
+        for k in showcases_category_2_rating.keys():
+            if not scs.has_key(k):
+                scs[k] = 0
+            scs[k] += showcases_category_2_rating[k]
+
+        #for company in Company.objects.filter(employees__in=self.company.employees.all()): 
+        #    inn_cheques = FNSCheque.find_cheques_in_company_with_inn(company, self.get_user_inn()) if self.get_user_inn() else []
+        #    user_cheques = FNSCheque.find_cheques_in_company_with_user(company, self.get_user()) if self.get_user() else []
+        #    for c in inn_cheques + user_cheques:
+        #        if c.showcases_category:
+        #            if not scs.has_key(c.showcases_category):
+        #                scs[c.showcases_category] = 0
+        #            scs[c.showcases_category] += 1
+ 
+        increment = 1
         for company in Company.objects.filter(employees__in=self.company.employees.all()): 
-            inn_cheques = FNSCheque.find_cheques_in_company_with_inn(company, self.get_user_inn()) if self.get_user_inn() else []
-            user_cheques = FNSCheque.find_cheques_in_company_with_user(company, self.get_user()) if self.get_user() else []
-            for c in inn_cheques + user_cheques:
-                if c.showcases_category:
-                    if not scs.has_key(c.showcases_category):
-                        scs[c.showcases_category] = 0
-                    scs[c.showcases_category] += 1
+            showcases_category_2_rating = FNSCheque.get_recomended_showcases_category_2_rating(company, self, increment)
+            for k in showcases_category_2_rating.keys():
+                if not scs.has_key(k):
+                    scs[k] = 0
+                scs[k] += showcases_category_2_rating[k]
 
         if len(scs.keys()) == 0:
             if ShowcasesCategory.objects.count() > 0 and ShowcasesCategory.objects.filter(id=1).count() > 0:
@@ -461,6 +494,21 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
 
         #cls.update_cheque_from_json(fns_cheque, fns_cheque_json)
         fns_cheque.update_cheque_from_json(fns_cheque_json)
+        fns_cheque.set_best_category_if_high_rating()
+
+    def set_best_category_if_high_rating(self):
+        ball_for_set_by_default = 5
+        increment = 1
+        self = FNSCheque.objects.get(id=self.id)
+        scs = FNSCheque.get_recomended_showcases_category_2_rating(self.company, self, increment)
+        if len(scs.keys()) > 0:
+            sort_scs = sorted(scs.items(), key=lambda x : x[1])
+            best_category = sort_scs[-1][0]
+            best_category_rating = sort_scs[-1][1]
+
+            if best_category_rating > ball_for_set_by_default:
+                self.showcases_category = best_category
+                self.save()
 
     #@classmethod
     #def update_cheque_from_json(cls, fns_cheque, fns_cheque_json):

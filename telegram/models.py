@@ -666,6 +666,7 @@ class Telegram(object):
 
         #FNSCheque.update_cheque_from_json(fns_cheque, fns_cheque_json)
         fns_cheque.update_cheque_from_json(fns_cheque_json)
+        fns_cheque.set_best_category_if_high_rating()
 
         if fns_cheque:
             fns_cheque = FNSCheque.objects.get(id=fns_cheque.id)
@@ -696,6 +697,11 @@ class Telegram(object):
                     u'chat_id': chat_id,
                     u'text': u'Категория изменена',
                 }
+            elif len(p) == 2:
+                new_message = {
+                    u'chat_id': chat_id,
+                    u'text': u'Вы можете указать одну из следующих категорий:\n' + '\n'.join(map(lambda i: i.telegram_emoji + ' ' + i.title + ' /cscat_' + p[1] + '_' + str(i.id), ShowcasesCategory.objects.all()))
+                }
             else:
                 new_message = {
                     u'chat_id': chat_id,
@@ -706,31 +712,33 @@ class Telegram(object):
 
         #FYI: Отправьте /help чтобы получить справку.
         #И снова здравствуйте! Отправьте /help чтобы получить справку.
-        elif message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
+        #elif message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0:
+        elif message.find('/help') >= 0 or message.find('Help') >= 0 or message.find('HELP') >= 0 or message.find('help') >= 0 or \
+            message.find('/start') >= 0 or message.find('Start') >= 0 or message.find('START') >= 0 or message.find('start') >= 0:
             new_message = {
                 'chat_id': chat_id,
                 'text': u"""Help : Здравствуйте, я могу рассказать вам как можно сэкономить при ежедневных походах в магазин.
 А также помогу проверить чеки пробитые в магазинах.
 Все команды вводятся без кавычек "".
 Вы может отправить фото чек с QR кодом и система сама попробует распознать данный чек.
-Если фото не четкое попробуей или заново отсканировать или ввести данные вручную.
+Если фото не четкое попробуйте или заново отсканировать или ввести данные вручную.
 Чтобы загрузить чек отправьте, распознанный QR код и укажите вначале /qrcode - пример:
 "/qrcode t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1"
 или просто текст QR кода:
 "t=20200524T125600&s=849.33&fn=9285000100127361&i=115180&fp=1513716805&n=1"
-или укзать следубщие данные из чека: ФН, ФД, ФП, сумма с копейками, дату и время продажи.
+или указать следующие данные из чека: ФН, ФД, ФП, сумма с копейками, дату и время продажи.
 
-Чтобы узнать что сегодня следует купить отправьте
-"/basket_today"
 "/list_nice_categories_X" или "/list_nice_categories_K_L" где X, K, L - ид категорий в данной группе.
 "/list_nice" список всех покупок
-"/list_by_month" стристика покупок по месяцам в разреезе категорий
+"/list_by_month" статистика покупок по месяцам в разрезе категорий
 Если у вас возникли вопросы, ведите команду /question и ваш вопрос
 "/question Добрый день, подскажите как добавить новый элемент?"
 Для удаления чека введите команду "/delete_cheque_XXX" где XXX - ид чека.
-Чтобы внести новое преобретение введите "/spent; 99.00; БигМак; Макдональдс Москва Большая Бронная ул., 29; 2020-12-12 18:50" 
-Таким образом вы укажите через разделитель ";" смтоимость покупки, саму покпку, где покупали и когда.
+Чтобы внести новое приобретение введите "/spent; 99.00; БигМак; Макдональдс Москва Большая Бронная ул., 29; 2020-12-12 18:50" 
+Таким образом вы укажите через разделитель ";" стоимость покупки, саму покупку, где покупали и когда.
                 """
+#Чтобы узнать что сегодня следует купить отправьте
+#"/basket_today"
             }
 	    Telegram.send_message(new_message)
         elif message.find('/qrcode') >= 0 or message.find('Qrcode') >= 0 or \
@@ -1450,7 +1458,7 @@ class Telegram(object):
                 #r.append(cls.__transfer_from_cheque_element_to_message_text_v2('-', k))
                 r.append(cls.__transfer_from_cheque_element_to_message_text_v2(u'\u2796', k))
                 #r.append(cls.__transfer_from_cheque_element_to_message_text_v2('+', shop_2_element_2_best_element[shop][k]))
-                r.append(cls.__transfer_from_cheque_element_to_message_text_v2(u'\u2795', shop_2_element_2_best_element[shop][k]))
+                r.append(cls.__transfer_from_cheque_element_to_message_text_v3(u'\u2795', shop_2_element_2_best_element[shop][k]))
                 count += 1
                 if count > max_count:
                     rr.append(r)
@@ -1512,6 +1520,14 @@ class Telegram(object):
     @classmethod
     def __transfer_from_cheque_element_to_message_text_v2(cls, sufix, k):
         return sufix + ' ' + str(k.get_price() / 100) + u' \u20bd ' + k.get_title()
+
+    @classmethod
+    def __transfer_from_cheque_element_to_message_text_v3(cls, sufix, k):
+        last_update_datetime = k.fns_cheque.format_fns_dateTime_2_DateTime()
+        t = last_update_datetime.timetuple()
+        m = [u'января', u'февраля', u'марта', u'апреля', u'мая', u'июня', u'июля', u'августа', u'сентября', u'октября', u'ноября', u'декабря']
+        #return sufix + ' ' + str(k.get_price() / 100) + u' \u20bd ' + k.get_title() + ' ' + k.get_datetime() + u' обновление от ' + m[t[1]-1] + ' ' + str(t[0])
+        return sufix + ' ' + str(k.get_price() / 100) + u' \u20bd ' + k.get_title() + u' обновление от ' + m[t[1]-1] + ' ' + str(t[0])
 
     @classmethod
     def __was_message_processed(cls, update_id):
