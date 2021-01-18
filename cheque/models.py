@@ -145,16 +145,17 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
 	        if re.findall(u'г. ' + city + u',', fns_cheque.get_shop_info_string()):
                     #return u'г.' + city + u','
                     return city
-
+        print 'Error: NED FIX CITY '
+        return 'Moscow'
 
     @classmethod
     def find_cheques_in_company_with_inn(cls, company, user_inn):
-        return list(FNSCheque.objects.filter(company=company, fns_userInn=user_inn))
+        return list(FNSCheque.objects.filter(company=company, fns_userInn=user_inn)[:3000])
 
     @classmethod
     def find_cheques_in_company_with_user(cls, company, user):
         cheques = []
-        for c in FNSCheque.objects.filter(company=company):
+        for c in FNSCheque.objects.filter(company=company)[:3000]:
             if user == c.get_user():
                 cheques.append(c)
         return cheques
@@ -412,16 +413,33 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
 
     @classmethod
     def has_cheque_with_fiscal_params(cls, company, fiscalDocumentNumber, fiscalDriveNumber, fiscalSign, dateTime, totalSum):
-        for cheque in FNSCheque.objects.filter(
+        if FNSCheque.objects.filter(
             company=company,
             fns_fiscalDocumentNumber=fiscalDocumentNumber,
             fns_fiscalDriveNumber=fiscalDriveNumber,
             fns_fiscalSign=fiscalSign,
             fns_dateTime__contains=dateTime,
-            fns_totalSum=totalSum):
+            fns_totalSum=totalSum).count() > 0:
             print '---has cheque----------'
-            print cheque
+            print FNSCheque.objects.get(
+            company=company,
+            fns_fiscalDocumentNumber=fiscalDocumentNumber,
+            fns_fiscalDriveNumber=fiscalDriveNumber,
+            fns_fiscalSign=fiscalSign,
+            fns_dateTime__contains=dateTime,
+            fns_totalSum=totalSum)
             return True
+
+        #for cheque in FNSCheque.objects.filter(
+        #    company=company,
+        #    fns_fiscalDocumentNumber=fiscalDocumentNumber,
+        #    fns_fiscalDriveNumber=fiscalDriveNumber,
+        #    fns_fiscalSign=fiscalSign,
+        #    fns_dateTime__contains=dateTime,
+        #    fns_totalSum=totalSum):
+        #    print '---has cheque----------'
+        #    print cheque
+        #    return True
         return False
 
     @classmethod
