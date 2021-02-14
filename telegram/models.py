@@ -1325,6 +1325,9 @@ class Telegram(object):
 
     @classmethod
     def __send_message_include_offer_with_best_recomended_price_v2(cls, company, chat_id, cheque):
+        # нужно пока остановить рекомнедации так как отжирает много памяти и падает
+        return
+
         element_2_elements = {}
         for element in FNSChequeElement.objects.filter(fns_cheque=cheque):
             title = element.name
