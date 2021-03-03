@@ -57,7 +57,7 @@ class Telegram(object):
 #u'update_id': 397005609}
 
 
-#https://api.telegram.org/bot1185379535:AAFH80I6a84DA26U1ue91IOj3o5TpyfOZx0/getFile?file_id=AgACAgIAAxkBAAIOLV_bm_ADUaQ8SPjcyA1Ht44OVxQsAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ
+#https://api.telegram.org/botXXXXX:YYYYYYY/getFile?file_id=AgACAgIAAxkBAAIOLV_bm_ADUaQ8SPjcyA1Ht44OVxQsAAKbsjEboo7ZSqgpZRT7PU4omo2gli4AAwEAAwIAA3kAAz5sBQABHgQ
 #{
 #    "ok": true,
 #    "result": {
@@ -68,7 +68,7 @@ class Telegram(object):
 #    }
 #}
 
-#https://api.telegram.org/file/bot1185379535:AAFH80I6a84DA26U1ue91IOj3o5TpyfOZx0/photos/file_1.jpg
+#https://api.telegram.org/file/botXXXXXXX:YYYYYYYY/photos/file_1.jpg
 #Получаем фаил
 
 #TODO добавили бота в группу
