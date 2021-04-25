@@ -17,6 +17,7 @@ class Command(BaseCommand):
 	    #with start_transaction(op="task", name='ART Telegram.process_last_messages_from_bot()'):
 	    with start_transaction(op="task"):
 		try:
+		    #d = 1 / 0 
 		    Telegram.process_last_messages_from_bot()
                 #except:
 		except Exception as e:
@@ -25,10 +26,10 @@ class Command(BaseCommand):
 		    import sys
 		    print sys.exc_info()
 		    traceback.print_exception(*sys.exc_info())
+		    capture_exception(e)
 		    print '------------sleep-----'
 		    time.sleep(15)
 		    print '------------'
 
-		    capture_exception(e)
 
 

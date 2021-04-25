@@ -15,6 +15,8 @@ from datetime import datetime
 import re
 import time
 
+from sentry_sdk import capture_exception, capture_message
+
 class ProcessedMessage(models.Model):
     json = models.TextField(blank=True, )
     message_id = models.CharField(blank=True, max_length=254) # ид собщения в рамках чата
@@ -165,6 +167,8 @@ class Telegram(object):
                 u'text': u'Данных параметров не достаточно для проверки чека.',
             }
             Telegram.send_message(new_message)
+
+            capture_message('Error: Not find necessary params from user','fatal')
             return
 
         for text in message_text.split(' '):
@@ -204,6 +208,7 @@ class Telegram(object):
                 u'chat_id': chat_id,
                 u'text': u'Не смогли загрузить ваш чек :' + qr_text,
             }
+            capture_message('Error: Not load your cheque','fatal')
             Telegram.send_message(new_message)
  
     @classmethod
@@ -498,7 +503,10 @@ class Telegram(object):
 
 
 
-        r = requests.post('https://proverkacheka.com/check/get', files={'qrfile': new_file})
+        #r = requests.post('https://proverkacheka.com/check/get', files={'qrfile': new_file})
+        #r = requests.post('https://proverkacheka.com/api/v1/check/get', files={'qrfile': new_file}, data={'qrurl': '', 'qr': '2', 'token': '0.19'})
+        r = requests.post('https://proverkacheka.com/api/v1/check/get', files={'qrfile': new_file}, data={'qrurl': '', 'qr': '2', 'token': '0.19'})
+        #r = requests.post('https://proverkacheka.com/api/v1/check/get', files={'qrfile': new_file}, data={'qrurl': '', 'qr': '2'})
 
         #print r.text.encode('utf8')
         #rr = r.json()
@@ -509,6 +517,8 @@ class Telegram(object):
             decoded_result = r.json()
             return decoded_result
         else:
+            capture_message('Error: proverkacheka.com not recognize image','fatal')
+
             print r.text.encode('utf8')
             return r.text.encode('utf8')
             #non_json_result = r.data
@@ -638,11 +648,13 @@ class Telegram(object):
         fns_cheque_json = cls.get_fns_cheque_json_from_proverkacheka_com(new_file)
         if not fns_cheque_json or not type(fns_cheque_json) == dict:
             print 'Error: Not find json' 
+            capture_message('Error: Not find json in answer from proverkacheka','fatal')
             cls.__send_error_when_load_photo_with_qr_kode(chat_id, fns_cheque_json)
             return False
 
         if not fns_cheque_json.get('data') or not type(fns_cheque_json['data']) == dict  or not fns_cheque_json['data'].get('json'):
             print 'Error: Bad json format'
+            capture_message('Error: Bad json format in answer from proverkacheka','fatal')
             cls.__send_error_when_load_photo_with_qr_kode(chat_id, fns_cheque_json)
             return False
 
@@ -1178,9 +1190,12 @@ class Telegram(object):
             ##print data
             #data_r = json.load(responce)
             #print data_r
-        except:
+        #except:
+	except Exception as e:
             import traceback
             traceback.print_exc()
+
+	    capture_exception(e)
 
         #responce = urllib2.urlopen(request, timeout=request_timeout)
 #	print "result code: " + str(responce.getcode()) 

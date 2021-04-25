@@ -15,6 +15,8 @@ import ast # нужен для того чтобы из сохраненного
 
 from datetime import datetime
 
+from sentry_sdk import capture_exception, capture_message
+
 """
 json чека ипортированного из ФНС России
 место хранения
@@ -577,7 +579,8 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
                     sum=elemnt.get("sum"),
                 )
                 fns_cheque_element.save()
-            except:
+            #except:
+	    except Exception as e:
                 import traceback
                 traceback.print_exc()
                 #traceback.print_exception()
@@ -586,6 +589,8 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
                 traceback.print_exception(*sys.exc_info())
                 #traceback.print_stack()
                 print '------------'
+
+		capture_exception(e)
 
     def __unicode__(self):
         return u"FNSCheque = FDN: %s, FD: %s, FS: %s, DT: %s, TS: %s" % (self.fns_fiscalDocumentNumber, self.fns_fiscalDriveNumber, self.fns_fiscalSign, self.fns_dateTime, self.fns_totalSum)
@@ -952,6 +957,8 @@ class ImportProverkachekaComFormatLikeFNS(object):
         #    not fns_cheque_json['data'].get('json'):
         if not type(fns_cheque_json) is dict or not type(fns_cheque_json['data']) is dict:
             print u'Alert: This is not good JSON!'
+
+            capture_message('Error: Answer from proverkacheka has not good json','fatal')
             return
 
         fns_cheque_json["document"] = {}
@@ -1045,7 +1052,8 @@ class IsPackedAndWeight(object):
         try:
             w = cls.weight_from_cheque_title(title)
             return True
-        except:
+        #except:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             #traceback.print_exception()
@@ -1054,6 +1062,8 @@ class IsPackedAndWeight(object):
             traceback.print_exception(*sys.exc_info())
             #traceback.print_stack()
             print '------------'
+
+	    capture_exception(e)
 
             return False
 

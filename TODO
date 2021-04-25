@@ -111,3 +111,6 @@ for i in offer_analytics:
 #nohup python botstart.py &
 nohup ./manage.py botstart &
 
+
+для запуск админки 
+./manage.py runserver 0.0.0.0:7777
