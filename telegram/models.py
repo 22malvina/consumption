@@ -772,6 +772,7 @@ class Telegram(object):
         elif QRCodeReader.has_5_params_for_create_cheque(message):
             params = QRCodeReader.parse_1(message)
             qr_text = '&'.join(map(lambda k: k + '=' + params[k], params.keys()))
+            qr_text += '&n=1'
 	    Telegram.__add_new_cheque_by_qr_text_and_send_answer_to_telegram_chat(company, qr_text, chat_id)
 
         elif message.find('/basket_today') >= 0 or message.find('Basket_today') >= 0:
@@ -818,7 +819,12 @@ class Telegram(object):
                     print 'Alert: Need fix'
                     continue
 
-                year_month = __get_year_month(cheque.fns_dateTime)
+                try:
+                    year_month = __get_year_month(cheque.fns_dateTime)
+                except:
+                    print 'Error: Bad year_month in date!'
+                    capture_message('Error: Bad year_month in date!','fatal')
+                    year_month = ''
                 category_title = __get_cat_title(cheque)
 
                 if not d.has_key(year_month):

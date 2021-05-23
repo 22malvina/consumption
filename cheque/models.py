@@ -388,6 +388,9 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
 
     @staticmethod
     def import_from_proverkacheka_com_format_like_fns(qr_text, company):
+        """
+        DEPRICATED
+        """
         qr_params = QRCodeReader.qr_text_to_params(qr_text)
         if len(qr_params.keys()) != 5:
             print 'Error: Not enough params'
@@ -477,6 +480,8 @@ u'116 –й км.', u'Абаза', u'Абакан', u'Абан', u'Абатск�
     @classmethod
     def save_cheque_from_fns_cheque_json(cls, company, fns_cheque_json):
         """
+        DEPRICATED
+
         fix надо разделить на три метода:
             1 сохраннеие в базу
             2 создать(если такого еще нет) товары на основе имеющихся продуктов
@@ -935,21 +940,50 @@ class ImportProverkachekaComFormatLikeFNS(object):
 	#print "result code: " + str(webUrl.getcode()) 
 	#print data
 
-	req = urllib2.Request('https://proverkacheka.com/check/get')
+#	req = urllib2.Request('https://proverkacheka.com/check/get')
+#        da = urllib.urlencode({
+#            #'qrraw': 't=20201107T2058&s=63.00&fn=9288000100192401&i=439&fp=2880362760&n=1',
+#            'qrraw': qr_text,
+#            'qr': 3,
+#
+#            #requests.post('https://proverkacheka.com/api/v1/check/get
+#            #'qrurl': '',
+#            #'qr': '2',
+#            #'token': '0.19',
+#        })
+#        data = urllib2.urlopen(url=req, data=da).read()
+#        #time.sleep(1)
+#        #print data
+#
+#        # удалил блок html
+#        #data = '{"code":1,"data":{"json":{"code":3,"items":[{"nds":2,"sum":6300,"name":"Чизбургер с луком СБ","price":6300,"ndsSum":573,"quantity":1,"paymentType":4,"productType":1}],"nds10":573,"userInn":"7729532221","dateTime":"2020-11-07T20:58:00","kktRegId":"0000677159011474","operator":"Тамаева Минара","totalSum":6300,"creditSum":0,"fiscalSign":2880362760,"prepaidSum":0,"shiftNumber":6,"cashTotalSum":0,"provisionSum":0,"ecashTotalSum":6300,"operationType":1,"requestNumber":203,"fiscalDriveNumber":"9288000100192401","fiscalDocumentNumber":439,"fiscalDocumentFormatVer":2},"html":""}}'
+#
+#        #return json.loads(data)
+#        fns_cheque_json = json.loads(data)
+
+	#req = urllib2.Request('https://proverkacheka.com/check/get')
+	req = urllib2.Request('https://proverkacheka.com/api/v1/check/get')
         da = urllib.urlencode({
-            #'qrraw': 't=20201107T2058&s=63.00&fn=9288000100192401&i=439&fp=2880362760&n=1',
             'qrraw': qr_text,
-            'qr': 3,
+            'qr': '3',
+            #'token': '0.65',
+            #'token': '0.55',
+            'token': '0.13',
         })
-        data = urllib2.urlopen(url=req, data=da).read()
+        response = urllib2.urlopen(url=req, data=da)
         #time.sleep(1)
         #print data
 
-        # удалил блок html
-        #data = '{"code":1,"data":{"json":{"code":3,"items":[{"nds":2,"sum":6300,"name":"Чизбургер с луком СБ","price":6300,"ndsSum":573,"quantity":1,"paymentType":4,"productType":1}],"nds10":573,"userInn":"7729532221","dateTime":"2020-11-07T20:58:00","kktRegId":"0000677159011474","operator":"Тамаева Минара","totalSum":6300,"creditSum":0,"fiscalSign":2880362760,"prepaidSum":0,"shiftNumber":6,"cashTotalSum":0,"provisionSum":0,"ecashTotalSum":6300,"operationType":1,"requestNumber":203,"fiscalDriveNumber":"9288000100192401","fiscalDocumentNumber":439,"fiscalDocumentFormatVer":2},"html":""}}'
+        if response.code != 200:
+            print u'Alert: Answer not 200 !=', response.code 
+            capture_message('Error: Answer from proverkacheka not 200','fatal')
+            return
 
-        #return json.loads(data)
+        data = response.read()
+
+
         fns_cheque_json = json.loads(data)
+
 
         #if not type(fns_cheque_json) is dict or \
         #    not fns_cheque_json.get('data') or \
@@ -957,6 +991,7 @@ class ImportProverkachekaComFormatLikeFNS(object):
         #    not fns_cheque_json['data'].get('json'):
         if not type(fns_cheque_json) is dict or not type(fns_cheque_json['data']) is dict:
             print u'Alert: This is not good JSON!'
+            print data
 
             capture_message('Error: Answer from proverkacheka has not good json','fatal')
             return
