@@ -652,6 +652,14 @@ class Telegram(object):
             cls.__send_error_when_load_photo_with_qr_kode(chat_id, fns_cheque_json)
             return False
 
+
+        #if fns_cheque_json.get('data'):
+        #    import base64
+        #    encoded_data = base64.b64decode(fns_cheque_json.get('data'))
+        #    print encoded_data.encode('utf8')
+        #    print 'Error: Bad json format 2'
+        #    return False
+
         if not fns_cheque_json.get('data') or not type(fns_cheque_json['data']) == dict  or not fns_cheque_json['data'].get('json'):
             print 'Error: Bad json format'
             capture_message('Error: Bad json format in answer from proverkacheka','fatal')
